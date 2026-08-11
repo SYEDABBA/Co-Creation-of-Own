@@ -13,7 +13,7 @@ import re
 import time
 import textwrap
 import datetime
-from typing import Optional
+from typing import Optional, List
 
 try:
     import google.generativeai as genai
@@ -29,13 +29,6 @@ if not GEMINI_API_KEY:
 
 # Configure Gemini Client
 genai.configure(api_key=GEMINI_API_KEY)
-
-# Active Gemini models list with fallback
-CANDIDATE_MODELS = [
-    "gemini-1.5-flash",
-    "gemini-1.5-pro",
-    "gemini-2.0-flash",
-]
 
 MAX_RETRIES = 3
 TIMEOUT_BETWEEN_RETRIES = 2
@@ -66,20 +59,37 @@ Make the tool practical, original, and clean.
 """
 
 
+def get_available_models() -> List[str]:
+    """
+    Dynamically fetch available content generation models from Gemini API.
+    """
+    models = []
+    try:
+        for m in genai.list_models():
+            if "generateContent" in m.supported_generation_methods:
+                models.append(m.name)
+        print(f"📋 Discovered active models: {models}")
+    except Exception as err:
+        print(f"⚠️ Failed to list models: {err}")
+    
+    # Preferred order fallbacks if listing fails
+    if not models:
+        models = ["models/gemini-1.5-flash", "models/gemini-1.5-pro", "gemini-1.5-flash"]
+    return models
+
+
 def call_gemini(prompt_text: str) -> str:
     """
-    Call Google Gemini API using google-generativeai SDK with automatic model fallback.
+    Call Google Gemini API using dynamically discovered working models.
     """
+    candidate_models = get_available_models()
     last_exception = None
     full_prompt = f"{SYSTEM_INSTRUCTION}\n\nTask:\n{prompt_text}"
 
-    for model_name in CANDIDATE_MODELS:
+    for model_name in candidate_models:
         try:
-            print(f"🔄 Requesting from model: {model_name}...")
-            model = genai.GenerativeModel(
-                model_name=model_name,
-                generation_config={"temperature": 0.2, "response_mime_type": "application/json"}
-            )
+            print(f"🔄 Requesting from active model: {model_name}...")
+            model = genai.GenerativeModel(model_name=model_name)
             response = model.generate_content(full_prompt)
             if response and response.text:
                 print(f"✨ Success using model: {model_name}")
@@ -89,7 +99,7 @@ def call_gemini(prompt_text: str) -> str:
             last_exception = exc
             continue
 
-    raise RuntimeError(f"All candidate Gemini models failed. Last error: {last_exception}")
+    raise RuntimeError(f"All available Gemini models failed. Last error: {last_exception}")
 
 
 def find_balanced_json(text: str) -> Optional[str]:
@@ -206,7 +216,7 @@ def main():
                 sanitized_name = "YugraalTool" + datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%d%H%M%S")
             parsed["project_name"] = sanitized_name
 
-            # Test compile code syntax
+            # Syntax validation test
             compile_err = compile_python_source(parsed["code"])
             if compile_err:
                 print(f"⚠️ Syntax Error detected: {compile_err}")
