@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 YUGRAAL Co-Creator Web Engine - co_creator.py
-Autonomous System generating Production-Ready Single Page Web Applications.
+Autonomous System generating Production-Ready Web Apps with Pure Cause-Driven Donation UI.
 """
 
 import os
@@ -29,29 +29,36 @@ genai.configure(api_key=GEMINI_API_KEY)
 MAX_RETRIES = 3
 TIMEOUT_BETWEEN_RETRIES = 2
 
-SYSTEM_INSTRUCTION = """
+# Global Cause & Donation Config
+UPI_ID = "donation1@postbank"
+UPI_NAME = "ASKAR ALI"
+
+SYSTEM_INSTRUCTION = f"""
 You are YUGRAAL Co-Creator Web Engine — an elite AI software architect that invents futuristic, highly functional, beautifully designed web applications.
 You MUST reply ONLY with valid JSON (no surrounding markdown wrappers outside JSON).
 
 Output Schema:
-{
+{{
   "project_name": "UniqueDescriptiveCamelCaseName",
   "purpose": "Detailed explanation of what this web app does.",
   "usefulness": "Why users will love and use this tool daily.",
-  "live_url_path": "Path to access the live app",
-  "html_code": "COMPLETE standalone index.html containing modern HTML5, embedded CSS (or Tailwind CSS CDN), and embedded modular JavaScript logic."
-}
+  "html_code": "COMPLETE standalone index.html containing modern HTML5, embedded CSS (or Tailwind CSS CDN), embedded modular JavaScript logic, AND a Cause-Driven Charity Section."
+}}
 
 Rules:
-1. 'html_code' MUST be a fully functional, beautiful single-file web application containing <!DOCTYPE html>, head with Tailwind CDN (<script src='https://cdn.tailwindcss.com'></script>), Lucide/FontAwesome icons CDN, clean dark-mode futuristic glassmorphism UI, and functional JS logic.
-2. The web app MUST be an impressive utility (e.g., Cyberpunk Audio Visualizer, Live Developer Code Playground, AI Prompt Builder & Manager, Realtime Crypto/Stock Dashboard Visualizer, Interactive Canvas Game/Physics Engine, Advanced Markdown/PDF Studio).
-3. ABSOLUTELY NO empty logic, placeholders, or incomplete features. Everything rendered on screen must work smoothly.
+1. 'html_code' MUST be a fully functional single-file web application with Tailwind CSS CDN, dark glassmorphism UI, and functional JS logic.
+2. CHARITY REQUIREMENT: NO affiliate links or ads allowed. Every generated page MUST include a clean, respectful, highly-aesthetic Charity & Support banner at the bottom containing:
+   - Clear Message: "95% of all contributions go directly towards Cancer Patient Support & School Education Initiatives (5% retained for server maintenance)".
+   - Receiver Details: Name '{UPI_NAME}', UPI ID '{UPI_ID}'.
+   - Interactive elements: A 'Copy UPI ID' button and a dynamic UPI QR image generation endpoint (using https://api.qrserver.com/v1/create-qr-code/?data=upi://pay?pa={UPI_ID}&pn=YUGRAAL_Cause).
+3. The core web app MUST be an impressive, usable utility.
 4. Do NOT use markdown code fences inside JSON string fields.
 """
 
 USER_PROMPT_TEMPLATE = """
 Invent a high-end, responsive, visually stunning web application. 
 Use modern dark UI, smooth animations, interactive features, and Tailwind CSS.
+Include the required 95% Charity / Donation Support card seamlessly into the footer layout. NO AFFILIATE ADS.
 Provide 100% working code inside 'html_code'.
 """
 
@@ -153,13 +160,17 @@ def format_readme(title: str, purpose: str, usefulness: str, app_folder: str) ->
     ## 🔥 Usefulness
     {usefulness}
 
+    ## ❤️ Cause & Donation Policy
+    - 95% of all funds collected go towards **Cancer Relief Funds** & **Underprivileged School Education Support**.
+    - 5% retained strictly for core infrastructure and server maintenance.
+    - UPI Receiver: `{UPI_NAME}` (`{UPI_ID}`)
+
     ## 🌐 Live Access
-    Open `index.html` directly in your browser or access it via GitHub Pages:
     `https://SYEDABBA.github.io/Co-Creation-of-Own/My_Work/{app_folder}/index.html`
     """)
 
 def main():
-    print("🔥 YUGRAAL Web App Engine Starting...")
+    print("🔥 YUGRAAL Charity-Driven Engine Starting...")
     current_prompt = USER_PROMPT_TEMPLATE
 
     for attempt in range(1, MAX_RETRIES + 1):
@@ -183,7 +194,7 @@ def main():
                 if attempt < MAX_RETRIES:
                     current_prompt = (
                         f"The generated web app was rejected: {html_error}. "
-                        "Please provide a complete, stunning single-file HTML5 app with Tailwind CSS and interactive JS."
+                        "Please provide a complete single-file HTML5 app with Tailwind CSS and charity section."
                     )
                     time.sleep(TIMEOUT_BETWEEN_RETRIES)
                     continue
@@ -203,7 +214,7 @@ def main():
                 parsed["project_name"], parsed["purpose"], parsed["usefulness"], folder_name
             ))
 
-            commit_msg = f"YUGRAAL Co-Creator: Launched Web App {parsed['project_name']} ({utc_now.strftime('%Y-%m-%d %H:%M:%S UTC')})"
+            commit_msg = f"YUGRAAL Co-Creator: Launched Charity Web App {parsed['project_name']} ({utc_now.strftime('%Y-%m-%d %H:%M:%S UTC')})"
             write_file(os.path.join("My_Work", "last_commit_message.txt"), commit_msg)
 
             print(f"✅ SUCCESS: Created Web App '{parsed['project_name']}' in '{target_dir}'")
@@ -217,4 +228,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
