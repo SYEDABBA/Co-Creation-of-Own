@@ -16,10 +16,9 @@ import datetime
 from typing import Optional
 
 try:
-    from google import genai
-    from google.genai import types
+    import google.generativeai as genai
 except ImportError:
-    print("Missing dependency 'google-genai'. Install with: pip install google-genai", file=sys.stderr)
+    print("Missing dependency 'google-generativeai'. Install with: pip install google-generativeai", file=sys.stderr)
     sys.exit(1)
 
 # Check API Key
@@ -28,14 +27,14 @@ if not GEMINI_API_KEY:
     print("ERROR: GEMINI_API_KEY environment variable is not set.", file=sys.stderr)
     sys.exit(2)
 
-# Initialize Gemini Client
-client = genai.Client(api_key=GEMINI_API_KEY)
+# Configure Gemini Client
+genai.configure(api_key=GEMINI_API_KEY)
 
-# Fallback models in order of performance and availability
+# Active Gemini models list with fallback
 CANDIDATE_MODELS = [
-    "gemini-2.5-flash",
     "gemini-1.5-flash",
     "gemini-1.5-pro",
+    "gemini-2.0-flash",
 ]
 
 MAX_RETRIES = 3
@@ -69,26 +68,24 @@ Make the tool practical, original, and clean.
 
 def call_gemini(prompt_text: str) -> str:
     """
-    Call Google Gemini API with candidate model fallback logic.
+    Call Google Gemini API using google-generativeai SDK with automatic model fallback.
     """
     last_exception = None
-    for model in CANDIDATE_MODELS:
+    full_prompt = f"{SYSTEM_INSTRUCTION}\n\nTask:\n{prompt_text}"
+
+    for model_name in CANDIDATE_MODELS:
         try:
-            print(f"🔄 Requesting from model: {model}...")
-            response = client.models.generate_content(
-                model=model,
-                contents=prompt_text,
-                config=types.GenerateContentConfig(
-                    system_instruction=SYSTEM_INSTRUCTION,
-                    temperature=0.2,
-                    response_mime_type="application/json",
-                )
+            print(f"🔄 Requesting from model: {model_name}...")
+            model = genai.GenerativeModel(
+                model_name=model_name,
+                generation_config={"temperature": 0.2, "response_mime_type": "application/json"}
             )
-            if response.text:
-                print(f"✨ Success using model: {model}")
+            response = model.generate_content(full_prompt)
+            if response and response.text:
+                print(f"✨ Success using model: {model_name}")
                 return response.text
         except Exception as exc:
-            print(f"⚠️ Model {model} failed: {exc}")
+            print(f"⚠️ Model {model_name} failed: {exc}")
             last_exception = exc
             continue
 
@@ -96,9 +93,6 @@ def call_gemini(prompt_text: str) -> str:
 
 
 def find_balanced_json(text: str) -> Optional[str]:
-    """
-    Extract the first balanced JSON object substring from raw response text.
-    """
     cleaned = re.sub(r"```(?:json|python)?\n?", "", text, flags=re.IGNORECASE)
     cleaned = re.sub(r"```", "", cleaned)
 
@@ -119,9 +113,6 @@ def find_balanced_json(text: str) -> Optional[str]:
 
 
 def clean_code_field(code_text: str) -> str:
-    """
-    Strip backticks and format code safely.
-    """
     if not code_text:
         return ""
     
@@ -139,9 +130,6 @@ def clean_code_field(code_text: str) -> str:
 
 
 def sanitize_project_name(name: str) -> str:
-    """
-    Sanitize project name to valid CamelCase directory format.
-    """
     if not name:
         return ""
     cleaned = re.sub(r"[^A-Za-z0-9]", "", name)
@@ -162,9 +150,6 @@ def write_file(path: str, content: str):
 
 
 def compile_python_source(source: str) -> Optional[str]:
-    """
-    Validates Python syntax. Returns error string if invalid, else None.
-    """
     try:
         compile(source, "<generated_script>", "exec")
         return None
