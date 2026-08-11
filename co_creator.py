@@ -2,19 +2,8 @@
 """
 YUGRAAL Co-Creator Engine - co_creator.py
 
-Creates a new useful Python tool each run by calling the OpenAI API (gpt-4o-mini / gpt-4o).
-Saves the generated code and README into My_Work/{project_name}_{YYYYMMDD_HHMMSS}/
-Writes a commit message file to My_Work/last_commit_message.txt for the workflow to use.
-
-Requires:
-  - Environment variable OPENAI_API_KEY set.
-  - pip install openai
-
-Behavior:
-  - Requests strictly-formatted JSON from the LLM.
-  - Cleans and robustly parses the JSON.
-  - Validates the Python code (compile check), asks the LLM to fix code if needed (retry loop).
-  - Produces main.py and README.md. Prints concise status messages.
+Autonomous AI system that invents a new Python utility script on every run,
+validates syntax, handles self-repair on failure, and outputs structured code & docs.
 """
 
 import os
@@ -28,24 +17,25 @@ from typing import Optional
 
 try:
     import openai
-except Exception as e:
+except ImportError:
     print("Missing dependency 'openai'. Install with: pip install openai", file=sys.stderr)
-    raise
+    sys.exit(1)
 
+# Check API Key
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 if not OPENAI_API_KEY:
     print("ERROR: OPENAI_API_KEY environment variable is not set.", file=sys.stderr)
     sys.exit(2)
 
-openai.api_key = OPENAI_API_KEY
+# Initialize modern OpenAI v1 Client
+client = openai.OpenAI(api_key=OPENAI_API_KEY)
 
-MODEL_NAME = "gpt-4o-mini"  # change to "gpt-4o" if available/preferred
+MODEL_NAME = "gpt-4o-mini"  # Can be changed to "gpt-4o"
 MAX_RETRIES = 3
 TIMEOUT_BETWEEN_RETRIES = 1  # seconds
 
-
 SYSTEM_INSTRUCTION = """
-You are YUGRAAL Co-Creator Engine — an autonomous inventor that MUST reply ONLY with JSON (no extra text).
+You are YUGRAAL Co-Creator Engine — an autonomous inventor that MUST reply ONLY with JSON (no markdown wrapping, no extra text).
 Produce a JSON object matching EXACTLY this schema:
 
 {
@@ -57,50 +47,46 @@ Produce a JSON object matching EXACTLY this schema:
 }
 
 Requirements:
-- project_name must be a short CamelCase identifier (letters and numbers only, no spaces).
-- code must be a complete Python program usable as a script (no "```" fences). If you include fences, they will be removed.
-- How to use should show terminal commands and examples.
-- Respond ONLY with the JSON object, nothing else.
+- project_name must be a short CamelCase identifier (letters and numbers only).
+- code must be a complete, self-contained, runnable Python script. Do NOT include markdown code fences (like ```python) in the JSON value.
+- how_to_use should show exact terminal commands and usage examples.
+- Respond strictly with valid JSON.
 """
 
 USER_PROMPT_TEMPLATE = """
-Invent a small but genuinely useful Python utility/tool (single-file) that can be implemented as a command-line script.
-Return JSON exactly as described by the system instructions. Ensure the Python code is complete and runnable.
-Make the tool original and practical.
-
-Return only the JSON object.
+Invent a small but genuinely useful Python CLI utility that solves a practical developer or daily automation task.
+Return JSON strictly matching the system instruction schema.
+Make the tool practical, original, and clean.
 """
 
 
-def call_openai(messages, max_tokens=3000):
+def call_openai(messages: list, max_tokens: int = 3000) -> str:
     """
-    Call OpenAI ChatCompletion endpoint and return the text result.
+    Call OpenAI Chat Completions using the latest v1.0+ SDK syntax.
     """
     try:
-        resp = openai.ChatCompletion.create(
+        response = client.chat.completions.create(
             model=MODEL_NAME,
             messages=messages,
             temperature=0.2,
             max_tokens=max_tokens,
         )
-        return resp.choices[0].message["content"]
-    except Exception as e:
-        raise
+        return response.choices[0].message.content or ""
+    except Exception as exc:
+        raise RuntimeError(f"OpenAI API Call failed: {exc}") from exc
 
 
 def find_balanced_json(text: str) -> Optional[str]:
     """
-    Try to extract the first balanced JSON object substring from text.
-    Returns string including the enclosing braces, or None.
+    Extract the first balanced JSON object substring from raw response text.
     """
-    # Remove common markdown code fences first to avoid hiding braces
     cleaned = re.sub(r"```(?:json|python)?\n?", "", text, flags=re.IGNORECASE)
     cleaned = re.sub(r"```", "", cleaned)
 
-    # Find first '{' and attempt to find matching '}' by counting braces
     start_idx = cleaned.find("{")
     if start_idx == -1:
         return None
+    
     depth = 0
     for i in range(start_idx, len(cleaned)):
         ch = cleaned[i]
@@ -115,39 +101,35 @@ def find_balanced_json(text: str) -> Optional[str]:
 
 def clean_code_field(code_text: str) -> str:
     """
-    Remove triple backticks and any leading language hints, then trim.
+    Strip backticks and format code safely.
     """
     if not code_text:
-        return code_text
-    # Remove triple backtick fences if present
-    # Keep inner content only.
-    # Example fences: ```python\n...``` or ```\n...\n```
+        return ""
+    
     fence_re = re.compile(r"```(?:\w+)?\n(.*)```", re.DOTALL)
     m = fence_re.search(code_text)
-    if m:
-        code = m.group(1)
-    else:
-        code = code_text
-    # Strip leading/trailing whitespace
+    code = m.group(1) if m else code_text
+
     code = code.strip("\n\r ")
-    # If code was returned as a JSON string with escaped newlines, unescape:
-    code = code.encode('utf-8').decode('unicode_escape') if "\\n" in code else code
+    if "\\n" in code and "\n" not in code:
+        try:
+            code = code.encode('utf-8').decode('unicode_escape')
+        except Exception:
+            pass
     return code
 
 
 def sanitize_project_name(name: str) -> str:
     """
-    Keep only alphanumeric characters, enforce CamelCase-like capitalization if possible.
-    Fallback to Project+timestamp if sanitization empties the name.
+    Sanitize project name to valid CamelCase directory format.
     """
     if not name:
         return ""
     cleaned = re.sub(r"[^A-Za-z0-9]", "", name)
     if not cleaned:
         return ""
-    # Ensure first char is letter
     if not cleaned[0].isalpha():
-        cleaned = "P" + cleaned
+        cleaned = "Yugraal" + cleaned
     return cleaned
 
 
@@ -162,13 +144,13 @@ def write_file(path: str, content: str):
 
 def compile_python_source(source: str) -> Optional[str]:
     """
-    Attempt to compile the source. Return None on success, or the error message.
+    Validates Python syntax. Returns error string if invalid, else None.
     """
     try:
-        compile(source, "<generated_main>", "exec")
+        compile(source, "<generated_script>", "exec")
         return None
-    except Exception as e:
-        return str(e)
+    except Exception as err:
+        return str(err)
 
 
 def format_readme(title: str, purpose: str, usefulness: str, how_to_use: str) -> str:
@@ -186,135 +168,109 @@ def format_readme(title: str, purpose: str, usefulness: str, how_to_use: str) ->
     """)
 
 
-def create_prompt_messages_for_initial_call():
-    return [
-        {"role": "system", "content": SYSTEM_INSTRUCTION},
-        {"role": "user", "content": USER_PROMPT_TEMPLATE},
-    ]
-
-
 def create_followup_fix_prompt(prev_json: dict, error_text: str) -> list:
     """
-    Ask the model to return the full JSON again but with corrected code to fix the provided syntax/runtime error.
+    Self-healing retry prompt sending syntax errors back to LLM for instant repair.
     """
     msg = (
-        "The previously returned JSON's 'code' field has a Python error when compiled/executed. "
-        "Provide a corrected JSON object (same schema) where only the 'code' content is changed to fix the error.\n\n"
-        f"Error encountered:\n{error_text}\n\n"
-        "Return the full JSON object and nothing else."
+        "The generated Python code in 'code' has a syntax error when compiled.\n"
+        f"Compilation Error:\n{error_text}\n\n"
+        "Fix the code and return the FULL valid JSON object again (same schema)."
     )
     return [
         {"role": "system", "content": SYSTEM_INSTRUCTION},
+        {"role": "assistant", "content": json.dumps(prev_json)},
         {"role": "user", "content": msg},
-        {"role": "assistant", "content": json.dumps(prev_json)},  # include previous as context
     ]
 
 
 def main():
-    print("YUGRAAL Co-Creator starting...")
-    messages = create_prompt_messages_for_initial_call()
+    print("🔥 YUGRAAL Co-Creator Engine Starting...")
+    messages = [
+        {"role": "system", "content": SYSTEM_INSTRUCTION},
+        {"role": "user", "content": USER_PROMPT_TEMPLATE},
+    ]
 
-    last_error = None
     for attempt in range(1, MAX_RETRIES + 1):
         try:
-            print(f"[{attempt}] Requesting invention from LLM...")
-            raw = call_openai(messages)
-            if not raw or not raw.strip():
-                raise RuntimeError("Empty response from LLM")
+            print(f"[{attempt}/{MAX_RETRIES}] Requesting invention from YUGRAAL Engine...")
+            raw_response = call_openai(messages)
+            if not raw_response.strip():
+                raise RuntimeError("Empty response received from LLM.")
 
-            # Try to find JSON substring
-            json_sub = find_balanced_json(raw)
-            if not json_sub:
-                # Maybe the model returned code-fenced JSON; remove fences and try again
-                stripped = re.sub(r"```(?:json)?\s*", "", raw, flags=re.IGNORECASE)
-                stripped = re.sub(r"```\s*", "", stripped)
-                json_sub = find_balanced_json(stripped)
-            if not json_sub:
-                raise ValueError("Could not locate a balanced JSON object in model response.")
+            json_str = find_balanced_json(raw_response)
+            if not json_str:
+                raise ValueError("Could not extract a valid JSON object from LLM response.")
 
             try:
-                parsed = json.loads(json_sub)
-            except json.JSONDecodeError as je:
-                # Try some cleanup: replace smart quotes, trailing commas, single quotes -> double quotes if safe
-                candidate = json_sub
-                candidate = candidate.replace('\u201c', '"').replace('\u201d', '"').replace("“", '"').replace("”", '"')
-                candidate = re.sub(r",\s*}", "}", candidate)
-                candidate = re.sub(r",\s*]", "]", candidate)
-                # Attempt to coerce single-quotes to double quotes only when keys/values are enclosed with single quotes
-                candidate2 = re.sub(r"(?P<pre>[:\s,\[]?)'(?P<inner>[^']*?)'(?P<post>[\s,\]\}])", r'\1"\2"\3', candidate)
-                try:
-                    parsed = json.loads(candidate2)
-                except Exception:
-                    raise RuntimeError(f"JSON decode failed: {je}. Raw JSON candidate: {json_sub[:400]}")
+                parsed = json.loads(json_str)
+            except json.JSONDecodeError:
+                # Cleanup formatting issues if any
+                cleaned_json = json_str.replace("“", '"').replace("”", '"')
+                cleaned_json = re.sub(r",\s*}", "}", cleaned_json)
+                cleaned_json = re.sub(r",\s*]", "]", cleaned_json)
+                parsed = json.loads(cleaned_json)
 
-            # Check required keys
             required_keys = {"project_name", "purpose", "usefulness", "how_to_use", "code"}
             if not required_keys.issubset(parsed.keys()):
                 missing = required_keys - set(parsed.keys())
-                raise ValueError(f"Missing required keys in JSON: {missing}")
+                raise ValueError(f"JSON missing required keys: {missing}")
 
-            # Clean code field
             parsed["code"] = clean_code_field(parsed["code"])
-
-            # Sanitize project name
-            original_name = parsed.get("project_name", "") or ""
-            sanitized_name = sanitize_project_name(original_name)
+            sanitized_name = sanitize_project_name(parsed.get("project_name", ""))
             if not sanitized_name:
-                sanitized_name = "Project" + datetime.datetime.utcnow().strftime("%Y%m%d%H%M%S")
+                sanitized_name = "YugraalTool" + datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%d%H%M%S")
             parsed["project_name"] = sanitized_name
 
-            # Validate Python code compiles
-            compile_error = compile_python_source(parsed["code"])
-            if compile_error:
-                last_error = compile_error
-                print(f"Compilation error detected: {compile_error}")
+            # Test compile code syntax
+            compile_err = compile_python_source(parsed["code"])
+            if compile_err:
+                print(f"⚠️ Syntax Error detected: {compile_err}")
                 if attempt < MAX_RETRIES:
-                    # Ask LLM to fix code only
-                    messages = create_followup_fix_prompt(parsed, compile_error)
-                    print("Requesting code fix from LLM...")
+                    print("🔄 Triggering Self-Healing repair loop...")
+                    messages = create_followup_fix_prompt(parsed, compile_err)
                     time.sleep(TIMEOUT_BETWEEN_RETRIES)
                     continue
                 else:
-                    raise RuntimeError(f"Compilation failed after {MAX_RETRIES} attempts: {compile_error}")
+                    raise RuntimeError(f"Code compilation failed after max retries: {compile_err}")
 
-            # All good: write files
-            now = datetime.datetime.utcnow()
-            timestamp = now.strftime("%Y%m%d_%H%M%S")
+            # Directories setup & saving
+            utc_now = datetime.datetime.now(datetime.timezone.utc)
+            timestamp = utc_now.strftime("%Y%m%d_%H%M%S")
             folder_name = f"{parsed['project_name']}_{timestamp}"
             target_dir = os.path.join("My_Work", folder_name)
             ensure_dir(target_dir)
 
             main_py_path = os.path.join(target_dir, "main.py")
             readme_path = os.path.join(target_dir, "README.md")
+
             write_file(main_py_path, parsed["code"])
-            readme_content = format_readme(parsed["project_name"], parsed["purpose"], parsed["usefulness"], parsed["how_to_use"])
-            write_file(readme_path, readme_content)
+            readme_body = format_readme(
+                parsed["project_name"],
+                parsed["purpose"],
+                parsed["usefulness"],
+                parsed["how_to_use"]
+            )
+            write_file(readme_path, readme_body)
 
-            # Write a commit message file for the workflow to consume
-            commit_message = f"YUGRAAL Co-Creator: Add {parsed['project_name']} ({now.strftime('%Y-%m-%d %H:%M:%S UTC')})"
-            commit_msg_file = os.path.join("My_Work", "last_commit_message.txt")
-            ensure_dir(os.path.dirname(commit_msg_file) or ".")
-            write_file(commit_msg_file, commit_message)
+            # Generate commit message file
+            commit_msg = f"YUGRAAL Co-Creator: Added {parsed['project_name']} ({utc_now.strftime('%Y-%m-%d %H:%M:%S UTC')})"
+            commit_msg_path = os.path.join("My_Work", "last_commit_message.txt")
+            ensure_dir(os.path.dirname(commit_msg_path))
+            write_file(commit_msg_path, commit_msg)
 
-            print(f"SUCCESS: Created project '{parsed['project_name']}' in {target_dir}")
-            print(f"Files written: {main_py_path}, {readme_path}")
-            print(f"Commit message written to: {commit_msg_file}")
+            print(f"✅ SUCCESS: Created project '{parsed['project_name']}' in '{target_dir}'")
+            print(f"📄 Files generated: {main_py_path}, {readme_path}")
             sys.exit(0)
 
         except Exception as exc:
-            print(f"Attempt {attempt} failed: {exc}", file=sys.stderr)
+            print(f"❌ Attempt {attempt} failed: {exc}", file=sys.stderr)
             if attempt >= MAX_RETRIES:
-                print("Max attempts reached. Exiting with failure.", file=sys.stderr)
-                # Write a failure marker file for diagnostics
-                try:
-                    ensure_dir("My_Work")
-                    write_file(os.path.join("My_Work", "last_error.txt"), f"Last error:\n{exc}\n")
-                except Exception:
-                    pass
+                print("💥 Max attempts reached. Exiting script.", file=sys.stderr)
+                ensure_dir("My_Work")
+                write_file(os.path.join("My_Work", "last_error.txt"), str(exc))
                 sys.exit(1)
-            else:
-                time.sleep(TIMEOUT_BETWEEN_RETRIES)
-                continue
+            time.sleep(TIMEOUT_BETWEEN_RETRIES)
 
 
 if __name__ == "__main__":
