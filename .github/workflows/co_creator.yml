@@ -1,4 +1,4 @@
-name: YUGRAAL Co-Creator Engine Schedule
+name: YUGRAAL Co-Creator Web Engine
 
 on:
   workflow_dispatch:
@@ -32,7 +32,7 @@ jobs:
         run: |
           python co_creator.py
 
-      - name: Commit and Push New Project
+      - name: Commit and Push New Web Project
         run: |
           git config --global user.name 'YUGRAAL-CoCreator[bot]'
           git config --global user.email 'yugraal-bot@users.noreply.github.com'
@@ -40,7 +40,7 @@ jobs:
           if [ -f "My_Work/last_commit_message.txt" ]; then
             COMMIT_MSG=$(cat My_Work/last_commit_message.txt)
           else
-            COMMIT_MSG="🤖 YUGRAAL Auto Invention Added"
+            COMMIT_MSG="🚀 YUGRAAL Web Application Added"
           fi
 
           git add My_Work/
