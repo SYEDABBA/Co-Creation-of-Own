@@ -42,7 +42,7 @@ Schema:
 }
 
 Rules:
-1. 'code' MUST be at least 15 lines of functional Python code with full logic, error handling, and argument parsing (argparse or sys.argv).
+1. 'code' MUST be at least 15 lines of functional Python code with full logic, error handling, and argument parsing.
 2. 'project_name' MUST reflect the actual functionality (e.g., FileEncryptor, LogParser, SpeedTester), NOT generic names like YugraalTool.
 3. ABSOLUTELY NO placeholders like '...' or 'TODO' or generic filler.
 """
@@ -53,16 +53,31 @@ Ensure it has complete, fully functional Python code.
 """
 
 def get_available_models() -> List[str]:
+    """
+    Filter and return ONLY valid Gemini text-generation models.
+    """
     models = []
+    # Primary reliable text models
+    preferred = ["models/gemini-1.5-flash", "models/gemini-1.5-pro", "models/gemini-2.0-flash"]
+    
     try:
         for m in genai.list_models():
+            # Exclude audio/tts/embedding/gemma models
+            name = m.name.lower()
             if "generateContent" in m.supported_generation_methods:
-                models.append(m.name)
+                if "gemini" in name and not any(x in name for x in ["tts", "embed", "imagen", "aqa", "vision"]):
+                    models.append(m.name)
     except Exception as err:
         print(f"⚠️ Failed to list models: {err}")
-    
+
+    # Fallback to preferred models if filtering list is empty
     if not models:
-        models = ["models/gemini-1.5-flash", "models/gemini-1.5-pro", "gemini-1.5-flash"]
+        models = preferred
+    else:
+        # Put primary preferred models first if present
+        models = sorted(models, key=lambda x: 0 if any(p in x for p in preferred) else 1)
+        
+    print(f"📋 Filtered text generation models: {models}")
     return models
 
 def call_gemini(prompt_text: str) -> str:
@@ -72,7 +87,7 @@ def call_gemini(prompt_text: str) -> str:
 
     for model_name in candidate_models:
         try:
-            print(f"🔄 Requesting from active model: {model_name}...")
+            print(f"🔄 Requesting from active text model: {model_name}...")
             model = genai.GenerativeModel(model_name=model_name)
             response = model.generate_content(full_prompt)
             if response and response.text:
@@ -130,13 +145,11 @@ def write_file(path: str, content: str):
         f.write(content)
 
 def validate_code_quality(source: str) -> Optional[str]:
-    # Check basic compilation
     try:
         compile(source, "<generated_script>", "exec")
     except Exception as err:
         return f"Syntax Error: {err}"
     
-    # Check for empty or lazy code
     lines = [line.strip() for line in source.splitlines() if line.strip()]
     if len(lines) < 8:
         return "Generated code is too short or incomplete."
@@ -174,11 +187,10 @@ def main():
             parsed = json.loads(json_str)
             required_keys = {"project_name", "purpose", "usefulness", "how_to_use", "code"}
             if not required_keys.issubset(parsed.keys()):
-                raise ValueError(f"Missing required keys.")
+                raise ValueError("Missing required keys in JSON.")
 
             parsed["code"] = clean_code_field(parsed["code"])
             
-            # Quality Validation Check
             code_error = validate_code_quality(parsed["code"])
             if code_error:
                 print(f"⚠️ Code Quality Warning: {code_error}")
@@ -194,7 +206,6 @@ def main():
 
             parsed["project_name"] = sanitize_project_name(parsed.get("project_name", "YugraalTool"))
 
-            # Save project files
             utc_now = datetime.datetime.now(datetime.timezone.utc)
             timestamp = utc_now.strftime("%Y%m%d_%H%M%S")
             folder_name = f"{parsed['project_name']}_{timestamp}"
