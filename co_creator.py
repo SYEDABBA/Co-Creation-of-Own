@@ -31,7 +31,7 @@ if not GEMINI_API_KEY:
 # Initialize modern Gemini Client
 client = genai.Client(api_key=GEMINI_API_KEY)
 
-MODEL_NAME = "gemini-2.5-flash"  # Fast, highly accurate, and free-tier friendly
+MODEL_NAME = "gemini-2.0-flash"  # Fast, highly accurate, and free-tier friendly
 MAX_RETRIES = 3
 TIMEOUT_BETWEEN_RETRIES = 2  # seconds
 
