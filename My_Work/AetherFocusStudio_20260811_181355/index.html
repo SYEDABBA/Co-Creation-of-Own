@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aether Focus Studio</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: { 500: '#6366f1', 600: '#4f46e5' }
+          }
+        }
+      }
+    }
+  </script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    .glass {
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .glass-card {
+      background: rgba(30, 41, 59, 0.6);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-indigo-500 selection:text-white">
+
+  <!-- Header -->
+  <header class="sticky top-0 z-50 glass border-b border-slate-800/80 px-6 py-4 flex justify-between items-center">
+    <div class="flex items-center space-x-3">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+        <i class="fa-solid fa-atom text-xl text-white"></i>
+      </div>
+      <div>
+        <h1 class="font-bold text-lg tracking-wide bg-gradient-to-r from-white via-slate-200 to-indigo-300 bg-clip-text text-transparent">AETHER FOCUS STUDIO</h1>
+        <p class="text-xs text-slate-400">Acoustic & Flow State Workspace</p>
+      </div>
+    </div>
+    <div class="flex items-center space-x-4">
+      <span id="live-time" class="text-sm font-mono text-indigo-300 bg-indigo-950/50 px-3 py-1 rounded-full border border-indigo-800/50">00:00:00</span>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+    
+    <!-- Left Column: Timer & Audio Generator -->
+    <section class="lg:col-span-7 flex flex-col gap-6">
+      
+      <!-- Focus Timer -->
+      <div class="glass-card rounded-2xl p-6 sm:p-8 flex flex-col items-center justify-center relative overflow-hidden">
+        <div class="absolute -top-24 -left-24 w-48 h-48 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="text-xs font-semibold uppercase tracking-widest text-indigo-400 mb-2">Pomodoro Focus Engine</div>
+        
+        <!-- Circular Timer Display -->
+        <div class="relative w-64 h-64 my-4 flex items-center justify-center">
+          <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="44" stroke="currentColor" stroke-width="6" class="text-slate-800" fill="transparent"/>
+            <circle id="timer-progress" cx="50" cy="50" r="44" stroke="currentColor" stroke-width="6" class="text-indigo-500 transition-all duration-1000 ease-linear" stroke-dasharray="276.46" stroke-dashoffset="0" stroke-linecap="round" fill="transparent"/>
+          </svg>
+          <div class="absolute flex flex-col items-center">
+            <span id="timer-display" class="text-5xl font-mono font-bold tracking-tight text-white">25:00</span>
+            <span id="timer-state" class="text-xs text-slate-400 mt-1 uppercase tracking-wider">Ready to Focus</span>
+          </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="flex items-center space-x-4 mt-2">
+          <button id="btn-start" onclick="toggleTimer()" class="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium shadow-lg shadow-indigo-600/30 transition-all flex items-center space-x-2">
+            <i id="play-icon" class="fa-solid fa-play text-sm"></i>
+            <span id="play-text">Start Session</span>
+          </button>
+          <button onclick="resetTimer()" class="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition-all">
+            <i class="fa-solid fa-rotate-right"></i>
+          </button>
+          <button onclick="setMode(25)" class="px-3 py-1.5 text-xs rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300">25m</button>
+          <button onclick="setMode(5)" class="px-3 py-1.5 text-xs rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300">5m Break</button>
+        </div>
+      </div>
+
+      <!-- Soundscape Generator -->
+      <div class="glass-card rounded-2xl p-6">
+        <h2 class="text-md font-semibold text-slate-200 mb-4 flex items-center space-x-2">
+          <i class="fa-solid fa-sliders text-indigo-400"></i>
+          <span>Synthesized Soundscapes</span>
+        </h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          
+          <!-- Brown Noise Synthesizer -->
+          <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800">
+            <div class="flex justify-between items-center mb-2">
+              <span class="text-sm font-medium text-slate-300 flex items-center gap-2">
+                <i class="fa-solid fa-wind text-indigo-400"></i> Deep Noise
+              </span>
+              <button id="noise-btn" onclick="toggleNoise()" class="text-xs px-3 py-1 rounded-full bg-slate-800 text-slate-300 hover:bg-indigo-600 hover:text-white transition">Off</button>
+            </div>
+            <input id="noise-vol" type="range" min="0" max="1" step="0.01" value="0.3" oninput="updateNoiseVolume(this.value)" class="w-full accent-indigo-500 bg-slate-700 h-1.5 rounded-lg appearance-none cursor-pointer">
+          </div>
+
+          <!-- Rain Synth -->
+          <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800">
+            <div class="flex justify-between items-center mb-2">
+              <span class="text-sm font-medium text-slate-300 flex items-center gap-2">
+                <i class="fa-solid fa-cloud-showers-heavy text-indigo-400"></i> Ambient Rain
+              </span>
+              <button id="rain-btn" onclick="toggleRain()" class="text-xs px-3 py-1 rounded-full bg-slate-800 text-slate-300 hover:bg-indigo-600 hover:text-white transition">Off</button>
+            </div>
+            <input id="rain-vol" type="range" min="0" max="1" step="0.01" value="0.3" oninput="updateRainVolume(this.value)" class="w-full accent-indigo-500 bg-slate-700 h-1.5 rounded-lg appearance-none cursor-pointer">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Right Column: Task Manager -->
+    <section class="lg:col-span-5 flex flex-col">
+      <div class="glass-card rounded-2xl p-6 flex-1 flex flex-col">
+        <h2 class="text-md font-semibold text-slate-200 mb-4 flex items-center justify-between">
+          <span class="flex items-center space-x-2">
+            <i class="fa-solid fa-list-check text-indigo-400"></i>
+            <span>Session Objectives</span>
+          </span>
+          <span id="task-counter" class="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">0 Done</span>
+        </h2>
+
+        <!-- Add Task Input -->
+        <form onsubmit="addTask(event)" class="flex space-x-2 mb-4">
+          <input id="task-input" type="text" placeholder="Add a high-priority target..." required class="flex-1 bg-slate-900/80 border border-slate-700/60 rounded-xl px-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition">
+          <button type="submit" class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-medium transition shadow-md shadow-indigo-600/20">
+            <i class="fa-solid fa-plus"></i>
+          </button>
+        </form>
+
+        <!-- Task List -->
+        <ul id="task-list" class="space-y-2.5 flex-1 overflow-y-auto max-h-[360px] pr-1">
+          <!-- Dynamic Task Items -->
+        </ul>
+      </div>
+    </section>
+  </main>
+
+  <!-- Cause-Driven Charity & Support Section -->
+  <footer class="mt-auto border-t border-slate-800/80 bg-slate-950/90 py-8 px-4 sm:px-6">
+    <div class="max-w-5xl mx-auto glass-card rounded-2xl p-6 border border-amber-500/20 bg-gradient-to-r from-amber-950/20 via-slate-900/80 to-indigo-950/20 shadow-2xl">
+      <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+        
+        <!-- Left Info -->
+        <div class="flex-1 space-y-2 text-center md:text-left">
+          <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-semibold">
+            <i class="fa-solid fa-heart text-amber-400 animate-pulse"></i>
+            <span>Social Impact & Education Support Initiative</span>
+          </div>
+          <h3 class="text-lg font-bold text-slate-100">Empower Lives Through Purpose</h3>
+          <p class="text-xs text-slate-300 leading-relaxed max-w-xl">
+            <strong class="text-amber-300">95% of all contributions</strong> go directly towards Cancer Patient Support & School Education Initiatives (5% retained for server maintenance).
+          </p>
+          <div class="pt-2 flex flex-wrap items-center justify-center md:justify-start gap-4 text-xs text-slate-400">
+            <div><span class="text-slate-500">Recipient:</span> <span class="font-semibold text-slate-200">ASKAR ALI</span></div>
+            <div><span class="text-slate-500">UPI ID:</span> <span id="upi-id-text" class="font-mono font-semibold text-indigo-300">donation1@postbank</span></div>
+          </div>
+        </div>
+
+        <!-- Right Interaction: QR & Copy Button -->
+        <div class="flex flex-col sm:flex-row items-center gap-4 bg-slate-900/90 p-4 rounded-xl border border-slate-800">
+          <img src="https://api.qrserver.com/v1/create-qr-code/?data=upi://pay?pa=donation1@postbank&pn=YUGRAAL_Cause" alt="UPI QR Code" class="w-24 h-24 rounded-lg border border-slate-700 bg-white p-1">
+          <div class="flex flex-col space-y-2 w-full sm:w-auto">
+            <button onclick="copyUpiId()" class="w-full px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-medium flex items-center justify-center space-x-2 shadow-md transition">
+              <i class="fa-regular fa-copy"></i>
+              <span id="copy-btn-label">Copy UPI ID</span>
+            </button>
+            <span class="text-[10px] text-center text-slate-500">Scan via GPay, PhonePe, Paytm or UPI Apps</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <div class="text-center text-xs text-slate-600 mt-6">
+      &copy; 2025 YUGRAAL Co-Creator Web Engine. Built for focus, performance, and impact.
+    </div>
+  </footer>
+
+  <!-- Application JavaScript -->
+  <script>
+    // Live Clock
+    function updateClock() {
+      const now = new Date();
+      document.getElementById('live-time').textContent = now.toLocaleTimeString();
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // Pomodoro Logic
+    let timerInterval = null;
+    let totalSeconds = 25 * 60;
+    let remainingSeconds = 25 * 60;
+    let isRunning = false;
+
+    const display = document.getElementById('timer-display');
+    const progress = document.getElementById('timer-progress');
+    const playIcon = document.getElementById('play-icon');
+    const playText = document.getElementById('play-text');
+    const circleLen = 276.46;
+
+    function updateTimerDisplay() {
+      const m = Math.floor(remainingSeconds / 60).toString().padStart(2, '0');
+      const s = (remainingSeconds % 60).toString().padStart(2, '0');
+      display.textContent = `${m}:${s}`;
+      
+      const offset = circleLen - (remainingSeconds / totalSeconds) * circleLen;
+      progress.style.strokeDashoffset = offset;
+    }
+
+    function toggleTimer() {
+      if (isRunning) {
+        clearInterval(timerInterval);
+        isRunning = false;
+        playIcon.className = 'fa-solid fa-play text-sm';
+        playText.textContent = 'Resume';
+      } else {
+        isRunning = true;
+        playIcon.className = 'fa-solid fa-pause text-sm';
+        playText.textContent = 'Pause';
+        timerInterval = setInterval(() => {
+          if (remainingSeconds > 0) {
+            remainingSeconds--;
+            updateTimerDisplay();
+          } else {
+            clearInterval(timerInterval);
+            isRunning = false;
+            alert('Focus session complete!');
+            resetTimer();
+          }
+        }, 1000);
+      }
+    }
+
+    function resetTimer() {
+      clearInterval(timerInterval);
+      isRunning = false;
+      remainingSeconds = totalSeconds;
+      playIcon.className = 'fa-solid fa-play text-sm';
+      playText.textContent = 'Start Session';
+      updateTimerDisplay();
+    }
+
+    function setMode(minutes) {
+      totalSeconds = minutes * 60;
+      remainingSeconds = totalSeconds;
+      document.getElementById('timer-state').textContent = minutes === 25 ? 'Focus Phase' : 'Break Phase';
+      resetTimer();
+    }
+
+    // Web Audio Synthesizers
+    let audioCtx = null;
+    let noiseNode = null, noiseGain = null;
+    let rainNode = null, rainGain = null;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+
+    // Brown Noise Synth
+    function toggleNoise() {
+      initAudio();
+      const btn = document.getElementById('noise-btn');
+      if (noiseNode) {
+        noiseNode.stop();
+        noiseNode.disconnect();
+        noiseNode = null;
+        btn.textContent = 'Off';
+        btn.classList.replace('bg-indigo-600', 'bg-slate-800');
+        btn.classList.replace('text-white', 'text-slate-300');
+      } else {
+        const bufferSize = audioCtx.sampleRate * 2;
+        const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+        const output = buffer.getChannelData(0);
+        let lastOut = 0.0;
+        for (let i = 0; i < bufferSize; i++) {
+          const white = Math.random() * 2 - 1;
+          output[i] = (lastOut + (0.02 * white)) / 1.02;
+          lastOut = output[i];
+          output[i] *= 3.5;
+        }
+        noiseNode = audioCtx.createBufferSource();
+        noiseNode.buffer = buffer;
+        noiseNode.loop = true;
+        noiseGain = audioCtx.createGain();
+        noiseGain.gain.value = document.getElementById('noise-vol').value;
+        noiseNode.connect(noiseGain);
+        noiseGain.connect(audioCtx.destination);
+        noiseNode.start();
+        btn.textContent = 'Active';
+        btn.classList.replace('bg-slate-800', 'bg-indigo-600');
+        btn.classList.replace('text-slate-300', 'text-white');
+      }
+    }
+
+    function updateNoiseVolume(val) {
+      if (noiseGain) noiseGain.gain.value = val;
+    }
+
+    // Rain Audio Simulator
+    function toggleRain() {
+      initAudio();
+      const btn = document.getElementById('rain-btn');
+      if (rainNode) {
+        rainNode.stop();
+        rainNode.disconnect();
+        rainNode = null;
+        btn.textContent = 'Off';
+        btn.classList.replace('bg-indigo-600', 'bg-slate-800');
+        btn.classList.replace('text-white', 'text-slate-300');
+      } else {
+        const bufferSize = audioCtx.sampleRate * 2;
+        const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+        const output = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          output[i] = Math.random() * 2 - 1;
+        }
+        rainNode = audioCtx.createBufferSource();
+        rainNode.buffer = buffer;
+        rainNode.loop = true;
+
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.value = 1000;
+
+        rainGain = audioCtx.createGain();
+        rainGain.gain.value = document.getElementById('rain-vol').value;
+
+        rainNode.connect(filter);
+        filter.connect(rainGain);
+        rainGain.connect(audioCtx.destination);
+        rainNode.start();
+
+        btn.textContent = 'Active';
+        btn.classList.replace('bg-slate-800', 'bg-indigo-600');
+        btn.classList.replace('text-slate-300', 'text-white');
+      }
+    }
+
+    function updateRainVolume(val) {
+      if (rainGain) rainGain.gain.value = val;
+    }
+
+    // Task Management
+    let tasks = JSON.parse(localStorage.getItem('aether_tasks') || '[]');
+
+    function renderTasks() {
+      const list = document.getElementById('task-list');
+      list.innerHTML = '';
+      let completedCount = 0;
+
+      tasks.forEach((t, idx) => {
+        if (t.completed) completedCount++;
+        const li = document.createElement('li');
+        li.className = 'flex items-center justify-between p-3 rounded-xl bg-slate-900/60 border border-slate-800/80 group';
+        li.innerHTML = `
+          <div class="flex items-center space-x-3 flex-1 cursor-pointer" onclick="toggleTask(${idx})">
+            <div class="w-5 h-5 rounded-md border ${t.completed ? 'bg-indigo-600 border-indigo-500' : 'border-slate-600'} flex items-center justify-center text-xs text-white">
+              ${t.completed ? '<i class="fa-solid fa-check"></i>' : ''}
+            </div>
+            <span class="text-sm ${t.completed ? 'line-through text-slate-500' : 'text-slate-200'}">${t.text}</span>
+          </div>
+          <button onclick="deleteTask(${idx})" class="text-slate-500 hover:text-rose-400 opacity-0 group-hover:opacity-100 transition px-2">
+            <i class="fa-solid fa-trash-can text-xs"></i>
+          </button>
+        `;
+        list.appendChild(li);
+      });
+
+      document.getElementById('task-counter').textContent = `${completedCount}/${tasks.length} Done`;
+      localStorage.setItem('aether_tasks', JSON.stringify(tasks));
+    }
+
+    function addTask(e) {
+      e.preventDefault();
+      const input = document.getElementById('task-input');
+      if (input.value.trim()) {
+        tasks.push({ text: input.value.trim(), completed: false });
+        input.value = '';
+        renderTasks();
+      }
+    }
+
+    function toggleTask(idx) {
+      tasks[idx].completed = !tasks[idx].completed;
+      renderTasks();
+    }
+
+    function deleteTask(idx) {
+      tasks.splice(idx, 1);
+      renderTasks();
+    }
+
+    // Copy UPI Functionality
+    function copyUpiId() {
+      const upiId = 'donation1@postbank';
+      navigator.clipboard.writeText(upiId).then(() => {
+        const label = document.getElementById('copy-btn-label');
+        label.textContent = 'Copied!';
+        setTimeout(() => { label.textContent = 'Copy UPI ID'; }, 2000);
+      });
+    }
+
+    // Initial Render
+    renderTasks();
+    updateTimerDisplay();
+  </script>
+</body>
+</html>
