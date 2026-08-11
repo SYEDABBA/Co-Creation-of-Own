@@ -1,0 +1,45 @@
+name: YUGRAAL Co-Creator Engine Schedule
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * *'  # Har raat Midnight UTC par chalega
+
+jobs:
+  run-co-creator:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install openai
+
+      - name: Run YUGRAAL Engine
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          python co_creator.py
+
+      - name: Commit and Push New Project
+        run: |
+          git config --global user.name 'YUGRAAL-CoCreator[bot]'
+          git config --global user.email 'yugraal-bot@users.noreply.github.com'
+
+          if [ -f "My_Work/last_commit_message.txt" ]; then
+            COMMIT_MSG=$(cat My_Work/last_commit_message.txt)
+          else
+            COMMIT_MSG="🤖 YUGRAAL Auto Invention Added"
+          fi
+
+          git add My_Work/
+          git commit -m "$COMMIT_MSG" || exit 0
+          git push
