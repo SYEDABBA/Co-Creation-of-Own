@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FocusPulse Pro - Next-Gen Productivity Suite</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: { 500: '#6366f1', 600: '#4f46e5', 700: '#4338ca' }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .glass {
+      background: rgba(17, 24, 39, 0.7);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .glass-card {
+      background: rgba(31, 41, 55, 0.5);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-indigo-500 selection:text-white">
+
+  <!-- Top Navigation -->
+  <header class="sticky top-0 z-50 glass border-b border-slate-800/80 px-6 py-4 flex items-center justify-between">
+    <div class="flex items-center space-x-3">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center font-bold text-white shadow-lg shadow-indigo-500/30">
+        FP
+      </div>
+      <span class="text-xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-300">
+        FocusPulse Pro
+      </span>
+    </div>
+    <div class="flex items-center space-x-4">
+      <span id="session-badge" class="px-3 py-1 rounded-full text-xs font-medium bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+        Ready for Focus
+      </span>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+    
+    <!-- Left & Middle: Timer & Tasks -->
+    <div class="lg:col-span-2 space-y-8">
+      
+      <!-- Timer Section -->
+      <section class="glass-card rounded-2xl p-8 flex flex-col items-center justify-center relative overflow-hidden shadow-2xl">
+        <div class="absolute -top-24 -left-24 w-60 h-60 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-24 -right-24 w-60 h-60 bg-purple-600/20 rounded-full blur-3xl pointer-events-none"></div>
+        
+        <div class="flex space-x-2 mb-8 bg-slate-900/60 p-1.5 rounded-xl border border-slate-800">
+          <button onclick="setTimerMode('focus')" id="btn-focus" class="px-5 py-2 rounded-lg text-sm font-semibold transition-all bg-indigo-600 text-white shadow-md">Focus (25m)</button>
+          <button onclick="setTimerMode('shortBreak')" id="btn-short" class="px-5 py-2 rounded-lg text-sm font-semibold transition-all text-slate-400 hover:text-white">Short Break (5m)</button>
+          <button onclick="setTimerMode('longBreak')" id="btn-long" class="px-5 py-2 rounded-lg text-sm font-semibold transition-all text-slate-400 hover:text-white">Long Break (15m)</button>
+        </div>
+
+        <div id="timer-display" class="text-7xl md:text-8xl font-black tracking-tight text-white font-mono my-4 drop-shadow-md">
+          25:00
+        </div>
+
+        <div class="flex items-center space-x-4 mt-6">
+          <button id="start-btn" onclick="toggleTimer()" class="px-8 py-3.5 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-500/25 transition-all transform active:scale-95">
+            Start Session
+          </button>
+          <button onclick="resetTimer()" class="px-6 py-3.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-xl border border-slate-700 transition-all">
+            Reset
+          </button>
+        </div>
+      </section>
+
+      <!-- Task Tracker -->
+      <section class="glass-card rounded-2xl p-6 shadow-xl space-y-4">
+        <h2 class="text-lg font-bold text-slate-200 flex items-center justify-between">
+          <span>Focus Tasks</span>
+          <span id="task-counter" class="text-xs text-slate-400 font-normal">0 / 0 Completed</span>
+        </h2>
+        
+        <div class="flex space-x-2">
+          <input id="task-input" type="text" placeholder="Enter task description..." class="flex-1 bg-slate-900/80 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors" onkeypress="if(event.key==='Enter') addTask()" />
+          <button onclick="addTask()" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold rounded-xl transition-all">
+            Add
+          </button>
+        </div>
+
+        <ul id="task-list" class="space-y-2 max-h-60 overflow-y-auto pr-1">
+          <!-- Tasks populated dynamically -->
+        </ul>
+      </section>
+    </div>
+
+    <!-- Right: Ambient Sound Generator -->
+    <div class="space-y-8">
+      <section class="glass-card rounded-2xl p-6 shadow-xl space-y-6">
+        <h2 class="text-lg font-bold text-slate-200 flex items-center justify-between">
+          <span>Ambient Audio</span>
+          <span class="text-xs px-2 py-0.5 rounded bg-purple-500/10 text-purple-400 border border-purple-500/20">WebAudio Synth</span>
+        </h2>
+
+        <!-- White Noise Generator -->
+        <div class="space-y-2">
+          <div class="flex justify-between text-sm font-medium text-slate-300">
+            <span>Soft White Noise</span>
+            <button onclick="toggleSound('noise')" id="btn-sound-noise" class="text-xs text-indigo-400 hover:text-indigo-300">Play</button>
+          </div>
+          <input type="range" id="vol-noise" min="0" max="1" step="0.01" value="0.3" oninput="updateVolume('noise')" class="w-full accent-indigo-500 h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+        </div>
+
+        <!-- Pink Noise / Rain Simulation -->
+        <div class="space-y-2">
+          <div class="flex justify-between text-sm font-medium text-slate-300">
+            <span>Deep Rain Ambience</span>
+            <button onclick="toggleSound('rain')" id="btn-sound-rain" class="text-xs text-indigo-400 hover:text-indigo-300">Play</button>
+          </div>
+          <input type="range" id="vol-rain" min="0" max="1" step="0.01" value="0.3" oninput="updateVolume('rain')" class="w-full accent-indigo-500 h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+        </div>
+
+        <!-- Binaural Pure Tone -->
+        <div class="space-y-2">
+          <div class="flex justify-between text-sm font-medium text-slate-300">
+            <span>Alpha Wave Tone (432Hz)</span>
+            <button onclick="toggleSound('tone')" id="btn-sound-tone" class="text-xs text-indigo-400 hover:text-indigo-300">Play</button>
+          </div>
+          <input type="range" id="vol-tone" min="0" max="1" step="0.01" value="0.2" oninput="updateVolume('tone')" class="w-full accent-indigo-500 h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- CAUSE-DRIVEN CHARITY BANNER FOOTER -->
+  <footer class="mt-auto border-t border-slate-800/80 bg-slate-950/80 backdrop-blur-md p-6">
+    <div class="max-w-6xl mx-auto glass-card rounded-2xl p-6 border border-indigo-500/20 bg-gradient-to-r from-slate-900/90 via-indigo-950/30 to-slate-900/90 flex flex-col md:flex-row items-center justify-between gap-6 shadow-2xl">
+      
+      <!-- Info Content -->
+      <div class="space-y-2 flex-1 text-center md:text-left">
+        <div class="inline-flex items-center space-x-2 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
+          <span>Verified Cause Initiative</span>
+        </div>
+        <h3 class="text-lg font-bold text-white">Empower Lives & Support Education</h3>
+        <p class="text-sm text-slate-300 leading-relaxed max-w-2xl">
+          95% of all contributions go directly towards Cancer Patient Support &amp; School Education Initiatives (5% retained for server maintenance).
+        </p>
+        <div class="pt-2 flex flex-wrap items-center justify-center md:justify-start gap-4 text-xs text-slate-400 font-mono">
+          <span>Receiver: <strong class="text-slate-200 font-sans">ASKAR ALI</strong></span>
+          <span>UPI ID: <strong class="text-indigo-300">donation1@postbank</strong></span>
+        </div>
+      </div>
+
+      <!-- Interactive UPI Section -->
+      <div class="flex flex-col sm:flex-row items-center gap-4 bg-slate-900/80 p-4 rounded-xl border border-slate-800 shrink-0">
+        <img 
+          src="https://api.qrserver.com/v1/create-qr-code/?data=upi://pay?pa=donation1@postbank&pn=YUGRAAL_Cause" 
+          alt="UPI Donation QR Code" 
+          class="w-24 h-24 rounded-lg bg-white p-1 border border-slate-700 shadow-md"
+        />
+        <div class="flex flex-col gap-2 w-full sm:w-auto text-center sm:text-left">
+          <button 
+            onclick="copyUPI('donation1@postbank')" 
+            id="copy-btn"
+            class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-lg border border-indigo-400/30 transition-all flex items-center justify-center space-x-2 shadow-md active:scale-95">
+            <span>Copy UPI ID</span>
+          </button>
+          <span id="copy-toast" class="text-[11px] text-emerald-400 font-medium opacity-0 transition-opacity text-center">Copied to clipboard!</span>
+        </div>
+      </div>
+
+    </div>
+    <div class="text-center text-xs text-slate-600 mt-6 font-mono">
+      Engineered by YUGRAAL Co-Creator Web Engine &bull; Non-Profit &amp; Utility Focused
+    </div>
+  </footer>
+
+  <!-- Application Logic -->
+  <script>
+    // --- Timer Logic ---
+    let timer = null;
+    let timeLeft = 25 * 60;
+    let isRunning = false;
+    let currentMode = 'focus';
+
+    const modes = {
+      focus: 25 * 60,
+      shortBreak: 5 * 60,
+      longBreak: 15 * 60
+    };
+
+    function updateTimerDisplay() {
+      const m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+      const s = (timeLeft % 60).toString().padStart(2, '0');
+      document.getElementById('timer-display').innerText = `${m}:${s}`;
+    }
+
+    function setTimerMode(mode) {
+      currentMode = mode;
+      timeLeft = modes[mode];
+      if (isRunning) toggleTimer();
+      updateTimerDisplay();
+      
+      ['focus', 'short', 'long'].forEach(m => {
+        const btn = document.getElementById(`btn-${m}`);
+        btn.className = "px-5 py-2 rounded-lg text-sm font-semibold transition-all text-slate-400 hover:text-white";
+      });
+      const activeBtn = document.getElementById(`btn-${mode === 'shortBreak' ? 'short' : mode === 'longBreak' ? 'long' : 'focus'}`);
+      activeBtn.className = "px-5 py-2 rounded-lg text-sm font-semibold transition-all bg-indigo-600 text-white shadow-md";
+    }
+
+    function toggleTimer() {
+      const startBtn = document.getElementById('start-btn');
+      if (isRunning) {
+        clearInterval(timer);
+        isRunning = false;
+        startBtn.innerText = 'Resume Session';
+        document.getElementById('session-badge').innerText = 'Paused';
+      } else {
+        isRunning = true;
+        startBtn.innerText = 'Pause Session';
+        document.getElementById('session-badge').innerText = 'In Session';
+        timer = setInterval(() => {
+          if (timeLeft > 0) {
+            timeLeft--;
+            updateTimerDisplay();
+          } else {
+            clearInterval(timer);
+            isRunning = false;
+            alert('Session Completed!');
+            setTimerMode('focus');
+          }
+        }, 1000);
+      }
+    }
+
+    function resetTimer() {
+      if (isRunning) toggleTimer();
+      timeLeft = modes[currentMode];
+      updateTimerDisplay();
+      document.getElementById('start-btn').innerText = 'Start Session';
+      document.getElementById('session-badge').innerText = 'Ready for Focus';
+    }
+
+    // --- Tasks Logic ---
+    let tasks = [];
+
+    function addTask() {
+      const input = document.getElementById('task-input');
+      const text = input.value.trim();
+      if (!text) return;
+      tasks.push({ id: Date.now(), text, completed: false });
+      input.value = '';
+      renderTasks();
+    }
+
+    function toggleTask(id) {
+      tasks = tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t);
+      renderTasks();
+    }
+
+    function deleteTask(id) {
+      tasks = tasks.filter(t => t.id !== id);
+      renderTasks();
+    }
+
+    function renderTasks() {
+      const list = document.getElementById('task-list');
+      list.innerHTML = '';
+      const completedCount = tasks.filter(t => t.completed).length;
+      document.getElementById('task-counter').innerText = `${completedCount} / ${tasks.length} Completed`;
+
+      tasks.forEach(task => {
+        const li = document.createElement('li');
+        li.className = 'flex items-center justify-between p-3 rounded-xl bg-slate-900/50 border border-slate-800 transition-all';
+        li.innerHTML = `
+          <div class="flex items-center space-x-3 cursor-pointer" onclick="toggleTask(${task.id})">
+            <input type="checkbox" ${task.completed ? 'checked' : ''} class="rounded bg-slate-800 border-slate-700 text-indigo-600 focus:ring-0 cursor-pointer" />
+            <span class="text-sm ${task.completed ? 'line-through text-slate-500' : 'text-slate-200'}">${task.text}</span>
+          </div>
+          <button onclick="deleteTask(${task.id})" class="text-slate-500 hover:text-red-400 text-xs px-2 py-1">Delete</button>
+        `;
+        list.appendChild(li);
+      });
+    }
+
+    // --- WebAudio Synthesizer for Ambience ---
+    let audioCtx = null;
+    const soundNodes = { noise: null, rain: null, tone: null };
+    const soundGains = { noise: null, rain: null, tone: null };
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+
+    function toggleSound(type) {
+      initAudio();
+      const btn = document.getElementById(`btn-sound-${type}`);
+      
+      if (soundNodes[type]) {
+        soundNodes[type].stop();
+        soundNodes[type] = null;
+        btn.innerText = 'Play';
+        btn.classList.remove('text-emerald-400');
+        btn.classList.add('text-indigo-400');
+        return;
+      }
+
+      const vol = parseFloat(document.getElementById(`vol-${type}`).value);
+      const gainNode = audioCtx.createGain();
+      gainNode.gain.setValueAtTime(vol, audioCtx.currentTime);
+      gainNode.connect(audioCtx.destination);
+      soundGains[type] = gainNode;
+
+      if (type === 'noise' || type === 'rain') {
+        const bufferSize = audioCtx.sampleRate * 2;
+        const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = Math.random() * 2 - 1;
+        }
+        const noiseSource = audioCtx.createBufferSource();
+        noiseSource.buffer = buffer;
+        noiseSource.loop = true;
+
+        if (type === 'rain') {
+          const filter = audioCtx.createBiquadFilter();
+          filter.type = 'lowpass';
+          filter.frequency.setValueAtTime(800, audioCtx.currentTime);
+          noiseSource.connect(filter);
+          filter.connect(gainNode);
+        } else {
+          noiseSource.connect(gainNode);
+        }
+
+        noiseSource.start();
+        soundNodes[type] = noiseSource;
+      } else if (type === 'tone') {
+        const osc = audioCtx.createOscillator();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(432, audioCtx.currentTime);
+        osc.connect(gainNode);
+        osc.start();
+        soundNodes[type] = osc;
+      }
+
+      btn.innerText = 'Stop';
+      btn.classList.remove('text-indigo-400');
+      btn.classList.add('text-emerald-400');
+    }
+
+    function updateVolume(type) {
+      const vol = parseFloat(document.getElementById(`vol-${type}`).value);
+      if (soundGains[type] && audioCtx) {
+        soundGains[type].gain.setValueAtTime(vol, audioCtx.currentTime);
+      }
+    }
+
+    // --- Clipboard Function ---
+    function copyUPI(upiId) {
+      navigator.clipboard.writeText(upiId).then(() => {
+        const toast = document.getElementById('copy-toast');
+        toast.classList.remove('opacity-0');
+        toast.classList.add('opacity-100');
+        setTimeout(() => {
+          toast.classList.remove('opacity-100');
+          toast.classList.add('opacity-0');
+        }, 2000);
+      });
+    }
+  </script>
+</body>
+</html>
