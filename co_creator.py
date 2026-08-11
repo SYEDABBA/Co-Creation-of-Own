@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-YUGRAAL Co-Creator Engine - co_creator.py
+YUGRAAL Co-Creator Engine - co_creator.py (Powered by Google Gemini API)
 
 Autonomous AI system that invents a new Python utility script on every run,
 validates syntax, handles self-repair on failure, and outputs structured code & docs.
@@ -16,26 +16,27 @@ import datetime
 from typing import Optional
 
 try:
-    import openai
+    from google import genai
+    from google.genai import types
 except ImportError:
-    print("Missing dependency 'openai'. Install with: pip install openai", file=sys.stderr)
+    print("Missing dependency 'google-genai'. Install with: pip install google-genai", file=sys.stderr)
     sys.exit(1)
 
 # Check API Key
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-if not OPENAI_API_KEY:
-    print("ERROR: OPENAI_API_KEY environment variable is not set.", file=sys.stderr)
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+if not GEMINI_API_KEY:
+    print("ERROR: GEMINI_API_KEY environment variable is not set.", file=sys.stderr)
     sys.exit(2)
 
-# Initialize modern OpenAI v1 Client
-client = openai.OpenAI(api_key=OPENAI_API_KEY)
+# Initialize modern Gemini Client
+client = genai.Client(api_key=GEMINI_API_KEY)
 
-MODEL_NAME = "gpt-4o-mini"  # Can be changed to "gpt-4o"
+MODEL_NAME = "gemini-2.5-flash"  # Fast, highly accurate, and free-tier friendly
 MAX_RETRIES = 3
-TIMEOUT_BETWEEN_RETRIES = 1  # seconds
+TIMEOUT_BETWEEN_RETRIES = 2  # seconds
 
 SYSTEM_INSTRUCTION = """
-You are YUGRAAL Co-Creator Engine — an autonomous inventor that MUST reply ONLY with JSON (no markdown wrapping, no extra text).
+You are YUGRAAL Co-Creator Engine — an autonomous inventor that MUST reply ONLY with valid JSON (no markdown wrapping, no text outside JSON).
 Produce a JSON object matching EXACTLY this schema:
 
 {
@@ -50,7 +51,7 @@ Requirements:
 - project_name must be a short CamelCase identifier (letters and numbers only).
 - code must be a complete, self-contained, runnable Python script. Do NOT include markdown code fences (like ```python) in the JSON value.
 - how_to_use should show exact terminal commands and usage examples.
-- Respond strictly with valid JSON.
+- Respond strictly with valid JSON object.
 """
 
 USER_PROMPT_TEMPLATE = """
@@ -60,20 +61,23 @@ Make the tool practical, original, and clean.
 """
 
 
-def call_openai(messages: list, max_tokens: int = 3000) -> str:
+def call_gemini(prompt_text: str) -> str:
     """
-    Call OpenAI Chat Completions using the latest v1.0+ SDK syntax.
+    Call Google Gemini API using the latest google-genai SDK.
     """
     try:
-        response = client.chat.completions.create(
+        response = client.models.generate_content(
             model=MODEL_NAME,
-            messages=messages,
-            temperature=0.2,
-            max_tokens=max_tokens,
+            contents=prompt_text,
+            config=types.GenerateContentConfig(
+                system_instruction=SYSTEM_INSTRUCTION,
+                temperature=0.2,
+                response_mime_type="application/json",
+            )
         )
-        return response.choices[0].message.content or ""
+        return response.text or ""
     except Exception as exc:
-        raise RuntimeError(f"OpenAI API Call failed: {exc}") from exc
+        raise RuntimeError(f"Gemini API Call failed: {exc}") from exc
 
 
 def find_balanced_json(text: str) -> Optional[str]:
@@ -168,44 +172,24 @@ def format_readme(title: str, purpose: str, usefulness: str, how_to_use: str) ->
     """)
 
 
-def create_followup_fix_prompt(prev_json: dict, error_text: str) -> list:
-    """
-    Self-healing retry prompt sending syntax errors back to LLM for instant repair.
-    """
-    msg = (
-        "The generated Python code in 'code' has a syntax error when compiled.\n"
-        f"Compilation Error:\n{error_text}\n\n"
-        "Fix the code and return the FULL valid JSON object again (same schema)."
-    )
-    return [
-        {"role": "system", "content": SYSTEM_INSTRUCTION},
-        {"role": "assistant", "content": json.dumps(prev_json)},
-        {"role": "user", "content": msg},
-    ]
-
-
 def main():
-    print("🔥 YUGRAAL Co-Creator Engine Starting...")
-    messages = [
-        {"role": "system", "content": SYSTEM_INSTRUCTION},
-        {"role": "user", "content": USER_PROMPT_TEMPLATE},
-    ]
+    print("🔥 YUGRAAL Co-Creator Engine Starting (Gemini Powered)...")
+    current_prompt = USER_PROMPT_TEMPLATE
 
     for attempt in range(1, MAX_RETRIES + 1):
         try:
             print(f"[{attempt}/{MAX_RETRIES}] Requesting invention from YUGRAAL Engine...")
-            raw_response = call_openai(messages)
+            raw_response = call_gemini(current_prompt)
             if not raw_response.strip():
-                raise RuntimeError("Empty response received from LLM.")
+                raise RuntimeError("Empty response received from Gemini.")
 
             json_str = find_balanced_json(raw_response)
             if not json_str:
-                raise ValueError("Could not extract a valid JSON object from LLM response.")
+                raise ValueError("Could not extract a valid JSON object from Gemini response.")
 
             try:
                 parsed = json.loads(json_str)
             except json.JSONDecodeError:
-                # Cleanup formatting issues if any
                 cleaned_json = json_str.replace("“", '"').replace("”", '"')
                 cleaned_json = re.sub(r",\s*}", "}", cleaned_json)
                 cleaned_json = re.sub(r",\s*]", "]", cleaned_json)
@@ -228,7 +212,11 @@ def main():
                 print(f"⚠️ Syntax Error detected: {compile_err}")
                 if attempt < MAX_RETRIES:
                     print("🔄 Triggering Self-Healing repair loop...")
-                    messages = create_followup_fix_prompt(parsed, compile_err)
+                    current_prompt = (
+                        f"The generated code in 'code' had a syntax error:\n{compile_err}\n\n"
+                        f"Previous output:\n{json.dumps(parsed)}\n\n"
+                        "Please fix the error and return the full corrected JSON strictly."
+                    )
                     time.sleep(TIMEOUT_BETWEEN_RETRIES)
                     continue
                 else:
