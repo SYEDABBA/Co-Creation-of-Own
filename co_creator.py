@@ -28,12 +28,18 @@ if not GEMINI_API_KEY:
     print("ERROR: GEMINI_API_KEY environment variable is not set.", file=sys.stderr)
     sys.exit(2)
 
-# Initialize modern Gemini Client
+# Initialize Gemini Client
 client = genai.Client(api_key=GEMINI_API_KEY)
 
-MODEL_NAME = "gemini-2.0-flash"  # Fast, highly accurate, and free-tier friendly
+# Fallback models in order of performance and availability
+CANDIDATE_MODELS = [
+    "gemini-2.5-flash",
+    "gemini-1.5-flash",
+    "gemini-1.5-pro",
+]
+
 MAX_RETRIES = 3
-TIMEOUT_BETWEEN_RETRIES = 2  # seconds
+TIMEOUT_BETWEEN_RETRIES = 2
 
 SYSTEM_INSTRUCTION = """
 You are YUGRAAL Co-Creator Engine — an autonomous inventor that MUST reply ONLY with valid JSON (no markdown wrapping, no text outside JSON).
@@ -63,21 +69,30 @@ Make the tool practical, original, and clean.
 
 def call_gemini(prompt_text: str) -> str:
     """
-    Call Google Gemini API using the latest google-genai SDK.
+    Call Google Gemini API with candidate model fallback logic.
     """
-    try:
-        response = client.models.generate_content(
-            model=MODEL_NAME,
-            contents=prompt_text,
-            config=types.GenerateContentConfig(
-                system_instruction=SYSTEM_INSTRUCTION,
-                temperature=0.2,
-                response_mime_type="application/json",
+    last_exception = None
+    for model in CANDIDATE_MODELS:
+        try:
+            print(f"🔄 Requesting from model: {model}...")
+            response = client.models.generate_content(
+                model=model,
+                contents=prompt_text,
+                config=types.GenerateContentConfig(
+                    system_instruction=SYSTEM_INSTRUCTION,
+                    temperature=0.2,
+                    response_mime_type="application/json",
+                )
             )
-        )
-        return response.text or ""
-    except Exception as exc:
-        raise RuntimeError(f"Gemini API Call failed: {exc}") from exc
+            if response.text:
+                print(f"✨ Success using model: {model}")
+                return response.text
+        except Exception as exc:
+            print(f"⚠️ Model {model} failed: {exc}")
+            last_exception = exc
+            continue
+
+    raise RuntimeError(f"All candidate Gemini models failed. Last error: {last_exception}")
 
 
 def find_balanced_json(text: str) -> Optional[str]:
@@ -178,14 +193,14 @@ def main():
 
     for attempt in range(1, MAX_RETRIES + 1):
         try:
-            print(f"[{attempt}/{MAX_RETRIES}] Requesting invention from YUGRAAL Engine...")
+            print(f"[{attempt}/{MAX_RETRIES}] Starting generation attempt...")
             raw_response = call_gemini(current_prompt)
             if not raw_response.strip():
                 raise RuntimeError("Empty response received from Gemini.")
 
             json_str = find_balanced_json(raw_response)
             if not json_str:
-                raise ValueError("Could not extract a valid JSON object from Gemini response.")
+                raise ValueError("Could not extract a valid JSON object from response.")
 
             try:
                 parsed = json.loads(json_str)
@@ -222,7 +237,7 @@ def main():
                 else:
                     raise RuntimeError(f"Code compilation failed after max retries: {compile_err}")
 
-            # Directories setup & saving
+            # Save project files
             utc_now = datetime.datetime.now(datetime.timezone.utc)
             timestamp = utc_now.strftime("%Y%m%d_%H%M%S")
             folder_name = f"{parsed['project_name']}_{timestamp}"
@@ -241,7 +256,7 @@ def main():
             )
             write_file(readme_path, readme_body)
 
-            # Generate commit message file
+            # Store commit message
             commit_msg = f"YUGRAAL Co-Creator: Added {parsed['project_name']} ({utc_now.strftime('%Y-%m-%d %H:%M:%S UTC')})"
             commit_msg_path = os.path.join("My_Work", "last_commit_message.txt")
             ensure_dir(os.path.dirname(commit_msg_path))
