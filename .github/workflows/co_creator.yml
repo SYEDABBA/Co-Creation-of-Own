@@ -5,6 +5,9 @@ on:
   schedule:
     - cron: '0 0 * * *'  # Daily at Midnight UTC
 
+permissions:
+  contents: write
+
 jobs:
   run-co-creator:
     runs-on: ubuntu-latest
