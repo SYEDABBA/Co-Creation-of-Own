@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ChronoFlow Studio</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: { 500: '#6366f1', 600: '#4f46e5' }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .glass {
+      background: rgba(17, 24, 39, 0.7);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans antialiased selection:bg-indigo-500 selection:text-white">
+
+  <!-- Header -->
+  <header class="w-full max-w-6xl mx-auto px-6 py-6 flex justify-between items-center border-b border-slate-800/60">
+    <div class="flex items-center space-x-3">
+      <div class="w-10 h-10 rounded-xl bg-indigo-600/30 border border-indigo-500/40 flex items-center justify-center text-indigo-400 font-bold text-xl shadow-lg shadow-indigo-500/10">
+        ⚡
+      </div>
+      <div>
+        <h1 class="text-xl font-bold tracking-tight text-white">ChronoFlow <span class="text-indigo-400 font-normal text-sm border border-indigo-500/30 px-2 py-0.5 rounded-full bg-indigo-950/40">Studio</span></h1>
+        <p class="text-xs text-slate-400">Focus Timer & Audio Synthesizer</p>
+      </div>
+    </div>
+    <div id="live-clock" class="text-sm font-mono text-slate-400 bg-slate-900/80 px-4 py-2 rounded-lg border border-slate-800">--:--:--</div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="flex-1 max-w-6xl w-full mx-auto px-6 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+    
+    <!-- Timer & Controls (2 Cols) -->
+    <section class="lg:col-span-2 space-y-6">
+      <!-- Timer Card -->
+      <div class="glass rounded-2xl p-8 flex flex-col items-center justify-center shadow-2xl relative overflow-hidden">
+        <div class="absolute -top-24 -left-24 w-48 h-48 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none"></div>
+        
+        <div class="flex space-x-2 mb-8 bg-slate-900/60 p-1.5 rounded-xl border border-slate-800/80">
+          <button id="btn-focus" class="px-5 py-2 rounded-lg text-sm font-medium transition-all bg-indigo-600 text-white shadow-md">Focus</button>
+          <button id="btn-short" class="px-5 py-2 rounded-lg text-sm font-medium transition-all text-slate-400 hover:text-white">Short Break</button>
+          <button id="btn-long" class="px-5 py-2 rounded-lg text-sm font-medium transition-all text-slate-400 hover:text-white">Long Break</button>
+        </div>
+
+        <!-- Circular/Numeric Display -->
+        <div class="text-7xl md:text-8xl font-black tracking-tighter my-4 font-mono text-transparent bg-clip-text bg-gradient-to-r from-indigo-300 via-white to-purple-300 drop-shadow-sm" id="timer-display">
+          25:00
+        </div>
+
+        <!-- Controls -->
+        <div class="flex items-center space-x-4 mt-6">
+          <button id="start-btn" class="px-8 py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 font-semibold shadow-lg shadow-indigo-600/20 active:scale-95 transition-all text-white">
+            Start Focus
+          </button>
+          <button id="reset-btn" class="px-5 py-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 font-medium active:scale-95 transition-all">
+            Reset
+          </button>
+        </div>
+      </div>
+
+      <!-- Ambient Audio Synthesizer Card -->
+      <div class="glass rounded-2xl p-6 shadow-xl">
+        <h2 class="text-lg font-semibold text-slate-200 mb-4 flex items-center gap-2">
+          <span>🔊</span> Ambient Sound Generator
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-800 flex items-center justify-between">
+            <div>
+              <p class="font-medium text-sm text-slate-300">Deep White Noise</p>
+              <p class="text-xs text-slate-500">Sustained focus frequency</p>
+            </div>
+            <button id="toggle-noise" class="px-4 py-2 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition-all border border-slate-700">
+              Play
+            </button>
+          </div>
+          <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-800 flex items-center justify-between">
+            <div>
+              <p class="font-medium text-sm text-slate-300">Alpha Pulse (10Hz)</p>
+              <p class="text-xs text-slate-500">Binaural concentration tone</p>
+            </div>
+            <button id="toggle-binaural" class="px-4 py-2 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition-all border border-slate-700">
+              Play
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Task Planner (1 Col) -->
+    <section class="glass rounded-2xl p-6 flex flex-col justify-between shadow-xl">
+      <div>
+        <h2 class="text-lg font-semibold text-slate-200 mb-4 flex items-center gap-2">
+          <span>📋</span> Session Goals
+        </h2>
+        <form id="task-form" class="flex gap-2 mb-4">
+          <input type="text" id="task-input" placeholder="Add a key goal..." class="flex-1 bg-slate-900/80 border border-slate-800 text-sm rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-indigo-500 transition-all" required>
+          <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm font-medium transition-all">Add</button>
+        </form>
+        <ul id="task-list" class="space-y-2 max-h-[320px] overflow-y-auto pr-1">
+          <!-- Dynamic Task Items -->
+        </ul>
+      </div>
+      <div class="mt-6 pt-4 border-t border-slate-800 text-xs text-slate-500 flex justify-between items-center">
+        <span>Completed: <strong id="completed-count" class="text-indigo-400">0</strong></span>
+        <button id="clear-tasks" class="hover:text-rose-400 transition-colors">Clear List</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- Cause-Driven Charity Section Footer -->
+  <footer class="w-full max-w-6xl mx-auto px-6 pb-12 pt-6">
+    <div class="glass rounded-2xl p-6 border border-emerald-500/20 bg-gradient-to-r from-slate-900/90 via-slate-900/95 to-slate-900/90 relative overflow-hidden shadow-2xl">
+      <div class="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
+        
+        <!-- Text Content -->
+        <div class="space-y-2 flex-1">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-950/60 border border-emerald-500/30 text-emerald-400 text-xs font-semibold uppercase tracking-wider">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Direct Cause Support
+          </div>
+          <h3 class="text-lg font-bold text-slate-100">Empower Healthcare & Education</h3>
+          <p class="text-sm text-slate-300 leading-relaxed max-w-2xl">
+            95% of all contributions go directly towards Cancer Patient Support & School Education Initiatives (5% retained for server maintenance).
+          </p>
+          <p class="text-xs text-slate-400 pt-1">
+            Receiver: <strong class="text-slate-200">ASKAR ALI</strong> &bull; UPI: <code class="bg-slate-950/80 px-2 py-0.5 rounded text-emerald-400 border border-slate-800 font-mono">donation1@postbank</code>
+          </p>
+        </div>
+
+        <!-- QR & Action -->
+        <div class="flex flex-col sm:flex-row items-center gap-4 bg-slate-950/60 p-4 rounded-xl border border-slate-800/80 shrink-0">
+          <img src="https://api.qrserver.com/v1/create-qr-code/?data=upi://pay?pa=donation1@postbank&pn=YUGRAAL_Cause" alt="Donation UPI QR Code" class="w-24 h-24 rounded-lg border border-slate-700 bg-white p-1">
+          <div class="flex flex-col gap-2 w-full sm:w-auto">
+            <button id="copy-upi-btn" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold transition-all shadow-md active:scale-95 flex items-center justify-center gap-2">
+              <span>📋</span> Copy UPI ID
+            </button>
+            <span id="copy-toast" class="text-[11px] text-emerald-400 text-center opacity-0 transition-opacity duration-300 font-mono">Copied to clipboard!</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="text-center text-xs text-slate-600 mt-6">
+      Created by YUGRAAL Co-Creator Web Engine &bull; Pure Clean Functional Design
+    </div>
+  </footer>
+
+  <!-- Application Logic -->
+  <script>
+    // Live Clock
+    function updateClock() {
+      const now = new Date();
+      document.getElementById('live-clock').innerText = now.toLocaleTimeString();
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // Timer State
+    let timer = null;
+    let minutes = 25;
+    let seconds = 0;
+    let isRunning = false;
+    let currentMode = 'focus';
+
+    const display = document.getElementById('timer-display');
+    const startBtn = document.getElementById('start-btn');
+    const resetBtn = document.getElementById('reset-btn');
+
+    function renderTimer() {
+      const m = String(minutes).padStart(2, '0');
+      const s = String(seconds).padStart(2, '0');
+      display.innerText = `${m}:${s}`;
+    }
+
+    function setMode(mode, mins, btnId) {
+      currentMode = mode;
+      minutes = mins;
+      seconds = 0;
+      if(isRunning) toggleTimer();
+      renderTimer();
+      ['btn-focus', 'btn-short', 'btn-long'].forEach(id => {
+        const b = document.getElementById(id);
+        if(id === btnId) {
+          b.className = "px-5 py-2 rounded-lg text-sm font-medium transition-all bg-indigo-600 text-white shadow-md";
+        } else {
+          b.className = "px-5 py-2 rounded-lg text-sm font-medium transition-all text-slate-400 hover:text-white";
+        }
+      });
+    }
+
+    document.getElementById('btn-focus').onclick = () => setMode('focus', 25, 'btn-focus');
+    document.getElementById('btn-short').onclick = () => setMode('short', 5, 'btn-short');
+    document.getElementById('btn-long').onclick = () => setMode('long', 15, 'btn-long');
+
+    function toggleTimer() {
+      if(isRunning) {
+        clearInterval(timer);
+        isRunning = false;
+        startBtn.innerText = 'Start Focus';
+        startBtn.classList.replace('bg-amber-600', 'bg-indigo-600');
+      } else {
+        isRunning = true;
+        startBtn.innerText = 'Pause';
+        startBtn.classList.replace('bg-indigo-600', 'bg-amber-600');
+        timer = setInterval(() => {
+          if(seconds === 0) {
+            if(minutes === 0) {
+              clearInterval(timer);
+              isRunning = false;
+              alert('Session Complete!');
+              resetTimer();
+              return;
+            }
+            minutes--;
+            seconds = 59;
+          } else {
+            seconds--;
+          }
+          renderTimer();
+        }, 1000);
+      }
+    }
+
+    function resetTimer() {
+      if(isRunning) toggleTimer();
+      if(currentMode === 'focus') minutes = 25;
+      else if(currentMode === 'short') minutes = 5;
+      else minutes = 15;
+      seconds = 0;
+      renderTimer();
+    }
+
+    startBtn.onclick = toggleTimer;
+    resetBtn.onclick = resetTimer;
+
+    // Audio Synthesizer (Web Audio API)
+    let audioCtx = null;
+    let noiseNode = null;
+    let binauralOscLeft = null;
+    let binauralOscRight = null;
+
+    function getAudioCtx() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      return audioCtx;
+    }
+
+    document.getElementById('toggle-noise').onclick = function() {
+      const ctx = getAudioCtx();
+      if (noiseNode) {
+        noiseNode.stop();
+        noiseNode = null;
+        this.innerText = 'Play';
+        this.classList.replace('bg-indigo-600', 'bg-slate-800');
+      } else {
+        const bufferSize = ctx.sampleRate * 2;
+        const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = Math.random() * 2 - 1;
+        }
+        noiseNode = ctx.createBufferSource();
+        noiseNode.buffer = buffer;
+        noiseNode.loop = true;
+        const gain = ctx.createGain();
+        gain.gain.value = 0.05;
+        noiseNode.connect(gain);
+        gain.connect(ctx.destination);
+        noiseNode.start();
+        this.innerText = 'Stop';
+        this.classList.replace('bg-slate-800', 'bg-indigo-600');
+      }
+    };
+
+    document.getElementById('toggle-binaural').onclick = function() {
+      const ctx = getAudioCtx();
+      if (binauralOscLeft) {
+        binauralOscLeft.stop();
+        binauralOscRight.stop();
+        binauralOscLeft = null;
+        binauralOscRight = null;
+        this.innerText = 'Play';
+        this.classList.replace('bg-indigo-600', 'bg-slate-800');
+      } else {
+        binauralOscLeft = ctx.createOscillator();
+        binauralOscRight = ctx.createOscillator();
+        const merger = ctx.createChannelMerger(2);
+        const gain = ctx.createGain();
+        gain.gain.value = 0.08;
+
+        binauralOscLeft.frequency.value = 200; // Left 200Hz
+        binauralOscRight.frequency.value = 210; // Right 210Hz -> 10Hz Alpha difference
+
+        binauralOscLeft.connect(merger, 0, 0);
+        binauralOscRight.connect(merger, 0, 1);
+        merger.connect(gain);
+        gain.connect(ctx.destination);
+
+        binauralOscLeft.start();
+        binauralOscRight.start();
+        this.innerText = 'Stop';
+        this.classList.replace('bg-slate-800', 'bg-indigo-600');
+      }
+    };
+
+    // Task Manager
+    const taskForm = document.getElementById('task-form');
+    const taskInput = document.getElementById('task-input');
+    const taskList = document.getElementById('task-list');
+    const completedCount = document.getElementById('completed-count');
+    let tasks = [];
+
+    function renderTasks() {
+      taskList.innerHTML = '';
+      let done = 0;
+      tasks.forEach((t, i) => {
+        if (t.completed) done++;
+        const li = document.createElement('li');
+        li.className = 'flex items-center justify-between p-2.5 rounded-lg bg-slate-900/60 border border-slate-800/80 text-sm';
+        li.innerHTML = `
+          <div class="flex items-center space-x-2 overflow-hidden">
+            <input type="checkbox" ${t.completed ? 'checked' : ''} onchange="toggleTask(${i})" class="rounded border-slate-700 bg-slate-800 text-indigo-500 focus:ring-0 cursor-pointer">
+            <span class="${t.completed ? 'line-through text-slate-500' : 'text-slate-200'} truncate">${escapeHtml(t.text)}</span>
+          </div>
+          <button onclick="deleteTask(${i})" class="text-slate-500 hover:text-rose-400 text-xs px-1">✕</button>
+        `;
+        taskList.appendChild(li);
+      });
+      completedCount.innerText = done;
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/[&<>'"']/g, 
+        tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+      );
+    }
+
+    taskForm.onsubmit = (e) => {
+      e.preventDefault();
+      if(taskInput.value.trim()) {
+        tasks.push({ text: taskInput.value.trim(), completed: false });
+        taskInput.value = '';
+        renderTasks();
+      }
+    };
+
+    window.toggleTask = (i) => {
+      tasks[i].completed = !tasks[i].completed;
+      renderTasks();
+    };
+
+    window.deleteTask = (i) => {
+      tasks.splice(i, 1);
+      renderTasks();
+    };
+
+    document.getElementById('clear-tasks').onclick = () => {
+      tasks = [];
+      renderTasks();
+    };
+
+    // UPI Copy Functionality
+    document.getElementById('copy-upi-btn').onclick = () => {
+      navigator.clipboard.writeText('donation1@postbank').then(() => {
+        const toast = document.getElementById('copy-toast');
+        toast.classList.remove('opacity-0');
+        setTimeout(() => toast.classList.add('opacity-0'), 2000);
+      });
+    };
+  </script>
+</body>
+</html>
