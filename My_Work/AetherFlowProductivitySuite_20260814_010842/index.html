@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AetherFlow // Deep Focus Workspace</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace']
+          },
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              400: '#818cf8',
+              500: '#6366f1',
+              600: '#4f46e5',
+              900: '#1e1b4b'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .glass {
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .glass-card {
+      background: rgba(30, 41, 59, 0.45);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    @keyframes pulseGlow {
+      0%, 100% { transform: scale(1); opacity: 0.3; }
+      50% { transform: scale(1.15); opacity: 0.6; }
+    }
+    .animate-glow {
+      animation: pulseGlow 6s infinite ease-in-out;
+    }
+    /* Custom scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.6); }
+    ::-webkit-scrollbar-thumb { background: rgba(99, 102, 241, 0.4); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(99, 102, 241, 0.7); }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen relative overflow-x-hidden selection:bg-indigo-500 selection:text-white">
+  <!-- Background Ambient Glow -->
+  <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+    <div class="absolute -top-40 -left-40 w-96 h-96 bg-indigo-600/20 rounded-full blur-3xl animate-glow"></div>
+    <div class="absolute top-1/3 -right-40 w-96 h-96 bg-violet-600/20 rounded-full blur-3xl animate-glow" style="animation-delay: 2s;"></div>
+    <div class="absolute -bottom-40 left-1/3 w-96 h-96 bg-cyan-600/20 rounded-full blur-3xl animate-glow" style="animation-delay: 4s;"></div>
+  </div>
+
+  <div class="relative z-10 flex flex-col min-h-screen">
+    <!-- Header -->
+    <header class="w-full border-b border-slate-800/80 glass sticky top-0 z-50 px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-indigo-500/25">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-lg font-bold tracking-tight bg-gradient-to-r from-white via-slate-200 to-indigo-300 bg-clip-text text-transparent">
+            AetherFlow <span class="text-xs font-mono px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">PRO</span>
+          </h1>
+          <p class="text-xs text-slate-400">Neural Flow & Deep Work Environment</p>
+        </div>
+      </div>
+      <div class="flex items-center space-x-3 text-xs font-mono text-slate-400">
+        <span id="currentTimeDisplay" class="hidden sm:inline-block px-3 py-1.5 rounded-lg bg-slate-900/60 border border-slate-800">00:00:00 UTC</span>
+        <button id="masterMuteBtn" class="px-3 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-200 transition border border-slate-700 flex items-center gap-1.5">
+          <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/></svg>
+          <span>Audio Engine</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 grid grid-cols-1 lg:grid-cols-12 gap-6">
+      
+      <!-- Left Column: Timer & Breathing Guide (5 Cols) -->
+      <section class="lg:col-span-5 flex flex-col gap-6">
+        <!-- Pomodoro Card -->
+        <div class="glass rounded-2xl p-6 relative overflow-hidden">
+          <div class="flex justify-between items-center mb-6">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+              <h2 class="text-sm font-semibold tracking-wide text-slate-300 uppercase font-mono">Flow Timer</h2>
+            </div>
+            <div class="inline-flex p-1 bg-slate-900/80 rounded-xl border border-slate-800 text-xs">
+              <button id="modePomodoro" class="timer-mode px-3 py-1 rounded-lg bg-indigo-600 text-white font-medium transition">Focus</button>
+              <button id="modeShortBreak" class="timer-mode px-3 py-1 rounded-lg text-slate-400 hover:text-white transition">Rest</button>
+              <button id="modeLongBreak" class="timer-mode px-3 py-1 rounded-lg text-slate-400 hover:text-white transition">Deep Rest</button>
+            </div>
+          </div>
+
+          <!-- Countdown Display -->
+          <div class="flex flex-col items-center justify-center my-4">
+            <div class="relative flex items-center justify-center w-52 h-52 sm:w-60 sm:h-60">
+              <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="45" stroke="currentColor" stroke-width="4" class="text-slate-800/80" fill="transparent"/>
+                <circle id="timerProgressCircle" cx="50" cy="50" r="45" stroke="currentColor" stroke-width="4" stroke-dasharray="282.7" stroke-dashoffset="0" stroke-linecap="round" class="text-indigo-500 transition-all duration-1000" fill="transparent"/>
+              </svg>
+              <div class="absolute flex flex-col items-center justify-center">
+                <span id="timerDisplay" class="text-4xl sm:text-5xl font-mono font-bold tracking-tight text-white">25:00</span>
+                <span id="timerStatusLabel" class="text-xs text-indigo-400 font-mono uppercase mt-1 tracking-widest">Deep Work</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Controls -->
+          <div class="flex items-center justify-center gap-3 mt-4">
+            <button id="startPauseTimerBtn" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white font-medium text-sm shadow-lg shadow-indigo-500/25 transition transform active:scale-95 flex items-center gap-2">
+              <svg id="playIcon" class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+              <span id="startPauseText">Start Session</span>
+            </button>
+            <button id="resetTimerBtn" class="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700/60 transition active:scale-95" title="Reset Timer">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- 4-7-8 Breathing Guide -->
+        <div class="glass rounded-2xl p-6">
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-sm font-semibold tracking-wide text-slate-300 uppercase font-mono flex items-center gap-2">
+              <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+              Paced Breathing (4-7-8)
+            </h2>
+            <button id="toggleBreathBtn" class="text-xs font-mono px-3 py-1 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 hover:bg-cyan-500/20 transition">Activate</button>
+          </div>
+          <div class="flex items-center gap-4 py-2">
+            <div class="relative w-16 h-16 flex items-center justify-center">
+              <div id="breathOrb" class="w-8 h-8 rounded-full bg-cyan-400/30 border border-cyan-400/80 transition-all duration-1000"></div>
+            </div>
+            <div>
+              <p id="breathStateText" class="text-sm font-semibold text-slate-200">Ready to regulate nervous system</p>
+              <p class="text-xs text-slate-400 mt-0.5">Syncs with cardiac coherence for rapid mental clarity.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right Column: Soundscape Synthesizer & Quick Scratchpad (7 Cols) -->
+      <section class="lg:col-span-7 flex flex-col gap-6">
+        <!-- Synthesizer Ambient Sound Board -->
+        <div class="glass rounded-2xl p-6">
+          <div class="flex justify-between items-center mb-4">
+            <div>
+              <h2 class="text-sm font-semibold tracking-wide text-slate-300 uppercase font-mono flex items-center gap-2">
+                <svg class="w-4 h-4 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/></svg>
+                Neural Sound Generator
+              </h2>
+              <p class="text-xs text-slate-400 mt-0.5">Real-time Web Audio synthesis. No downloads or latency.</p>
+            </div>
+            <span class="text-xs px-2.5 py-1 rounded bg-violet-500/10 text-violet-400 border border-violet-500/20 font-mono">Web Audio API</span>
+          </div>
+
+          <!-- Ambient Channels Grid -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+            <!-- Binaural / Alpha -->
+            <div class="glass-card p-4 rounded-xl border border-slate-800 flex flex-col gap-3">
+              <div class="flex justify-between items-center">
+                <span class="text-xs font-semibold text-slate-200 flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-violet-400"></span> 40Hz Gamma Focus
+                </span>
+                <button data-sound="gamma" class="sound-toggle-btn text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-400 hover:text-white transition">OFF</button>
+              </div>
+              <input type="range" data-sound="gamma" min="0" max="1" step="0.01" value="0.3" class="volume-slider w-full accent-indigo-500 bg-slate-800 h-1.5 rounded-lg appearance-none cursor-pointer">
+            </div>
+
+            <!-- Brown Noise -->
+            <div class="glass-card p-4 rounded-xl border border-slate-800 flex flex-col gap-3">
+              <div class="flex justify-between items-center">
+                <span class="text-xs font-semibold text-slate-200 flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-amber-400"></span> Deep Brown Noise
+                </span>
+                <button data-sound="brown" class="sound-toggle-btn text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-400 hover:text-white transition">OFF</button>
+              </div>
+              <input type="range" data-sound="brown" min="0" max="1" step="0.01" value="0.3" class="volume-slider w-full accent-amber-500 bg-slate-800 h-1.5 rounded-lg appearance-none cursor-pointer">
+            </div>
+
+            <!-- Rain Synthesizer -->
+            <div class="glass-card p-4 rounded-xl border border-slate-800 flex flex-col gap-3">
+              <div class="flex justify-between items-center">
+                <span class="text-xs font-semibold text-slate-200 flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-blue-400"></span> Synthetic Rain & Mist
+                </span>
+                <button data-sound="rain" class="sound-toggle-btn text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-400 hover:text-white transition">OFF</button>
+              </div>
+              <input type="range" data-sound="rain" min="0" max="1" step="0.01" value="0.3" class="volume-slider w-full accent-blue-500 bg-slate-800 h-1.5 rounded-lg appearance-none cursor-pointer">
+            </div>
+
+            <!-- Warm Drone / Pink Noise -->
+            <div class="glass-card p-4 rounded-xl border border-slate-800 flex flex-col gap-3">
+              <div class="flex justify-between items-center">
+                <span class="text-xs font-semibold text-slate-200 flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-pink-400"></span> Organic Pink Drift
+                </span>
+                <button data-sound="pink" class="sound-toggle-btn text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-400 hover:text-white transition">OFF</button>
+              </div>
+              <input type="range" data-sound="pink" min="0" max="1" step="0.01" value="0.3" class="volume-slider w-full accent-pink-500 bg-slate-800 h-1.5 rounded-lg appearance-none cursor-pointer">
+            </div>
+          </div>
+        </div>
+
+        <!-- Smart Scratchpad & Task Canvas -->
+        <div class="glass rounded-2xl p-6 flex-1 flex flex-col">
+          <div class="flex justify-between items-center mb-3">
+            <h2 class="text-sm font-semibold tracking-wide text-slate-300 uppercase font-mono flex items-center gap-2">
+              <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+              Flow State Notes & Goals
+            </h2>
+            <div class="flex items-center gap-2">
+              <span id="saveIndicator" class="text-xs font-mono text-slate-500">Auto-saved</span>
+              <button id="clearNotesBtn" class="text-xs font-mono text-rose-400/80 hover:text-rose-300 transition">Clear</button>
+            </div>
+          </div>
+          <textarea id="scratchPadText" placeholder="Type task priorities, insights, or thoughts for this sprint..." class="w-full flex-1 min-h-[140px] bg-slate-900/60 border border-slate-800 rounded-xl p-4 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition resize-none font-mono"></textarea>
+        </div>
+      </section>
+    </main>
+
+    <!-- CAUSE-DRIVEN CHARITY & SUPPORT FOOTER -->
+    <footer class="mt-auto border-t border-slate-800/80 bg-slate-950/80 backdrop-blur-lg">
+      <div class="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+        <div class="relative overflow-hidden rounded-2xl p-6 sm:p-8 bg-gradient-to-r from-slate-900 via-indigo-950/40 to-slate-900 border border-indigo-500/20 shadow-2xl">
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+            
+            <!-- Info Column -->
+            <div class="lg:col-span-8 flex flex-col gap-3">
+              <div class="inline-flex items-center gap-2 w-max px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-semibold tracking-wide">
+                <svg class="w-3.5 h-3.5 fill-rose-500" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                <span>Cause-Driven Initiative</span>
+              </div>
+              
+              <h3 class="text-lg sm:text-xl font-bold text-white tracking-tight">
+                Support Life-Saving Cancer Care & Underprivileged Education
+              </h3>
+              
+              <p class="text-sm text-slate-300 leading-relaxed">
+                <strong class="text-indigo-300 font-semibold">95% of all contributions go directly towards Cancer Patient Support & School Education Initiatives</strong> <span class="text-slate-400">(5% retained for server maintenance)</span>. Help provide critical treatment support and empower young minds through accessible learning materials.
+              </p>
+              
+              <div class="flex flex-wrap items-center gap-3 pt-2">
+                <div class="flex items-center gap-2 bg-slate-900/90 border border-slate-700/80 px-3.5 py-2 rounded-xl text-xs font-mono text-slate-200">
+                  <span class="text-slate-400">Recipient:</span>
+                  <span class="font-semibold text-white">ASKAR ALI</span>
+                </div>
+                
+                <div class="flex items-center gap-2 bg-slate-900/90 border border-slate-700/80 px-3.5 py-2 rounded-xl text-xs font-mono text-slate-200">
+                  <span class="text-slate-400">UPI ID:</span>
+                  <span id="upiIdText" class="font-semibold text-indigo-300">donation1@postbank</span>
+                  <button id="copyUpiBtn" class="ml-1 text-slate-400 hover:text-white px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 transition flex items-center gap-1 text-[11px]">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10a2 2 0 00-2 2v3a2 2 0 002 2h10a2 2 0 002-2v-3a2 2 0 00-2-2z"/></svg>
+                    <span id="copyBtnLabel">Copy UPI</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- QR Code Column -->
+            <div class="lg:col-span-4 flex flex-col sm:flex-row lg:flex-col items-center justify-center gap-3 p-4 bg-slate-950/60 rounded-xl border border-slate-800/80 text-center">
+              <div class="bg-white p-2 rounded-lg shadow-md">
+                <img 
+                  src="https://api.qrserver.com/v1/create-qr-code/?data=upi://pay?pa=donation1@postbank&pn=YUGRAAL_Cause&size=120x120" 
+                  alt="Direct UPI QR Donation"
+                  class="w-24 h-24 sm:w-28 sm:h-28 object-contain"
+                  loading="lazy"
+                />
+              </div>
+              <div class="text-center sm:text-left lg:text-center">
+                <p class="text-xs font-semibold text-slate-200">Scan via Any UPI App</p>
+                <p class="text-[11px] text-slate-400">GPay, PhonePe, Paytm, BHIM</p>
+              </div>
+            </div>
+
+          </div>
+        </div>
+        
+        <div class="mt-6 flex flex-col sm:flex-row justify-between items-center text-xs text-slate-500 gap-2 border-t border-slate-900 pt-4 font-mono">
+          <div>&copy; <span id="yearSpan"></span> AetherFlow Engine. Empowered for human impact.</div>
+          <div class="text-slate-400">Zero Ads &bull; Zero Tracker Bloat</div>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Audio & Application Logic -->
+  <script>
+    // Set current year
+    document.getElementById('yearSpan').textContent = new Date().getFullYear();
+
+    // UTC clock
+    function updateClock() {
+      const now = new Date();
+      document.getElementById('currentTimeDisplay').textContent = now.toTimeString().split(' ')[0] + ' LOCAL';
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // Copy UPI functionality
+    const copyUpiBtn = document.getElementById('copyUpiBtn');
+    const copyBtnLabel = document.getElementById('copyBtnLabel');
+    copyUpiBtn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText('donation1@postbank');
+        copyBtnLabel.textContent = 'Copied!';
+        copyUpiBtn.classList.add('text-emerald-400');
+        setTimeout(() => {
+          copyBtnLabel.textContent = 'Copy UPI';
+          copyUpiBtn.classList.remove('text-emerald-400');
+        }, 2000);
+      } catch (err) {
+        copyBtnLabel.textContent = 'donation1@postbank';
+      }
+    });
+
+    // --- WEB AUDIO API PROCEDURAL GENERATOR ---
+    let audioCtx = null;
+    const soundNodes = {
+      gamma: { gain: null, node: null, playing: false },
+      brown: { gain: null, node: null, playing: false },
+      rain: { gain: null, node: null, playing: false },
+      pink: { gain: null, node: null, playing: false }
+    };
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    // Noise buffers
+    function createBrownianNoiseNode() {
+      const bufferSize = audioCtx.sampleRate * 2;
+      const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const data = buffer.getChannelData(0);
+      let lastOut = 0.0;
+      for (let i = 0; i < bufferSize; i++) {
+        const white = Math.random() * 2 - 1;
+        data[i] = (lastOut + (0.02 * white)) / 1.02;
+        lastOut = data[i];
+        data[i] *= 3.5; // gain adjustment
+      }
+      const noise = audioCtx.createBufferSource();
+      noise.buffer = buffer;
+      noise.loop = true;
+      return noise;
+    }
+
+    function createPinkNoiseNode() {
+      const bufferSize = audioCtx.sampleRate * 2;
+      const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const data = buffer.getChannelData(0);
+      let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+      for (let i = 0; i < bufferSize; i++) {
+        const white = Math.random() * 2 - 1;
+        b0 = 0.99886 * b0 + white * 0.0555179;
+        b1 = 0.99332 * b1 + white * 0.0750759;
+        b2 = 0.96900 * b2 + white * 0.1538520;
+        b3 = 0.86650 * b3 + white * 0.3104856;
+        b4 = 0.55000 * b4 + white * 0.5329522;
+        b5 = -0.7616 * b5 - white * 0.0168980;
+        data[i] = b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362;
+        data[i] *= 0.11;
+        b6 = white * 0.115926;
+      }
+      const noise = audioCtx.createBufferSource();
+      noise.buffer = buffer;
+      noise.loop = true;
+      return noise;
+    }
+
+    function createGammaBinauralNode() {
+      // Base 200Hz left, 240Hz right
+      const oscL = audioCtx.createOscillator();
+      const oscR = audioCtx.createOscillator();
+      const merger = audioCtx.createChannelMerger(2);
+
+      oscL.type = 'sine';
+      oscL.frequency.setValueAtTime(200, audioCtx.currentTime);
+      oscR.type = 'sine';
+      oscR.frequency.setValueAtTime(240, audioCtx.currentTime);
+
+      oscL.connect(merger, 0, 0);
+      oscR.connect(merger, 0, 1);
+      oscL.start();
+      oscR.start();
+
+      return merger;
+    }
+
+    function createRainNode() {
+      const bufferSize = audioCtx.sampleRate * 2;
+      const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = (Math.random() * 2 - 1) * 0.4;
+      }
+      const noise = audioCtx.createBufferSource();
+      noise.buffer = buffer;
+      noise.loop = true;
+
+      // Filter to simulate soft raindrops
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(1200, audioCtx.currentTime);
+      noise.connect(filter);
+      noise.start();
+      return filter;
+    }
+
+    function toggleSound(type, shouldPlay, volume = 0.3) {
+      initAudio();
+      const item = soundNodes[type];
+      if (shouldPlay) {
+        if (item.playing) return;
+        item.gain = audioCtx.createGain();
+        item.gain.gain.setValueAtTime(volume, audioCtx.currentTime);
+
+        if (type === 'gamma') {
+          item.node = createGammaBinauralNode();
+        } else if (type === 'brown') {
+          item.node = createBrownianNoiseNode();
+          item.node.start();
+        } else if (type === 'pink') {
+          item.node = createPinkNoiseNode();
+          item.node.start();
+        } else if (type === 'rain') {
+          item.node = createRainNode();
+        }
+
+        item.node.connect(item.gain);
+        item.gain.connect(audioCtx.destination);
+        item.playing = true;
+      } else {
+        if (!item.playing) return;
+        try {
+          if (item.gain) {
+            item.gain.gain.linearRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+            setTimeout(() => {
+              if (item.node && item.node.stop) { item.node.stop(); }
+              if (item.node) item.node.disconnect();
+              item.playing = false;
+            }, 300);
+          }
+        } catch(e) {
+          item.playing = false;
+        }
+      }
+    }
+
+    // Sound Controls
+    document.querySelectorAll('.sound-toggle-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const soundType = btn.dataset.sound;
+        const slider = document.querySelector(`.volume-slider[data-sound="${soundType}"]`);
+        const isCurrentlyPlaying = soundNodes[soundType].playing;
+
+        if (!isCurrentlyPlaying) {
+          toggleSound(soundType, true, parseFloat(slider.value));
+          btn.textContent = 'ON';
+          btn.classList.replace('bg-slate-800', 'bg-indigo-600');
+          btn.classList.replace('text-slate-400', 'text-white');
+        } else {
+          toggleSound(soundType, false);
+          btn.textContent = 'OFF';
+          btn.classList.replace('bg-indigo-600', 'bg-slate-800');
+          btn.classList.replace('text-white', 'text-slate-400');
+        }
+      });
+    });
+
+    document.querySelectorAll('.volume-slider').forEach(slider => {
+      slider.addEventListener('input', (e) => {
+        const soundType = e.target.dataset.sound;
+        if (soundNodes[soundType].gain && soundNodes[soundType].playing) {
+          soundNodes[soundType].gain.gain.setValueAtTime(parseFloat(e.target.value), audioCtx.currentTime);
+        }
+      });
+    });
+
+    // Master mute button
+    let isMasterMuted = false;
+    document.getElementById('masterMuteBtn').addEventListener('click', () => {
+      initAudio();
+      if (!isMasterMuted) {
+        audioCtx.suspend();
+        isMasterMuted = true;
+        document.getElementById('masterMuteBtn').classList.add('opacity-50');
+      } else {
+        audioCtx.resume();
+        isMasterMuted = false;
+        document.getElementById('masterMuteBtn').classList.remove('opacity-50');
+      }
+    });
+
+    // --- POMODORO TIMER LOGIC ---
+    let timerDuration = 25 * 60;
+    let timeRemaining = 25 * 60;
+    let timerInterval = null;
+    let timerRunning = false;
+
+    const timerDisplay = document.getElementById('timerDisplay');
+    const timerStatusLabel = document.getElementById('timerStatusLabel');
+    const startPauseTimerBtn = document.getElementById('startPauseTimerBtn');
+    const startPauseText = document.getElementById('startPauseText');
+    const resetTimerBtn = document.getElementById('resetTimerBtn');
+    const timerProgressCircle = document.getElementById('timerProgressCircle');
+    const circumference = 2 * Math.PI * 45;
+
+    function updateTimerDisplay() {
+      const minutes = Math.floor(timeRemaining / 60);
+      const seconds = timeRemaining % 60;
+      timerDisplay.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+      
+      const progress = timeRemaining / timerDuration;
+      const offset = circumference - (progress * circumference);
+      timerProgressCircle.style.strokeDashoffset = offset;
+    }
+
+    function toggleTimer() {
+      if (!timerRunning) {
+        timerRunning = true;
+        startPauseText.textContent = 'Pause';
+        timerInterval = setInterval(() => {
+          if (timeRemaining > 0) {
+            timeRemaining--;
+            updateTimerDisplay();
+          } else {
+            clearInterval(timerInterval);
+            timerRunning = false;
+            startPauseText.textContent = 'Start Session';
+            alert('Sprint complete! Time to reset or switch phase.');
+          }
+        }, 1000);
+      } else {
+        clearInterval(timerInterval);
+        timerRunning = false;
+        startPauseText.textContent = 'Resume';
+      }
+    }
+
+    function resetTimer() {
+      clearInterval(timerInterval);
+      timerRunning = false;
+      timeRemaining = timerDuration;
+      startPauseText.textContent = 'Start Session';
+      updateTimerDisplay();
+    }
+
+    startPauseTimerBtn.addEventListener('click', toggleTimer);
+    resetTimerBtn.addEventListener('click', resetTimer);
+
+    // Mode selector
+    const modeButtons = document.querySelectorAll('.timer-mode');
+    modeButtons.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        modeButtons.forEach(b => {
+          b.classList.remove('bg-indigo-600', 'text-white');
+          b.classList.add('text-slate-400');
+        });
+        e.target.classList.add('bg-indigo-600', 'text-white');
+        e.target.classList.remove('text-slate-400');
+
+        if (e.target.id === 'modePomodoro') {
+          timerDuration = 25 * 60;
+          timerStatusLabel.textContent = 'Deep Work';
+        } else if (e.target.id === 'modeShortBreak') {
+          timerDuration = 5 * 60;
+          timerStatusLabel.textContent = 'Quick Rest';
+        } else if (e.target.id === 'modeLongBreak') {
+          timerDuration = 15 * 60;
+          timerStatusLabel.textContent = 'Recovery';
+        }
+        resetTimer();
+      });
+    });
+
+    // --- 4-7-8 PACED BREATHING LOGIC ---
+    let breathActive = false;
+    let breathTimer = null;
+    const toggleBreathBtn = document.getElementById('toggleBreathBtn');
+    const breathOrb = document.getElementById('breathOrb');
+    const breathStateText = document.getElementById('breathStateText');
+
+    function runBreathCycle() {
+      if (!breathActive) return;
+      // Inhale 4s
+      breathStateText.textContent = 'Inhale deeply through nose (4s)...';
+      breathOrb.style.transform = 'scale(2.4)';
+      breathOrb.style.borderColor = '#38bdf8';
+      breathOrb.style.backgroundColor = 'rgba(56, 189, 248, 0.4)';
+
+      breathTimer = setTimeout(() => {
+        if (!breathActive) return;
+        // Hold 7s
+        breathStateText.textContent = 'Hold breath & steady mind (7s)...';
+        breathOrb.style.borderColor = '#818cf8';
+        breathOrb.style.backgroundColor = 'rgba(129, 140, 248, 0.4)';
+
+        breathTimer = setTimeout(() => {
+          if (!breathActive) return;
+          // Exhale 8s
+          breathStateText.textContent = 'Exhale gently through mouth (8s)...';
+          breathOrb.style.transform = 'scale(1)';
+          breathOrb.style.borderColor = '#34d399';
+          breathOrb.style.backgroundColor = 'rgba(52, 211, 153, 0.3)';
+
+          breathTimer = setTimeout(() => {
+            if (breathActive) runBreathCycle();
+          }, 8000);
+        }, 7000);
+      }, 4000);
+    }
+
+    toggleBreathBtn.addEventListener('click', () => {
+      breathActive = !breathActive;
+      if (breathActive) {
+        toggleBreathBtn.textContent = 'Stop';
+        toggleBreathBtn.classList.replace('bg-cyan-500/10', 'bg-rose-500/10');
+        toggleBreathBtn.classList.replace('text-cyan-400', 'text-rose-400');
+        toggleBreathBtn.classList.replace('border-cyan-500/20', 'border-rose-500/20');
+        runBreathCycle();
+      } else {
+        clearTimeout(breathTimer);
+        toggleBreathBtn.textContent = 'Activate';
+        toggleBreathBtn.classList.replace('bg-rose-500/10', 'bg-cyan-500/10');
+        toggleBreathBtn.classList.replace('text-rose-400', 'text-cyan-400');
+        toggleBreathBtn.classList.replace('border-rose-500/20', 'border-cyan-500/20');
+        breathOrb.style.transform = 'scale(1)';
+        breathStateText.textContent = 'Ready to regulate nervous system';
+      }
+    });
+
+    // --- SCRATCHPAD STORAGE ---
+    const scratchPad = document.getElementById('scratchPadText');
+    const saveIndicator = document.getElementById('saveIndicator');
+    const clearNotesBtn = document.getElementById('clearNotesBtn');
+
+    const SAVED_KEY = 'aetherflow_workspace_notes';
+    scratchPad.value = localStorage.getItem(SAVED_KEY) || '';
+
+    scratchPad.addEventListener('input', () => {
+      saveIndicator.textContent = 'Saving...';
+      localStorage.setItem(SAVED_KEY, scratchPad.value);
+      setTimeout(() => {
+        saveIndicator.textContent = 'Auto-saved';
+      }, 500);
+    });
+
+    clearNotesBtn.addEventListener('click', () => {
+      if (confirm('Clear workspace notes?')) {
+        scratchPad.value = '';
+        localStorage.removeItem(SAVED_KEY);
+        saveIndicator.textContent = 'Cleared';
+      }
+    });
+  </script>
+</body>
+</html>
