@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NeuroFlow | Cognitive Sanctuary</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: { 500: '#6366f1', 600: '#4f46e5', 700: '#4338ca' },
+            glass: 'rgba(15, 23, 42, 0.75)'
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: radial-gradient(circle at 10% 20%, #0f172a 0%, #030712 100%);
+    }
+    .glass-card {
+      background: rgba(30, 41, 59, 0.45);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .breathe-circle {
+      animation: breathe 16s ease-in-out infinite;
+    }
+    @keyframes breathe {
+      0%, 100% { transform: scale(1); opacity: 0.4; }
+      25% { transform: scale(1.6); opacity: 0.8; }
+      50% { transform: scale(1.6); opacity: 0.8; }
+      75% { transform: scale(1); opacity: 0.4; }
+    }
+  </style>
+</head>
+<body class="text-slate-200 min-h-screen flex flex-col justify-between selection:bg-indigo-500 selection:text-white">
+
+  <!-- Top Bar -->
+  <header class="w-full max-w-7xl mx-auto px-6 py-6 flex justify-between items-center">
+    <div class="flex items-center space-x-3">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-cyan-400 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+        <i data-lucide="cpu" class="w-6 h-6 text-white"></i>
+      </div>
+      <div>
+        <h1 class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-200 to-indigo-300 bg-clip-text text-transparent">NeuroFlow</h1>
+        <span class="text-xs text-indigo-400 font-mono tracking-wider uppercase">v2.4 Cognitive Engine</span>
+      </div>
+    </div>
+    <div class="flex items-center gap-4 text-xs font-mono text-slate-400">
+      <span class="flex items-center gap-1.5 px-3 py-1.5 rounded-full glass-card">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span> Live Synth Engine
+      </span>
+    </div>
+  </header>
+
+  <!-- Main App Canvas -->
+  <main class="w-full max-w-7xl mx-auto px-6 py-4 grid grid-cols-1 lg:grid-cols-12 gap-6">
+    
+    <!-- Left Col: Audio Synthesis & Focus Timer -->
+    <div class="lg:col-span-4 space-y-6">
+      <!-- Timer Widget -->
+      <div class="glass-card rounded-2xl p-6 shadow-xl relative overflow-hidden">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+            <i data-lucide="clock" class="w-4 h-4 text-indigo-400"></i> Neural Focus Pacer
+          </h2>
+          <span id="timerStatus" class="text-xs px-2.5 py-1 rounded bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">Ready</span>
+        </div>
+        <div class="text-center my-6">
+          <div id="timerDisplay" class="text-5xl font-mono font-bold tracking-tight text-white mb-2">25:00</div>
+          <p id="pacerState" class="text-xs text-slate-400">4-7-8 Respiratory Entrainment: Inhale</p>
+        </div>
+        <div class="flex justify-center gap-3">
+          <button id="btnStartTimer" class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-medium transition shadow-lg shadow-indigo-600/30 flex items-center gap-2 text-sm">
+            <i data-lucide="play" class="w-4 h-4"></i> Start Session
+          </button>
+          <button id="btnResetTimer" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl transition text-sm flex items-center">
+            <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Sound Synthesis Generator (Web Audio) -->
+      <div class="glass-card rounded-2xl p-6 shadow-xl space-y-5">
+        <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+          <i data-lucide="waves" class="w-4 h-4 text-cyan-400"></i> Real-time Audio Synthesizer
+        </h2>
+        <div class="space-y-4 text-sm">
+          <div>
+            <div class="flex justify-between text-xs text-slate-400 mb-1.5">
+              <span>Pink Noise Generator</span>
+              <span id="pinkVolLabel">0%</span>
+            </div>
+            <input type="range" id="pinkNoiseSlider" min="0" max="1" step="0.05" value="0" class="w-full accent-indigo-500 bg-slate-700 h-1.5 rounded-lg appearance-none cursor-pointer">
+          </div>
+          <div>
+            <div class="flex justify-between text-xs text-slate-400 mb-1.5">
+              <span>40Hz Gamma Binaural Beat</span>
+              <span id="binauralVolLabel">0%</span>
+            </div>
+            <input type="range" id="binauralSlider" min="0" max="1" step="0.05" value="0" class="w-full accent-cyan-400 bg-slate-700 h-1.5 rounded-lg appearance-none cursor-pointer">
+          </div>
+          <div>
+            <div class="flex justify-between text-xs text-slate-400 mb-1.5">
+              <span>Deep Theta Harmonic (6Hz)</span>
+              <span id="thetaVolLabel">0%</span>
+            </div>
+            <input type="range" id="thetaSlider" min="0" max="1" step="0.05" value="0" class="w-full accent-purple-400 bg-slate-700 h-1.5 rounded-lg appearance-none cursor-pointer">
+          </div>
+        </div>
+        <button id="toggleMasterAudio" class="w-full py-2.5 rounded-xl border border-slate-700 bg-slate-800/80 hover:bg-slate-800 text-xs font-semibold uppercase tracking-wider transition flex items-center justify-center gap-2">
+          <i data-lucide="volume-2" class="w-4 h-4 text-emerald-400"></i> Enable Audio Engine
+        </button>
+      </div>
+    </div>
+
+    <!-- Center/Right Col: Intelligent Task Matrix & Breath Ring -->
+    <div class="lg:col-span-8 space-y-6">
+      <!-- Interactive Deep-Work Board -->
+      <div class="glass-card rounded-2xl p-6 shadow-xl">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+          <div>
+            <h2 class="text-lg font-bold text-white flex items-center gap-2">
+              <i data-lucide="check-circle-2" class="w-5 h-5 text-indigo-400"></i> Priority Execution Matrix
+            </h2>
+            <p class="text-xs text-slate-400">Isolate high-impact objectives and enter unobstructed deep work.</p>
+          </div>
+          <div class="flex gap-2">
+            <input type="text" id="taskInput" placeholder="Type core objective + Enter..." class="bg-slate-900/80 border border-slate-700/80 rounded-xl px-4 py-2 text-xs focus:outline-none focus:border-indigo-500 w-full sm:w-64 text-white placeholder-slate-500">
+            <button id="addTaskBtn" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold transition">Add</button>
+          </div>
+        </div>
+
+        <!-- Task List -->
+        <div id="taskList" class="space-y-2.5 min-h-[180px]">
+          <!-- Injected via JS -->
+        </div>
+      </div>
+
+      <!-- Visual Coherence Engine / Breath Sphere -->
+      <div class="glass-card rounded-2xl p-6 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6 overflow-hidden relative">
+        <div class="space-y-2 max-w-sm">
+          <h3 class="text-md font-bold text-white flex items-center gap-2">
+            <i data-lucide="activity" class="w-4 h-4 text-emerald-400"></i> Bio-Feedback Visual Sphere
+          </h3>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            Match your natural breathing rhythm to the pulsing core. Expands during Inhale, stabilizes during Hold, contracts on Exhale.
+          </p>
+        </div>
+        <div class="w-32 h-32 flex items-center justify-center relative">
+          <div class="absolute w-24 h-24 rounded-full bg-gradient-to-tr from-indigo-500/30 to-cyan-500/30 breathe-circle blur-sm"></div>
+          <div class="w-16 h-16 rounded-full border border-indigo-400/40 flex items-center justify-center text-[10px] uppercase font-mono text-indigo-200 tracking-widest">
+            Sync
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Cause-Driven Charity & Support Section -->
+  <footer class="w-full max-w-7xl mx-auto px-6 pt-10 pb-8">
+    <div class="glass-card rounded-3xl p-6 sm:p-8 border border-indigo-500/20 bg-gradient-to-br from-slate-900/90 via-slate-900/60 to-indigo-950/30 shadow-2xl relative overflow-hidden">
+      <div class="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+        
+        <!-- Left description -->
+        <div class="lg:col-span-8 space-y-3">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold">
+            <i data-lucide="heart-handshake" class="w-3.5 h-3.5"></i> Philanthropic Commitment
+          </div>
+          <h3 class="text-lg sm:text-xl font-bold text-white tracking-tight">
+            Supporting Cancer Care & Grassroots Education
+          </h3>
+          <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+            <strong class="text-emerald-400 font-semibold">95% of all contributions</strong> go directly towards Cancer Patient Support & School Education Initiatives (5% retained for server maintenance).
+          </p>
+          <div class="flex flex-wrap items-center gap-4 text-xs font-mono pt-2 text-slate-400">
+            <span class="flex items-center gap-1.5">
+              <i data-lucide="user" class="w-4 h-4 text-indigo-400"></i> Receiver: <span class="text-slate-200 font-medium">ASKAR ALI</span>
+            </span>
+            <span class="flex items-center gap-1.5">
+              <i data-lucide="credit-card" class="w-4 h-4 text-indigo-400"></i> UPI ID: <span id="upiIdText" class="text-slate-200 font-medium select-all">donation1@postbank</span>
+            </span>
+          </div>
+        </div>
+
+        <!-- Right Donation Trigger & Dynamic QR code -->
+        <div class="lg:col-span-4 flex flex-col sm:flex-row lg:flex-col items-center justify-center gap-4 bg-slate-950/50 p-4 rounded-2xl border border-slate-800">
+          <div class="w-24 h-24 bg-white p-1 rounded-xl shadow-inner flex items-center justify-center">
+            <img src="https://api.qrserver.com/v1/create-qr-code/?data=upi://pay?pa=donation1@postbank&pn=YUGRAAL_Cause" alt="UPI QR Code" class="w-full h-full object-contain">
+          </div>
+          <div class="flex flex-col w-full gap-2 text-center">
+            <button id="copyUpiBtn" class="w-full py-2 px-3 bg-indigo-600/30 hover:bg-indigo-600/50 border border-indigo-500/40 rounded-xl text-xs text-indigo-200 font-medium flex items-center justify-center gap-1.5 transition">
+              <i data-lucide="copy" class="w-3.5 h-3.5"></i> <span id="copyBtnText">Copy UPI ID</span>
+            </button>
+            <span class="text-[10px] text-slate-500 font-mono">Instant Support via any UPI App</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <div class="text-center text-xs text-slate-600 mt-6 font-mono">
+      NeuroFlow Cognitive Architecture &copy; 2025. Built with Purpose.
+    </div>
+  </footer>
+
+  <!-- Client Script Logic -->
+  <script>
+    lucide.createIcons();
+
+    // === Web Audio Ambient Generator ===
+    let audioCtx = null;
+    let pinkNode = null, pinkGain = null;
+    let oscL = null, oscR = null, binauralGain = null;
+    let thetaOsc = null, thetaGain = null;
+    let audioActive = false;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    function startSoundscapes() {
+      initAudio();
+      // Pink Noise Synth via ScriptProcessor
+      const bufferSize = 4096;
+      let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+      pinkNode = audioCtx.createScriptProcessor(bufferSize, 1, 1);
+      pinkNode.onaudioprocess = function(e) {
+        const output = e.outputBuffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          const white = Math.random() * 2 - 1;
+          b0 = 0.99886 * b0 + white * 0.0555179;
+          b1 = 0.99332 * b1 + white * 0.0750759;
+          b2 = 0.96900 * b2 + white * 0.1538520;
+          b3 = 0.86650 * b3 + white * 0.3104856;
+          b4 = 0.55000 * b4 + white * 0.5329522;
+          b5 = -0.7616 * b5 - white * 0.0168980;
+          output[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.11;
+          b6 = white * 0.115926;
+        }
+      };
+      pinkGain = audioCtx.createGain();
+      pinkGain.gain.value = parseFloat(document.getElementById('pinkNoiseSlider').value);
+      pinkNode.connect(pinkGain);
+      pinkGain.connect(audioCtx.destination);
+
+      // Binaural Gamma 40Hz (Left: 200Hz, Right: 240Hz)
+      const merger = audioCtx.createChannelMerger(2);
+      oscL = audioCtx.createOscillator();
+      oscR = audioCtx.createOscillator();
+      oscL.type = 'sine'; oscL.frequency.value = 200;
+      oscR.type = 'sine'; oscR.frequency.value = 240;
+      oscL.connect(merger, 0, 0);
+      oscR.connect(merger, 0, 1);
+      binauralGain = audioCtx.createGain();
+      binauralGain.gain.value = parseFloat(document.getElementById('binauralSlider').value);
+      merger.connect(binauralGain);
+      binauralGain.connect(audioCtx.destination);
+      oscL.start();
+      oscR.start();
+
+      // Theta Harmonic
+      thetaOsc = audioCtx.createOscillator();
+      thetaGain = audioCtx.createGain();
+      thetaOsc.type = 'sine';
+      thetaOsc.frequency.value = 108;
+      thetaGain.gain.value = parseFloat(document.getElementById('thetaSlider').value);
+      thetaOsc.connect(thetaGain);
+      thetaGain.connect(audioCtx.destination);
+      thetaOsc.start();
+    }
+
+    document.getElementById('toggleMasterAudio').addEventListener('click', () => {
+      if (!audioActive) {
+        startSoundscapes();
+        audioActive = true;
+        document.getElementById('toggleMasterAudio').innerHTML = '<i data-lucide="volume-x" class="w-4 h-4 text-rose-400"></i> Audio Active (Click to Mute)';
+        lucide.createIcons();
+      } else {
+        if (audioCtx) audioCtx.suspend();
+        audioActive = false;
+        document.getElementById('toggleMasterAudio').innerHTML = '<i data-lucide="volume-2" class="w-4 h-4 text-emerald-400"></i> Resume Audio Engine';
+        lucide.createIcons();
+      }
+    });
+
+    document.getElementById('pinkNoiseSlider').addEventListener('input', (e) => {
+      const val = parseFloat(e.target.value);
+      document.getElementById('pinkVolLabel').innerText = Math.round(val * 100) + '%';
+      if (pinkGain) pinkGain.gain.value = val;
+    });
+
+    document.getElementById('binauralSlider').addEventListener('input', (e) => {
+      const val = parseFloat(e.target.value);
+      document.getElementById('binauralVolLabel').innerText = Math.round(val * 100) + '%';
+      if (binauralGain) binauralGain.gain.value = val;
+    });
+
+    document.getElementById('thetaSlider').addEventListener('input', (e) => {
+      const val = parseFloat(e.target.value);
+      document.getElementById('thetaVolLabel').innerText = Math.round(val * 100) + '%';
+      if (thetaGain) thetaGain.gain.value = val;
+    });
+
+    // === Focus Timer Logic ===
+    let timeLeft = 25 * 60;
+    let timerId = null;
+
+    function updateTimerDisplay() {
+      const mins = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+      const secs = (timeLeft % 60).toString().padStart(2, '0');
+      document.getElementById('timerDisplay').innerText = `${mins}:${secs}`;
+    }
+
+    document.getElementById('btnStartTimer').addEventListener('click', () => {
+      if (timerId) {
+        clearInterval(timerId);
+        timerId = null;
+        document.getElementById('btnStartTimer').innerHTML = '<i data-lucide="play" class="w-4 h-4"></i> Start Session';
+        document.getElementById('timerStatus').innerText = 'Paused';
+      } else {
+        timerId = setInterval(() => {
+          if (timeLeft > 0) {
+            timeLeft--;
+            updateTimerDisplay();
+          } else {
+            clearInterval(timerId);
+            timerId = null;
+            alert('Focus Block Completed! Time for restoration.');
+          }
+        }, 1000);
+        document.getElementById('btnStartTimer').innerHTML = '<i data-lucide="pause" class="w-4 h-4"></i> Pause';
+        document.getElementById('timerStatus').innerText = 'Focus Active';
+      }
+      lucide.createIcons();
+    });
+
+    document.getElementById('btnResetTimer').addEventListener('click', () => {
+      clearInterval(timerId);
+      timerId = null;
+      timeLeft = 25 * 60;
+      updateTimerDisplay();
+      document.getElementById('btnStartTimer').innerHTML = '<i data-lucide="play" class="w-4 h-4"></i> Start Session';
+      document.getElementById('timerStatus').innerText = 'Ready';
+      lucide.createIcons();
+    });
+
+    // === Tasks Matrix Logic ===
+    let tasks = [
+      { id: 1, text: 'Architect primary user workflow', done: true },
+      { id: 2, text: 'Calibrate binaural sound frequencies', done: false },
+      { id: 3, text: 'Conduct 45-minute deep coding sprint', done: false }
+    ];
+
+    function renderTasks() {
+      const container = document.getElementById('taskList');
+      container.innerHTML = '';
+      tasks.forEach(task => {
+        const div = document.createElement('div');
+        div.className = `flex items-center justify-between p-3 rounded-xl border transition ${task.done ? 'bg-slate-900/40 border-slate-800 text-slate-500 line-through' : 'bg-slate-800/40 border-slate-700/60 text-slate-200'}`;
+        div.innerHTML = `
+          <div class="flex items-center gap-3 cursor-pointer" onclick="toggleTask(${task.id})">
+            <div class="w-4 h-4 rounded border flex items-center justify-center ${task.done ? 'bg-indigo-600 border-indigo-500 text-white' : 'border-slate-600'}">
+              ${task.done ? '✓' : ''}
+            </div>
+            <span class="text-xs font-medium">${task.text}</span>
+          </div>
+          <button onclick="deleteTask(${task.id})" class="text-slate-500 hover:text-rose-400 p-1 text-xs">
+            ✕
+          </button>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    window.toggleTask = function(id) {
+      tasks = tasks.map(t => t.id === id ? { ...t, done: !t.done } : t);
+      renderTasks();
+    };
+
+    window.deleteTask = function(id) {
+      tasks = tasks.filter(t => t.id !== id);
+      renderTasks();
+    };
+
+    function addTask() {
+      const input = document.getElementById('taskInput');
+      if (input.value.trim()) {
+        tasks.push({ id: Date.now(), text: input.value.trim(), done: false });
+        input.value = '';
+        renderTasks();
+      }
+    }
+
+    document.getElementById('addTaskBtn').addEventListener('click', addTask);
+    document.getElementById('taskInput').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') addTask();
+    });
+    renderTasks();
+
+    // === Copy UPI Support Logic ===
+    document.getElementById('copyUpiBtn').addEventListener('click', () => {
+      navigator.clipboard.writeText('donation1@postbank').then(() => {
+        const txt = document.getElementById('copyBtnText');
+        txt.innerText = 'Copied Successfully!';
+        setTimeout(() => txt.innerText = 'Copy UPI ID', 2000);
+      });
+    });
+  </script>
+</body>
+</html>
