@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ChronoMatrix Flow Studio</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            cyber: {
+              900: '#07090e',
+              800: '#0d111a',
+              700: '#161c28',
+              accent: '#38bdf8',
+              violet: '#a855f7',
+              emerald: '#10b981',
+              rose: '#f43f5e'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #07090e;
+      color: #f1f5f9;
+      font-family: ui-sans-serif, system-ui, sans-serif;
+    }
+    .glass-panel {
+      background: rgba(13, 17, 26, 0.7);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .glass-card {
+      background: rgba(22, 28, 40, 0.5);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .glow-cyan {
+      box-shadow: 0 0 25px -5px rgba(56, 189, 248, 0.25);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-cyan-500 selection:text-black">
+
+  <!-- Top Navigation -->
+  <header class="border-b border-white/10 glass-panel sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-cyan-500 to-indigo-500 flex items-center justify-center text-black font-black tracking-wider">
+          CM
+        </div>
+        <div>
+          <h1 class="text-lg font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-indigo-300">
+            ChronoMatrix Flow
+          </h1>
+          <p class="text-xs text-slate-400 leading-none">Algorithmic Focus & Task Architecture</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-4 text-xs font-medium">
+        <div id="sessionStats" class="hidden sm:flex items-center gap-3 px-3 py-1.5 rounded-full bg-white/5 border border-white/10">
+          <span class="flex items-center gap-1.5 text-emerald-400"><i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i> <span id="completedCount">0</span> Done</span>
+          <span class="text-slate-500">|</span>
+          <span class="flex items-center gap-1.5 text-cyan-400"><i data-lucide="flame" class="w-3.5 h-3.5"></i> <span id="focusMinutes">0</span>m Focus</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Layout -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-8 w-full flex-grow space-y-8">
+
+    <!-- Quick Stats & Focus Control Engine -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      
+      <!-- Interactive Binaural / Focus Audio Engine -->
+      <div class="glass-panel rounded-2xl p-6 glow-cyan flex flex-col justify-between space-y-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2 text-cyan-400 font-semibold text-sm">
+            <i data-lucide="volume-2" class="w-4 h-4"></i> Synthesized Soundscape
+          </div>
+          <span id="audioBadge" class="text-xs uppercase font-mono px-2 py-0.5 rounded bg-white/5 text-slate-400">Standby</span>
+        </div>
+        <p class="text-xs text-slate-400">Generate continuous ambient frequencies to lock in deep cognitive flow state.</p>
+        <div class="flex items-center gap-3">
+          <button id="ambientToggleBtn" class="flex-1 py-2.5 px-4 rounded-xl font-medium text-sm transition-all flex items-center justify-center gap-2 bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-black font-semibold">
+            <i data-lucide="play" class="w-4 h-4"></i> Start Soundscape
+          </button>
+          <select id="soundscapeType" class="bg-cyber-800 border border-white/10 text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:border-cyan-500 text-slate-300">
+            <option value="alpha">Alpha (10Hz)</option>
+            <option value="theta">Theta (6Hz)</option>
+            <option value="pink">Pink Noise</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Focus Interval Sequencer -->
+      <div class="glass-panel rounded-2xl p-6 flex flex-col justify-between space-y-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2 text-violet-400 font-semibold text-sm">
+            <i data-lucide="timer" class="w-4 h-4"></i> Matrix Sprint Timer
+          </div>
+          <span id="timerStatus" class="text-xs uppercase font-mono px-2 py-0.5 rounded bg-violet-500/10 text-violet-300">25:00 Interval</span>
+        </div>
+        <div class="text-center py-1">
+          <span id="timerDisplay" class="text-4xl font-mono font-bold tracking-tight text-slate-100">25:00</span>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <button id="timerStartBtn" class="py-2 px-3 rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-medium text-xs transition flex items-center justify-center gap-1.5">
+            <i data-lucide="play" class="w-3.5 h-3.5"></i> Run
+          </button>
+          <button id="timerResetBtn" class="py-2 px-3 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 font-medium text-xs transition flex items-center justify-center gap-1.5">
+            <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Reset
+          </button>
+        </div>
+      </div>
+
+      <!-- Add Task Modal Action -->
+      <div class="glass-panel rounded-2xl p-6 flex flex-col justify-between space-y-4">
+        <div>
+          <div class="flex items-center gap-2 text-emerald-400 font-semibold text-sm mb-1">
+            <i data-lucide="plus-circle" class="w-4 h-4"></i> Rapid Task Insertion
+          </div>
+          <p class="text-xs text-slate-400">Inject tasks directly into priority quadrants with automated urgency tags.</p>
+        </div>
+        <form id="taskForm" class="space-y-3">
+          <input id="taskTitle" type="text" placeholder="Task label / intent..." required class="w-full bg-cyber-800 border border-white/10 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500" />
+          <div class="grid grid-cols-2 gap-2">
+            <select id="taskPriority" class="bg-cyber-800 border border-white/10 text-xs rounded-xl px-2.5 py-2 text-slate-300 focus:outline-none focus:border-cyan-500">
+              <option value="q1">Q1: Do First (Urgent/Important)</option>
+              <option value="q2" selected>Q2: Schedule (Important)</option>
+              <option value="q3">Q3: Delegate (Urgent)</option>
+              <option value="q4">Q4: Eliminate (Trivial)</option>
+            </select>
+            <button type="submit" class="py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs transition flex items-center justify-center gap-1.5">
+              <i data-lucide="corner-down-left" class="w-3.5 h-3.5"></i> Push Task
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Eisenhower Dynamic Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- Q1: Urgent & Important -->
+      <div class="glass-panel rounded-2xl p-5 border-l-4 border-l-rose-500 flex flex-col h-[340px]">
+        <div class="flex items-center justify-between pb-3 border-b border-white/5 mb-3">
+          <div class="flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+            <h3 class="font-semibold text-sm text-slate-200 tracking-wide">Quadrant 1: Execute Immediate</h3>
+          </div>
+          <span class="text-[11px] font-mono text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded">CRITICAL</span>
+        </div>
+        <div id="list-q1" class="flex-grow overflow-y-auto space-y-2 pr-1"></div>
+      </div>
+
+      <!-- Q2: Not Urgent & Important -->
+      <div class="glass-panel rounded-2xl p-5 border-l-4 border-l-cyan-500 flex flex-col h-[340px]">
+        <div class="flex items-center justify-between pb-3 border-b border-white/5 mb-3">
+          <div class="flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-cyan-500"></span>
+            <h3 class="font-semibold text-sm text-slate-200 tracking-wide">Quadrant 2: Strategic Focus</h3>
+          </div>
+          <span class="text-[11px] font-mono text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded">GROWTH</span>
+        </div>
+        <div id="list-q2" class="flex-grow overflow-y-auto space-y-2 pr-1"></div>
+      </div>
+
+      <!-- Q3: Urgent & Not Important -->
+      <div class="glass-panel rounded-2xl p-5 border-l-4 border-l-amber-500 flex flex-col h-[340px]">
+        <div class="flex items-center justify-between pb-3 border-b border-white/5 mb-3">
+          <div class="flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+            <h3 class="font-semibold text-sm text-slate-200 tracking-wide">Quadrant 3: Delegate / Streamline</h3>
+          </div>
+          <span class="text-[11px] font-mono text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded">NOISE</span>
+        </div>
+        <div id="list-q3" class="flex-grow overflow-y-auto space-y-2 pr-1"></div>
+      </div>
+
+      <!-- Q4: Not Urgent & Not Important -->
+      <div class="glass-panel rounded-2xl p-5 border-l-4 border-l-slate-500 flex flex-col h-[340px]">
+        <div class="flex items-center justify-between pb-3 border-b border-white/5 mb-3">
+          <div class="flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-slate-500"></span>
+            <h3 class="font-semibold text-sm text-slate-200 tracking-wide">Quadrant 4: Deprecate</h3>
+          </div>
+          <span class="text-[11px] font-mono text-slate-400 bg-white/5 px-2 py-0.5 rounded">MINIMAL</span>
+        </div>
+        <div id="list-q4" class="flex-grow overflow-y-auto space-y-2 pr-1"></div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Cause-Driven Charity & Support Section -->
+  <footer class="border-t border-white/10 bg-cyber-900/90 py-10 mt-12">
+    <div class="max-w-4xl mx-auto px-6">
+      <div class="glass-card rounded-2xl p-6 sm:p-8 border border-white/10 relative overflow-hidden">
+        <div class="absolute -right-12 -top-12 w-44 h-44 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="flex flex-col md:flex-row items-center gap-6 text-center md:text-left">
+          <!-- Dynamic UPI QR -->
+          <div class="flex-shrink-0 bg-white p-2.5 rounded-xl shadow-lg">
+            <img 
+              src="https://api.qrserver.com/v1/create-qr-code/?data=upi://pay?pa=donation1@postbank&pn=YUGRAAL_Cause" 
+              alt="UPI QR Code" 
+              class="w-28 h-28 object-contain rounded"
+            />
+          </div>
+
+          <!-- Details & Intent -->
+          <div class="flex-1 space-y-2.5">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-semibold uppercase tracking-wider">
+              <i data-lucide="heart-handshake" class="w-3.5 h-3.5"></i> Cause-Driven Community Impact
+            </div>
+            <h4 class="text-base sm:text-lg font-bold text-white tracking-tight">
+              Empower Cancer Relief & Grassroots Education
+            </h4>
+            <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+              95% of all contributions go directly towards Cancer Patient Support & School Education Initiatives (5% retained for server maintenance).
+            </p>
+            <div class="flex flex-wrap items-center justify-center md:justify-start gap-3 pt-2 text-xs">
+              <span class="text-slate-400">Recipient: <strong class="text-slate-200">ASKAR ALI</strong></span>
+              <span class="text-slate-600">•</span>
+              <span class="font-mono text-cyan-300 bg-cyan-950/60 px-2.5 py-1 rounded border border-cyan-800/50">donation1@postbank</span>
+              <button id="copyUpiBtn" onclick="copyUPI()" class="px-3 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-white font-medium text-xs transition inline-flex items-center gap-1.5">
+                <i data-lucide="copy" class="w-3.5 h-3.5"></i> <span id="copyBtnLabel">Copy UPI ID</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="mt-6 text-center text-xs text-slate-500">
+        Crafted with precision by YUGRAAL Co-Creator Web Engine. Zero Ads. Transparent Philanthropy.
+      </div>
+    </div>
+  </footer>
+
+  <!-- Application Logic -->
+  <script>
+    lucide.createIcons();
+
+    // Task Store
+    let tasks = [
+      { id: 1, title: 'Deploy high-availability Kubernetes worker nodes', quadrant: 'q1', done: false },
+      { id: 2, title: 'Draft technical RFC for stateful synchronization', quadrant: 'q2', done: false },
+      { id: 3, title: 'Review routine dependency bump alerts', quadrant: 'q3', done: false },
+      { id: 4, title: 'Clean stale temporary build artifacts', quadrant: 'q4', done: true }
+    ];
+
+    // Web Audio Soundscape Synthesizer
+    let audioCtx = null;
+    let oscillator = null;
+    let gainNode = null;
+    let isAudioPlaying = false;
+
+    function toggleSoundscape() {
+      const btn = document.getElementById('ambientToggleBtn');
+      const badge = document.getElementById('audioBadge');
+      const type = document.getElementById('soundscapeType').value;
+
+      if (!isAudioPlaying) {
+        if (!audioCtx) {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+
+        oscillator = audioCtx.createOscillator();
+        gainNode = audioCtx.createGain();
+        gainNode.gain.setValueAtTime(0.04, audioCtx.currentTime);
+
+        if (type === 'alpha') {
+          oscillator.type = 'sine';
+          oscillator.frequency.setValueAtTime(140, audioCtx.currentTime); // Base Carrier
+        } else if (type === 'theta') {
+          oscillator.type = 'triangle';
+          oscillator.frequency.setValueAtTime(96, audioCtx.currentTime);
+        } else {
+          oscillator.type = 'sine';
+          oscillator.frequency.setValueAtTime(220, audioCtx.currentTime);
+        }
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        oscillator.start();
+
+        isAudioPlaying = true;
+        btn.innerHTML = '<i data-lucide="square" class="w-4 h-4"></i> Stop Soundscape';
+        btn.classList.replace('text-black', 'text-white');
+        btn.classList.replace('from-cyan-500', 'from-rose-600');
+        btn.classList.replace('to-indigo-600', 'to-rose-800');
+        badge.textContent = 'Active: ' + type.toUpperCase();
+        badge.classList.replace('text-slate-400', 'text-cyan-400');
+      } else {
+        if (oscillator) {
+          oscillator.stop();
+          oscillator.disconnect();
+        }
+        isAudioPlaying = false;
+        btn.innerHTML = '<i data-lucide="play" class="w-4 h-4"></i> Start Soundscape';
+        btn.classList.replace('text-white', 'text-black');
+        btn.classList.replace('from-rose-600', 'from-cyan-500');
+        btn.classList.replace('to-rose-800', 'to-indigo-600');
+        badge.textContent = 'Standby';
+        badge.classList.replace('text-cyan-400', 'text-slate-400');
+      }
+      lucide.createIcons();
+    }
+
+    document.getElementById('ambientToggleBtn').addEventListener('click', toggleSoundscape);
+
+    // Sprint Timer Logic
+    let timerDuration = 25 * 60;
+    let timeRemaining = timerDuration;
+    let timerInterval = null;
+    let totalFocusMins = 0;
+
+    function updateTimerDisplay() {
+      const mins = Math.floor(timeRemaining / 60).toString().padStart(2, '0');
+      const secs = (timeRemaining % 60).toString().padStart(2, '0');
+      document.getElementById('timerDisplay').innerText = `${mins}:${secs}`;
+    }
+
+    document.getElementById('timerStartBtn').addEventListener('click', () => {
+      const btn = document.getElementById('timerStartBtn');
+      if (!timerInterval) {
+        timerInterval = setInterval(() => {
+          if (timeRemaining > 0) {
+            timeRemaining--;
+            updateTimerDisplay();
+          } else {
+            clearInterval(timerInterval);
+            timerInterval = null;
+            totalFocusMins += 25;
+            document.getElementById('focusMinutes').innerText = totalFocusMins;
+            alert('Sprint complete! Time for a tactical recovery interval.');
+            timeRemaining = timerDuration;
+            updateTimerDisplay();
+            btn.innerHTML = '<i data-lucide="play" class="w-3.5 h-3.5"></i> Run';
+            lucide.createIcons();
+          }
+        }, 1000);
+        btn.innerHTML = '<i data-lucide="pause" class="w-3.5 h-3.5"></i> Pause';
+      } else {
+        clearInterval(timerInterval);
+        timerInterval = null;
+        btn.innerHTML = '<i data-lucide="play" class="w-3.5 h-3.5"></i> Run';
+      }
+      lucide.createIcons();
+    });
+
+    document.getElementById('timerResetBtn').addEventListener('click', () => {
+      clearInterval(timerInterval);
+      timerInterval = null;
+      timeRemaining = timerDuration;
+      updateTimerDisplay();
+      document.getElementById('timerStartBtn').innerHTML = '<i data-lucide="play" class="w-3.5 h-3.5"></i> Run';
+      lucide.createIcons();
+    });
+
+    // Matrix Render & Interactions
+    function renderTasks() {
+      ['q1', 'q2', 'q3', 'q4'].forEach(q => {
+        const container = document.getElementById(`list-${q}`);
+        const filtered = tasks.filter(t => t.quadrant === q);
+        
+        if (filtered.length === 0) {
+          container.innerHTML = '<div class="text-[11px] text-slate-500 italic py-6 text-center">No active items in this sector</div>';
+          return;
+        }
+
+        container.innerHTML = filtered.map(t => `
+          <div class="flex items-center justify-between p-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 transition group">
+            <div class="flex items-center gap-2.5 overflow-hidden">
+              <button onclick="toggleTask(${t.id})" class="text-${t.done ? 'emerald-400' : 'slate-500'} hover:text-emerald-300 transition flex-shrink-0">
+                <i data-lucide="${t.done ? 'check-circle' : 'circle'}" class="w-4 h-4"></i>
+              </button>
+              <span class="text-xs ${t.done ? 'line-through text-slate-500' : 'text-slate-200'} truncate">${t.title}</span>
+            </div>
+            <button onclick="deleteTask(${t.id})" class="opacity-0 group-hover:opacity-100 text-slate-500 hover:text-rose-400 transition p-1">
+              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+        `).join('');
+      });
+
+      const completed = tasks.filter(t => t.done).length;
+      document.getElementById('completedCount').innerText = completed;
+      lucide.createIcons();
+    }
+
+    window.toggleTask = function(id) {
+      tasks = tasks.map(t => t.id === id ? { ...t, done: !t.done } : t);
+      renderTasks();
+    };
+
+    window.deleteTask = function(id) {
+      tasks = tasks.filter(t => t.id !== id);
+      renderTasks();
+    };
+
+    document.getElementById('taskForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const titleInput = document.getElementById('taskTitle');
+      const quadInput = document.getElementById('taskPriority');
+      if (!titleInput.value.trim()) return;
+
+      tasks.push({
+        id: Date.now(),
+        title: titleInput.value.trim(),
+        quadrant: quadInput.value,
+        done: false
+      });
+
+      titleInput.value = '';
+      renderTasks();
+    });
+
+    // Copy UPI ID Utility
+    window.copyUPI = function() {
+      const upiId = 'donation1@postbank';
+      navigator.clipboard.writeText(upiId).then(() => {
+        const label = document.getElementById('copyBtnLabel');
+        label.innerText = 'Copied!';
+        setTimeout(() => {
+          label.innerText = 'Copy UPI ID';
+        }, 2000);
+      });
+    };
+
+    // Initial Render
+    renderTasks();
+  </script>
+</body>
+</html>
