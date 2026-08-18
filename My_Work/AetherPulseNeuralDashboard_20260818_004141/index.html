@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AetherPulse Neural Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        glass: {
+                            dark: 'rgba(15, 23, 42, 0.75)',
+                            card: 'rgba(30, 41, 59, 0.5)',
+                            border: 'rgba(255, 255, 255, 0.08)'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Plus Jakarta+Sans', sans-serif; }
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glass-input {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .glass-input:focus {
+            border-color: rgba(56, 189, 248, 0.5);
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
+        }
+        @keyframes pulseGlow {
+            0%, 100% { opacity: 0.4; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.05); }
+        }
+        .animate-pulse-glow {
+            animation: pulseGlow 6s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-cyan-500 selection:text-white relative overflow-x-hidden">
+
+    <!-- Background Gradients -->
+    <div class="absolute top-0 left-1/4 w-96 h-96 bg-cyan-600/20 rounded-full blur-3xl pointer-events-none animate-pulse-glow"></div>
+    <div class="absolute top-1/3 right-1/4 w-96 h-96 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none animate-pulse-glow" style="animation-delay: 3s;"></div>
+
+    <!-- Header / Navbar -->
+    <header class="w-full border-b border-white/5 glass-panel sticky top-0 z-50 px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-cyan-500/30">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+            </div>
+            <div>
+                <h1 class="font-bold text-lg tracking-wide bg-gradient-to-r from-cyan-400 to-indigo-300 bg-clip-text text-transparent">AETHERPULSE</h1>
+                <p class="text-xs text-slate-400">Neural Focus & Matrix Task Engine</p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-4">
+            <div id="live-clock" class="text-sm font-mono bg-slate-900/80 px-3 py-1.5 rounded-lg border border-white/5 text-cyan-400">00:00:00</div>
+            <button onclick="resetData()" class="text-xs text-slate-400 hover:text-white transition px-3 py-1.5 rounded-lg bg-slate-900/50 border border-white/5">Reset Session</button>
+        </div>
+    </header>
+
+    <!-- Main Dashboard Body -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-6 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+        <!-- Left Column: Neural Focus Timer & Audio Generator -->
+        <div class="space-y-8">
+            <!-- Focus Timer Card -->
+            <div class="glass-panel rounded-2xl p-6 relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-cyan-500/10 rounded-full blur-2xl"></div>
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="font-semibold text-slate-200 flex items-center space-x-2">
+                        <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <span>Cognitive Interval</span>
+                    </h2>
+                    <span id="timer-mode-badge" class="text-xs px-2.5 py-1 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">Deep Focus</span>
+                </div>
+                
+                <div class="text-center my-8">
+                    <div id="timer-display" class="text-6xl font-extrabold font-mono tracking-tighter text-white drop-shadow-[0_0_20px_rgba(56,189,248,0.3)]">25:00</div>
+                    <p id="timer-status" class="text-xs text-slate-400 mt-2">Ready to initiate deep cognition sequence.</p>
+                </div>
+
+                <div class="flex justify-center space-x-4">
+                    <button id="timer-toggle-btn" onclick="toggleTimer()" class="flex-1 bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-white font-medium py-3 px-6 rounded-xl shadow-lg shadow-cyan-500/20 transition transform active:scale-95">Initialize</button>
+                    <button onclick="resetTimer()" class="glass-input hover:bg-slate-800 text-slate-300 font-medium py-3 px-4 rounded-xl transition">Reset</button>
+                </div>
+            </div>
+
+            <!-- Ambient Sound Generator -->
+            <div class="glass-panel rounded-2xl p-6">
+                <h2 class="font-semibold text-slate-200 mb-4 flex items-center space-x-2">
+                    <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 11.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/></svg>
+                    <span>Neural Audioscapes</span>
+                </h2>
+                <p class="text-xs text-slate-400 mb-4">Generate pure browser-synthesized white/pink noise for focus enhancement.</p>
+                <div class="flex items-center justify-between bg-slate-900/60 p-4 rounded-xl border border-white/5">
+                    <div>
+                        <div class="font-medium text-sm text-slate-200">Brownian Focus Noise</div>
+                        <div class="text-xs text-slate-500">Low-frequency deep masking</div>
+                    </div>
+                    <button id="audio-toggle-btn" onclick="toggleAudioNoise()" class="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-400 text-xs font-semibold border border-cyan-500/30 transition">Activate</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Center & Right Columns: Spatial Matrix Task Manager -->
+        <div class="lg:col-span-2 glass-panel rounded-2xl p-6 flex flex-col">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                <div>
+                    <h2 class="font-semibold text-slate-200 text-lg flex items-center space-x-2">
+                        <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                        <span>Spatial Task Matrix</span>
+                    </h2>
+                    <p class="text-xs text-slate-400">Capture and prioritize your high-impact execution nodes.</p>
+                </div>
+                <div class="flex items-center space-x-2 bg-slate-900/60 p-1 rounded-xl border border-white/5">
+                    <button onclick="setFilter('all')" id="filter-all" class="px-3 py-1 rounded-lg text-xs font-medium bg-cyan-500/20 text-cyan-300 transition">All</button>
+                    <button onclick="setFilter('active')" id="filter-active" class="px-3 py-1 rounded-lg text-xs font-medium text-slate-400 hover:text-white transition">Active</button>
+                    <button onclick="setFilter('completed')" id="filter-completed" class="px-3 py-1 rounded-lg text-xs font-medium text-slate-400 hover:text-white transition">Completed</button>
+                </div>
+            </div>
+
+            <!-- Add Task Form -->
+            <form onsubmit="addTask(event)" class="flex gap-3 mb-6">
+                <input type="text" id="task-input" placeholder="Enter new neural execution objective..." required class="flex-1 glass-input rounded-xl px-4 py-3 text-sm text-slate-200 placeholder-slate-500 focus:outline-none">
+                <select id="task-priority" class="glass-input rounded-xl px-4 py-3 text-sm text-slate-300 focus:outline-none">
+                    <option value="High" class="bg-slate-900">High Priority</option>
+                    <option value="Normal" class="bg-slate-900" selected>Normal</option>
+                    <option value="Low" class="bg-slate-900">Low</option>
+                </select>
+                <button type="submit" class="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-semibold px-6 py-3 rounded-xl transition shadow-lg shadow-cyan-500/20 flex items-center justify-center">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                </button>
+            </form>
+
+            <!-- Task List Container -->
+            <div id="task-list" class="space-y-3 flex-1 overflow-y-auto max-h-[420px] pr-2">
+                <!-- Dynamically populated tasks -->
+            </div>
+
+            <!-- Task Matrix Stats -->
+            <div class="mt-6 pt-4 border-t border-white/5 flex justify-between items-center text-xs text-slate-400">
+                <span id="task-count-label">0 objectives remaining</span>
+                <button onclick="clearCompletedTasks()" class="hover:text-cyan-400 transition">Purge Completed</button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Cause-Driven Charity & Support Footer Section (REQUIRED) -->
+    <footer class="w-full border-t border-white/10 bg-slate-950/80 backdrop-blur-xl mt-12 py-8 px-6">
+        <div class="max-w-4xl mx-auto glass-panel rounded-2xl p-6 md:p-8 flex flex-col md:flex-row items-center gap-8 relative overflow-hidden border border-cyan-500/20 shadow-2xl">
+            <div class="absolute -right-20 -bottom-20 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
+            
+            <!-- QR Code -->
+            <div class="bg-white p-3 rounded-2xl shadow-xl flex-shrink-0">
+                <img src="https://api.qrserver.com/v1/create-qr-code/?data=upi://pay?pa=donation1@postbank&pn=YUGRAAL_Cause&size=150x150" alt="Donation UPI QR Code" class="w-32 h-32 object-contain">
+            </div>
+
+            <!-- Details & Message -->
+            <div class="flex-1 text-center md:text-left">
+                <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-400 text-xs font-semibold mb-3 border border-cyan-500/20">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+                    <span>Cause-Driven Initiative</span>
+                </div>
+                <h3 class="text-lg font-bold text-white mb-2">Support Cancer Patients & Education</h3>
+                <p class="text-xs text-slate-300 leading-relaxed mb-4">
+                    95% of all contributions go directly towards Cancer Patient Support & School Education Initiatives (5% retained for server maintenance).
+                </p>
+                <div class="flex flex-wrap items-center justify-center md:justify-start gap-4">
+                    <div class="text-xs bg-slate-900/80 px-3 py-2 rounded-xl border border-white/10 text-slate-300">
+                        Receiver: <span class="text-white font-semibold">ASKAR ALI</span>
+                    </div>
+                    <div class="text-xs bg-slate-900/80 px-3 py-2 rounded-xl border border-white/10 text-slate-300 flex items-center space-x-2">
+                        <span>UPI ID:</span>
+                        <span id="upi-id-text" class="text-cyan-400 font-mono font-bold">donation1@postbank</span>
+                        <button onclick="copyUpiId()" class="ml-2 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 px-2.5 py-1 rounded-lg transition text-xs font-sans">Copy</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="text-center text-xs text-slate-500 mt-6">
+            &copy; <span id="current-year"></span> AetherPulse &bull; Crafted with elite engineering under YUGRAAL Architecture.
+        </div>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // Footer Year
+        document.getElementById('current-year').textContent = new Date().getFullYear();
+
+        // Live Clock
+        setInterval(() => {
+            const now = new Date();
+            document.getElementById('live-clock').textContent = now.toTimeString().split(' ')[0];
+        }, 1000);
+
+        // Copy UPI ID function
+        function copyUpiId() {
+            const upiText = 'donation1@postbank';
+            navigator.clipboard.writeText(upiText).then(() => {
+                alert('UPI ID copied to clipboard: ' + upiText);
+            });
+        }
+
+        // Focus Timer State
+        let timerInterval = null;
+        let timeLeft = 25 * 60;
+        let isRunning = false;
+        let isWorkSession = true;
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            document.getElementById('timer-display').textContent = 
+                `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }
+
+        function toggleTimer() {
+            const btn = document.getElementById('timer-toggle-btn');
+            const status = document.getElementById('timer-status');
+            const badge = document.getElementById('timer-mode-badge');
+
+            if (isRunning) {
+                clearInterval(timerInterval);
+                isRunning = false;
+                btn.textContent = 'Resume';
+                btn.className = 'flex-1 bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-white font-medium py-3 px-6 rounded-xl shadow-lg shadow-cyan-500/20 transition transform active:scale-95';
+                status.textContent = 'Cognition session paused.';
+            } else {
+                isRunning = true;
+                btn.textContent = 'Pause';
+                btn.className = 'flex-1 bg-amber-500 hover:bg-amber-400 text-slate-950 font-medium py-3 px-6 rounded-xl shadow-lg shadow-amber-500/20 transition transform active:scale-95';
+                status.textContent = isWorkSession ? 'Deep focus sequence active...' : 'Restorative break in progress...';
+                
+                timerInterval = setInterval(() => {
+                    if (timeLeft > 0) {
+                        timeLeft--;
+                        updateTimerDisplay();
+                    } else {
+                        clearInterval(timerInterval);
+                        isRunning = false;
+                        isWorkSession = !isWorkSession;
+                        timeLeft = isWorkSession ? 25 * 60 : 5 * 60;
+                        badge.textContent = isWorkSession ? 'Deep Focus' : 'Break Mode';
+                        badge.className = isWorkSession ? 'text-xs px-2.5 py-1 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30' : 'text-xs px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30';
+                        updateTimerDisplay();
+                        alert(isWorkSession ? 'Break finished! Ready for next session.' : 'Focus session complete! Take a short break.');
+                        toggleTimer();
+                    }
+                }, 1000);
+            }
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            isRunning = false;
+            isWorkSession = true;
+            timeLeft = 25 * 60;
+            updateTimerDisplay();
+            document.getElementById('timer-toggle-btn').textContent = 'Initialize';
+            document.getElementById('timer-toggle-btn').className = 'flex-1 bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-white font-medium py-3 px-6 rounded-xl shadow-lg shadow-cyan-500/20 transition transform active:scale-95';
+            document.getElementById('timer-status').textContent = 'Ready to initiate deep cognition sequence.';
+        }
+
+        // Browser Audio Noise Generator
+        let audioCtx = null;
+        let noiseNode = null;
+        let isAudioActive = false;
+
+        function toggleAudioNoise() {
+            const btn = document.getElementById('audio-toggle-btn');
+            if (isAudioActive) {
+                if (noiseNode) noiseNode.stop();
+                if (audioCtx) audioCtx.close();
+                audioCtx = null;
+                noiseNode = null;
+                isAudioActive = false;
+                btn.textContent = 'Activate';
+                btn.className = 'px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-400 text-xs font-semibold border border-cyan-500/30 transition';
+            } else {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const bufferSize = 2 * audioCtx.sampleRate;
+                const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                const output = noiseBuffer.getChannelData(0);
+                let lastOut = 0.0;
+                for (let i = 0; i < bufferSize; i++) {
+                    const white = Math.random() * 2 - 1;
+                    output[i] = (lastOut + (0.02 * white)) / 1.02;
+                    lastOut = output[i];
+                    output[i] *= 3.5;
+                }
+                noiseNode = audioCtx.createBufferSource();
+                noiseNode.buffer = noiseBuffer;
+                noiseNode.loop = true;
+                const gainNode = audioCtx.createGain();
+                gainNode.gain.value = 0.15;
+                noiseNode.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                noiseNode.start(0);
+                isAudioActive = true;
+                btn.textContent = 'Deactivate';
+                btn.className = 'px-4 py-2 rounded-lg bg-cyan-500 text-slate-950 text-xs font-semibold transition';
+            }
+        }
+
+        // Task Matrix State & Logic
+        let tasks = JSON.parse(localStorage.getItem('aetherpulse_tasks')) || [
+            { id: 1, text: 'Calibrate neural bandwidth metrics', completed: false, priority: 'High' },
+            { id: 2, text: 'Architect modular spatial UI components', completed: true, priority: 'Normal' },
+            { id: 3, text: 'Review deep work analytics matrix', completed: false, priority: 'Low' }
+        ];
+        let currentFilter = 'all';
+
+        function saveTasks() {
+            localStorage.setItem('aetherpulse_tasks', JSON.stringify(tasks));
+            renderTasks();
+        }
+
+        function addTask(e) {
+            e.preventDefault();
+            const input = document.getElementById('task-input');
+            const priority = document.getElementById('task-priority').value;
+            if (!input.value.trim()) return;
+
+            const newTask = {
+                id: Date.now(),
+                text: input.value.trim(),
+                completed: false,
+                priority: priority
+            };
+
+            tasks.unshift(newTask);
+            input.value = '';
+            saveTasks();
+        }
+
+        function toggleTask(id) {
+            tasks = tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t);
+            saveTasks();
+        }
+
+        function deleteTask(id) {
+            tasks = tasks.filter(t => t.id !== id);
+            saveTasks();
+        }
+
+        function setFilter(filter) {
+            currentFilter = filter;
+            ['all', 'active', 'completed'].forEach(f => {
+                const btn = document.getElementById(`filter-${f}`);
+                if (f === filter) {
+                    btn.className = 'px-3 py-1 rounded-lg text-xs font-medium bg-cyan-500/20 text-cyan-300 transition';
+                } else {
+                    btn.className = 'px-3 py-1 rounded-lg text-xs font-medium text-slate-400 hover:text-white transition';
+                }
+            });
+            renderTasks();
+        }
+
+        function clearCompletedTasks() {
+            tasks = tasks.filter(t => !t.completed);
+            saveTasks();
+        }
+
+        function resetData() {
+            if (confirm('Reset all objectives and timer data?')) {
+                localStorage.removeItem('aetherpulse_tasks');
+                tasks = [];
+                resetTimer();
+                renderTasks();
+            }
+        }
+
+        function renderTasks() {
+            const container = document.getElementById('task-list');
+            const filtered = tasks.filter(t => {
+                if (currentFilter === 'active') return !t.completed;
+                if (currentFilter === 'completed') return t.completed;
+                return true;
+            });
+
+            document.getElementById('task-count-label').textContent = `${tasks.filter(t => !t.completed).length} objectives remaining`;
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12 text-slate-500 text-sm">
+                        No objective nodes found in this sector.
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = filtered.map(t => {
+                let priorityColor = 'text-slate-400 bg-slate-800/50';
+                if (t.priority === 'High') priorityColor = 'text-rose-400 bg-rose-500/10 border-rose-500/20';
+                if (t.priority === 'Normal') priorityColor = 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20';
+                if (t.priority === 'Low') priorityColor = 'text-slate-400 bg-slate-800/50 border-slate-700/50';
+
+                return `
+                    <div class="glass-input rounded-xl p-4 flex items-center justify-between group transition hover:border-cyan-500/30">
+                        <div class="flex items-center space-x-3 flex-1 min-w-0">
+                            <input type="checkbox" ${t.completed ? 'checked' : ''} onclick="toggleTask(${t.id})" class="w-5 h-5 rounded border-slate-700 bg-slate-900 text-cyan-500 focus:ring-0 focus:ring-offset-0 cursor-pointer">
+                            <span class="text-sm text-slate-200 truncate ${t.completed ? 'line-through text-slate-500' : ''}">${escapeHtml(t.text)}</span>
+                        </div>
+                        <div class="flex items-center space-x-3 ml-4">
+                            <span class="text-[10px] px-2 py-0.5 rounded-full border ${priorityColor}">${t.priority}</span>
+                            <button onclick="deleteTask(${t.id})" class="text-slate-500 hover:text-rose-400 transition opacity-0 group-hover:opacity-100">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+
+        // Initial render
+        renderTasks();
+        updateTimerDisplay();
+    </script>
+</body>
+</html>
