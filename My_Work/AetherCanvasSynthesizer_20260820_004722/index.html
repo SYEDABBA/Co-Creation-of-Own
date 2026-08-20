@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AetherCanvas Synthesizer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        glass: 'rgba(15, 23, 42, 0.7)',
+                        glassBorder: 'rgba(255, 255, 255, 0.08)'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glass-button {
+            background: rgba(51, 65, 85, 0.5);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        .glass-button:hover {
+            background: rgba(71, 85, 105, 0.7);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+        input[type="range"] {
+            accent-color: #38bdf8;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans selection:bg-sky-500 selection:text-white flex flex-col justify-between">
+
+    <!-- Top Navigation -->
+    <header class="w-full border-b border-slate-800 bg-slate-900/50 backdrop-blur-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-sky-500/25">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 73.57L7.5 10.5M19 21a4 4 0 004-4v-4a2 2 0 00-2-2h-2.343"></path>
+                    </svg>
+                </div>
+                <span class="font-bold text-lg tracking-wider bg-gradient-to-r from-white via-slate-200 to-sky-400 bg-clip-text text-transparent">AETHER<span class="font-light text-sky-400">CANVAS</span></span>
+            </div>
+            <div class="text-xs text-slate-400 font-mono hidden sm:block">YUGRAAL Web Engine v4.2 // Generative Node</div>
+        </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="max-w-7xl w-full mx-auto px-6 py-8 grid grid-cols-1 lg:grid-cols-12 gap-8 my-auto">
+        
+        <!-- Controls Panel (Left) -->
+        <div class="lg:col-span-4 glass-panel rounded-2xl p-6 flex flex-col space-y-6 shadow-2xl">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+                <h2 class="font-semibold text-slate-200 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+                    Synthesizer Matrix
+                </h2>
+                <button id="btnRandomize" class="text-xs text-sky-400 hover:text-sky-300 font-medium transition-colors">Randomize</button>
+            </div>
+
+            <!-- Mode Selector -->
+            <div class="space-y-2">
+                <label class="text-xs font-semibold uppercase tracking-wider text-slate-400">Algorithm Mode</label>
+                <select id="modeSelect" class="w-full bg-slate-900/80 border border-slate-700/60 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-sky-500 transition-colors">
+                    <option value="particles">Neural Particle Flow</option>
+                    <option value="waves">Quantum Harmonic Waves</option>
+                    <option value="nebula">Cosmic Nebula Gradient</option>
+                </select>
+            </div>
+
+            <!-- Sliders -->
+            <div class="space-y-4">
+                <div class="space-y-1">
+                    <div class="flex justify-between text-xs">
+                        <span class="text-slate-400">Velocity / Speed</span>
+                        <span id="speedVal" class="text-sky-400 font-mono">50</span>
+                    </div>
+                    <input type="range" id="speedRange" min="1" max="100" value="50" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+                </div>
+
+                <div class="space-y-1">
+                    <div class="flex justify-between text-xs">
+                        <span class="text-slate-400">Particle Density</span>
+                        <span id="densityVal" class="text-sky-400 font-mono">75</span>
+                    </div>
+                    <input type="range" id="densityRange" min="10" max="200" value="75" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+                </div>
+
+                <div class="space-y-1">
+                    <div class="flex justify-between text-xs">
+                        <span class="text-slate-400">Color Frequency</span>
+                        <span id="hueVal" class="text-sky-400 font-mono">200</span>
+                    </div>
+                    <input type="range" id="hueRange" min="0" max="360" value="200" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="grid grid-cols-2 gap-3 pt-2">
+                <button id="btnTogglePause" class="glass-button py-2.5 px-4 rounded-xl text-sm font-medium text-slate-200 flex items-center justify-center gap-2">
+                    <svg id="pauseIcon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <span id="pauseText">Pause</span>
+                </button>
+                <button id="btnExport" class="bg-sky-600 hover:bg-sky-500 text-white py-2.5 px-4 rounded-xl text-sm font-medium transition-all shadow-lg shadow-sky-600/20 flex items-center justify-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    Save PNG
+                </button>
+            </div>
+        </div>
+
+        <!-- Canvas Display Area (Right) -->
+        <div class="lg:col-span-8 glass-panel rounded-2xl p-2 sm:p-4 flex flex-col justify-center items-center relative overflow-hidden shadow-2xl min-h-[420px]">
+            <canvas id="matrixCanvas" class="w-full h-[450px] rounded-xl cursor-crosshair"></canvas>
+            <div class="absolute bottom-6 left-6 pointer-events-none hidden sm:block">
+                <div class="text-xs font-mono bg-slate-900/80 border border-slate-700/50 px-3 py-1.5 rounded-lg text-slate-400 backdrop-blur">
+                    STATUS: <span class="text-emerald-400 animate-pulse">SYNTHESIZING ACTIVE</span>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Mandatory Cause-Driven Charity & Support Footer -->
+    <footer class="w-full bg-slate-900/90 border-t border-slate-800 mt-12 py-8 px-6">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+            
+            <!-- Cause Messaging -->
+            <div class="flex items-start space-x-4 max-w-xl">
+                <div class="p-3 bg-sky-500/10 border border-sky-500/20 rounded-2xl shrink-0">
+                    <svg class="w-6 h-6 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="text-sm font-semibold text-slate-200">Community Impact & Charity Initiative</h3>
+                    <p class="text-xs text-slate-400 mt-1 leading-relaxed">
+                        95% of all contributions go directly towards Cancer Patient Support & School Education Initiatives (5% retained for server maintenance).
+                    </p>
+                    <div class="mt-2 text-xs text-sky-400 font-medium">
+                        Receiver: <span class="text-slate-200 font-semibold">ASKAR ALI</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- UPI / QR Actions -->
+            <div class="flex items-center space-x-4 bg-slate-950/60 border border-slate-800/80 p-4 rounded-2xl">
+                <div class="text-right">
+                    <div class="text-xs font-mono text-slate-400">UPI ID</div>
+                    <div id="upiText" class="text-sm font-mono font-bold text-sky-400">donation1@postbank</div>
+                    <button id="copyUpiBtn" onclick="copyUpi()" class="mt-2 px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs rounded-lg transition-colors border border-slate-700">
+                        Copy UPI ID
+                    </button>
+                </div>
+                <div class="bg-white p-1.5 rounded-xl shadow-md">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?data=upi://pay?pa=donation1@postbank&pn=YUGRAAL_Cause" alt="UPI QR Code" class="w-16 h-16 rounded-lg">
+                </div>
+            </div>
+
+        </div>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        const canvas = document.getElementById('matrixCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        let width, height;
+        function resizeCanvas() {
+            width = canvas.parentElement.clientWidth - 32;
+            height = 450;
+            canvas.width = width;
+            canvas.height = height;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // Controls State
+        const modeSelect = document.getElementById('modeSelect');
+        const speedRange = document.getElementById('speedRange');
+        const densityRange = document.getElementById('densityRange');
+        const hueRange = document.getElementById('hueRange');
+        const speedVal = document.getElementById('speedVal');
+        const densityVal = document.getElementById('densityVal');
+        const hueVal = document.getElementById('hueVal');
+        
+        let isPaused = false;
+        let particles = [];
+        let waveOffset = 0;
+
+        speedRange.oninput = (e) => speedVal.innerText = e.target.value;
+        densityRange.oninput = (e) => {
+            densityVal.innerText = e.target.value;
+            initParticles();
+        };
+        hueRange.oninput = (e) => hueVal.innerText = e.target.value;
+
+        class Particle {
+            constructor() {
+                this.reset();
+            }
+            reset() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.vx = (Math.random() - 0.5) * 2;
+                this.vy = (Math.random() - 0.5) * 2;
+                this.size = Math.random() * 3 + 1;
+            }
+            update(speedFactor) {
+                this.x += this.vx * speedFactor;
+                this.y += this.vy * speedFactor;
+                if (this.x < 0 || this.x > width) this.vx *= -1;
+                if (this.y < 0 || this.y > height) this.vy *= -1;
+            }
+            draw(hue) {
+                ctx.fillStyle = `hsl(${hue}, 80%, 60%)`;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function initParticles() {
+            particles = [];
+            const count = parseInt(densityRange.value);
+            for (let i = 0; i < count; i++) {
+                particles.push(new Particle());
+            }
+        }
+        initParticles();
+
+        function animate() {
+            if (!isPaused) {
+                ctx.fillStyle = 'rgba(15, 23, 42, 0.2)';
+                ctx.fillRect(0, 0, width, height);
+
+                const mode = modeSelect.value;
+                const speed = parseInt(speedRange.value) / 25;
+                const hue = hueRange.value;
+
+                if (mode === 'particles') {
+                    particles.forEach(p => {
+                        p.update(speed);
+                        p.draw(hue);
+                    });
+                    // Draw connections
+                    for (let i = 0; i < particles.length; i++) {
+                        for (let j = i + 1; j < particles.length; j++) {
+                            const dx = particles[i].x - particles[j].x;
+                            const dy = particles[i].y - particles[j].y;
+                            const dist = Math.sqrt(dx * dx + dy * dy);
+                            if (dist < 80) {
+                                ctx.strokeStyle = `hsla(${hue}, 80%, 60%, ${1 - dist / 80})`;
+                                ctx.lineWidth = 0.5;
+                                ctx.beginPath();
+                                ctx.moveTo(particles[i].x, particles[i].y);
+                                ctx.lineTo(particles[j].x, particles[j].y);
+                                ctx.stroke();
+                            }
+                        }
+                    }
+                } else if (mode === 'waves') {
+                    waveOffset += speed * 0.05;
+                    ctx.lineWidth = 2;
+                    for (let i = 0; i < 5; i++) {
+                        ctx.beginPath();
+                        ctx.strokeStyle = `hsl(${(parseInt(hue) + i * 20) % 360}, 80%, 55%)`;
+                        for (let x = 0; x < width; x += 10) {
+                            const y = height / 2 + Math.sin(x * 0.01 + waveOffset + i * 0.5) * 60 * Math.cos(waveOffset * 0.2);
+                            if (x === 0) ctx.moveTo(x, y);
+                            else ctx.lineTo(x, y);
+                        }
+                        ctx.stroke();
+                    }
+                } else if (mode === 'nebula') {
+                    waveOffset += speed * 0.02;
+                    const gradient = ctx.createRadialGradient(
+                        width / 2 + Math.cos(waveOffset) * 100,
+                        height / 2 + Math.sin(waveOffset) * 50,
+                        20,
+                        width / 2,
+                        height / 2,
+                        width * 0.7
+                    );
+                    gradient.addColorStop(0, `hsl(${hue}, 90%, 50%)`);
+                    gradient.addColorStop(0.5, `hsl(${(parseInt(hue) + 60) % 360}, 70%, 30%)`);
+                    gradient.addColorStop(1, '#0f172a');
+                    ctx.fillStyle = gradient;
+                    ctx.fillRect(0, 0, width, height);
+                }
+            }
+            requestAnimationFrame(animate);
+        }
+        requestAnimationFrame(animate);
+
+        // UI Controls logic
+        const btnTogglePause = document.getElementById('btnTogglePause');
+        const pauseText = document.getElementById('pauseText');
+        btnTogglePause.onclick = () => {
+            isPaused = !isPaused;
+            pauseText.innerText = isPaused ? 'Resume' : 'Pause';
+        };
+
+        document.getElementById('btnRandomize').onclick = () => {
+            speedRange.value = Math.floor(Math.random() * 80 + 10);
+            densityRange.value = Math.floor(Math.random() * 150 + 20);
+            hueRange.value = Math.floor(Math.random() * 360);
+            speedVal.innerText = speedRange.value;
+            densityVal.innerText = densityRange.value;
+            hueVal.innerText = hueRange.value;
+            initParticles();
+        };
+
+        document.getElementById('btnExport').onclick = () => {
+            const link = document.createElement('a');
+            link.download = 'aether-canvas.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        };
+
+        function copyUpi() {
+            const upiText = document.getElementById('upiText').innerText;
+            navigator.clipboard.writeText(upiText);
+            const btn = document.getElementById('copyUpiBtn');
+            btn.innerText = 'Copied!';
+            btn.classList.add('bg-emerald-600', 'text-white');
+            setTimeout(() => {
+                btn.innerText = 'Copy UPI ID';
+                btn.classList.remove('bg-emerald-600', 'text-white');
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
