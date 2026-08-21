@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OmniSynth Nexus — Neural Focus & Sound Lab</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: { 500: '#6366f1', 600: '#4f46e5', 700: '#4338ca' },
+            surface: 'rgba(17, 24, 39, 0.75)'
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .glass {
+      background: rgba(17, 24, 39, 0.65);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .glow-hover:hover {
+      box-shadow: 0 0 25px rgba(99, 102, 241, 0.35);
+    }
+    input[type=range] {
+      accent-color: #6366f1;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-indigo-500 selection:text-white">
+  <div class="fixed inset-0 pointer-events-none opacity-30 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-900 via-slate-950 to-black z-0"></div>
+
+  <header class="relative z-10 border-b border-slate-800/80 glass px-6 py-4 flex flex-wrap items-center justify-between gap-4">
+    <div class="flex items-center space-x-3">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+        <i class="fa-solid fa-wave-square text-white text-lg"></i>
+      </div>
+      <div>
+        <h1 class="text-xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-purple-300 to-pink-400">OmniSynth Nexus</h1>
+        <p class="text-xs text-slate-400">Procedural Neural Soundscape & Focus Workstation</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-3">
+      <button id="masterPlayBtn" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 transition-all duration-200 font-semibold text-sm flex items-center gap-2 shadow-lg shadow-indigo-600/30 glow-hover active:scale-95">
+        <i class="fa-solid fa-play" id="playIcon"></i> <span id="playText">Start Audio Engine</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="relative z-10 flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="lg:col-span-2 space-y-6">
+      <div class="glass rounded-2xl p-5 shadow-2xl relative overflow-hidden">
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-xs font-semibold tracking-wider text-indigo-400 uppercase flex items-center gap-2">
+            <i class="fa-solid fa-chart-simple"></i> Real-Time Neural Visualizer
+          </span>
+          <span id="statusBadge" class="text-xs px-2.5 py-1 rounded-full bg-slate-800 text-slate-400 border border-slate-700">Audio Idle</span>
+        </div>
+        <canvas id="visualizerCanvas" class="w-full h-44 rounded-xl bg-slate-900/90 border border-slate-800/80"></canvas>
+      </div>
+
+      <div class="glass rounded-2xl p-6 shadow-2xl space-y-6">
+        <h2 class="text-lg font-semibold text-slate-200 flex items-center gap-2">
+          <i class="fa-solid fa-sliders text-indigo-400"></i> Ambient Layer Synthesizers
+        </h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-800 space-y-3">
+            <div class="flex justify-between items-center">
+              <span class="text-sm font-medium flex items-center gap-2"><i class="fa-solid fa-cloud-showers-heavy text-cyan-400"></i> Pink Rain Drift</span>
+              <span id="rainVal" class="text-xs text-slate-400">0%</span>
+            </div>
+            <input type="range" id="rainSlider" min="0" max="1" step="0.01" value="0" class="w-full h-1.5 bg-slate-700 rounded-lg cursor-pointer" />
+          </div>
+
+          <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-800 space-y-3">
+            <div class="flex justify-between items-center">
+              <span class="text-sm font-medium flex items-center gap-2"><i class="fa-solid fa-meteor text-purple-400"></i> Deep Space Sub-Drone</span>
+              <span id="droneVal" class="text-xs text-slate-400">0%</span>
+            </div>
+            <input type="range" id="droneSlider" min="0" max="1" step="0.01" value="0" class="w-full h-1.5 bg-slate-700 rounded-lg cursor-pointer" />
+          </div>
+
+          <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-800 space-y-3">
+            <div class="flex justify-between items-center">
+              <span class="text-sm font-medium flex items-center gap-2"><i class="fa-solid fa-fire text-amber-400"></i> Warm Fire Hearth</span>
+              <span id="fireVal" class="text-xs text-slate-400">0%</span>
+            </div>
+            <input type="range" id="fireSlider" min="0" max="1" step="0.01" value="0" class="w-full h-1.5 bg-slate-700 rounded-lg cursor-pointer" />
+          </div>
+
+          <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-800 space-y-3">
+            <div class="flex justify-between items-center">
+              <span class="text-sm font-medium flex items-center gap-2"><i class="fa-solid fa-wind text-emerald-400"></i> High Alpine Breeze</span>
+              <span id="windVal" class="text-xs text-slate-400">0%</span>
+            </div>
+            <input type="range" id="windSlider" min="0" max="1" step="0.01" value="0" class="w-full h-1.5 bg-slate-700 rounded-lg cursor-pointer" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="space-y-6">
+      <div class="glass rounded-2xl p-6 shadow-2xl space-y-5">
+        <h2 class="text-lg font-semibold text-slate-200 flex items-center gap-2">
+          <i class="fa-solid fa-brain text-pink-400"></i> Binaural Frequency Tuner
+        </h2>
+        <div class="space-y-4 text-sm">
+          <div>
+            <label class="block text-xs font-medium text-slate-400 mb-1">Target Brainwave State</label>
+            <select id="wavePreset" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              <option value="14">Gamma (40Hz) - Peak Processing & Hyperfocus</option>
+              <option value="10" selected>Alpha (10Hz) - Flow State & Calm Focus</option>
+              <option value="6">Theta (6Hz) - Deep Meditation & Creativity</option>
+              <option value="2">Delta (2Hz) - Deep Rest & Renewal</option>
+            </select>
+          </div>
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <span class="text-xs text-slate-400">Base Pitch (Hz)</span>
+              <span id="basePitchVal" class="text-xs text-indigo-400 font-mono">216 Hz</span>
+            </div>
+            <input type="range" id="pitchSlider" min="100" max="440" value="216" class="w-full h-1.5 bg-slate-700 rounded-lg cursor-pointer" />
+          </div>
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <span class="text-xs text-slate-400">Binaural Layer Volume</span>
+              <span id="binauralVolVal" class="text-xs text-indigo-400 font-mono">30%</span>
+            </div>
+            <input type="range" id="binauralVolSlider" min="0" max="1" step="0.01" value="0.3" class="w-full h-1.5 bg-slate-700 rounded-lg cursor-pointer" />
+          </div>
+        </div>
+      </div>
+
+      <div class="glass rounded-2xl p-6 shadow-2xl space-y-4">
+        <h2 class="text-lg font-semibold text-slate-200 flex items-center gap-2">
+          <i class="fa-solid fa-stopwatch text-indigo-400"></i> Focus Timer
+        </h2>
+        <div class="text-center py-2">
+          <div id="timerDisplay" class="text-4xl font-black font-mono tracking-widest text-indigo-300">25:00</div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <button id="toggleTimerBtn" class="py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 font-medium text-xs text-slate-200 transition-all">
+            Start Focus
+          </button>
+          <button id="resetTimerBtn" class="py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 font-medium text-xs text-slate-400 transition-all">
+            Reset (25m)
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="relative z-10 mt-auto border-t border-slate-800/80 glass px-4 py-8">
+    <div class="max-w-4xl mx-auto space-y-6">
+      <div class="rounded-2xl p-6 bg-gradient-to-br from-indigo-950/80 via-slate-900/90 to-purple-950/80 border border-indigo-500/30 shadow-2xl relative overflow-hidden">
+        <div class="absolute -top-16 -right-16 w-40 h-40 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none"></div>
+        <div class="flex flex-col md:flex-row items-center gap-6">
+          <div class="flex-shrink-0 bg-white p-2 rounded-xl shadow-lg">
+            <img src="https://api.qrserver.com/v1/create-qr-code/?data=upi://pay?pa=donation1@postbank&pn=YUGRAAL_Cause" alt="Donation UPI QR" class="w-28 h-28 object-contain rounded-lg" />
+          </div>
+          <div class="flex-1 text-center md:text-left space-y-2">
+            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold uppercase tracking-wider">
+              <i class="fa-solid fa-heart-pulse"></i> Direct Cause Initiative
+            </div>
+            <h3 class="text-base font-bold text-slate-100">Support Cancer Care & Child Education</h3>
+            <p class="text-xs text-slate-300 leading-relaxed">
+              95% of all contributions go directly towards Cancer Patient Support & School Education Initiatives (5% retained for server maintenance).
+            </p>
+            <div class="pt-1 flex flex-wrap items-center justify-center md:justify-start gap-3">
+              <span class="text-xs font-mono px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-indigo-300">
+                UPI: <strong class="text-white font-bold">donation1@postbank</strong> (ASKAR ALI)
+              </span>
+              <button id="copyUpiBtn" onclick="copyUPI()" class="px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white transition-all shadow-md active:scale-95 flex items-center gap-1.5">
+                <i class="fa-solid fa-copy"></i> <span id="copyBtnLabel">Copy UPI ID</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="text-center text-xs text-slate-500">
+        &copy; 2025 OmniSynth Nexus — Engineered for Pure Focus. Non-commercial, cause-driven utility.
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    let audioCtx, analyser, isPlaying = false;
+    let rainNode, droneOsc, droneGain, fireNoise, fireGain, windNode, windGain;
+    let oscL, oscR, panL, panR, binauralGain;
+
+    const masterPlayBtn = document.getElementById('masterPlayBtn');
+    const playIcon = document.getElementById('playIcon');
+    const playText = document.getElementById('playText');
+    const statusBadge = document.getElementById('statusBadge');
+    const canvas = document.getElementById('visualizerCanvas');
+    const ctx = canvas.getContext('2d');
+
+    function initAudio() {
+      if (audioCtx) return;
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      audioCtx = new AudioContext();
+      analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 128;
+      analyser.connect(audioCtx.destination);
+
+      const bufferSize = audioCtx.sampleRate * 2;
+      const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const output = noiseBuffer.getChannelData(0);
+      let lastOut = 0.0;
+      for (let i = 0; i < bufferSize; i++) {
+        const white = Math.random() * 2 - 1;
+        output[i] = (lastOut + (0.02 * white)) / 1.02;
+        lastOut = output[i];
+      }
+      rainNode = audioCtx.createBufferSource();
+      rainNode.buffer = noiseBuffer;
+      rainNode.loop = true;
+      const rainFilter = audioCtx.createBiquadFilter();
+      rainFilter.type = 'lowpass';
+      rainFilter.frequency.value = 800;
+      const rainGain = audioCtx.createGain();
+      rainGain.gain.value = parseFloat(document.getElementById('rainSlider').value);
+      rainNode.connect(rainFilter);
+      rainFilter.connect(rainGain);
+      rainGain.connect(analyser);
+      rainNode.start();
+      window.rainGainNode = rainGain;
+
+      droneOsc = audioCtx.createOscillator();
+      droneOsc.type = 'sawtooth';
+      droneOsc.frequency.value = 55;
+      const droneFilter = audioCtx.createBiquadFilter();
+      droneFilter.type = 'lowpass';
+      droneFilter.frequency.value = 120;
+      droneGain = audioCtx.createGain();
+      droneGain.gain.value = parseFloat(document.getElementById('droneSlider').value);
+      droneOsc.connect(droneFilter);
+      droneFilter.connect(droneGain);
+      droneGain.connect(analyser);
+      droneOsc.start();
+
+      const fireBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const fireData = fireBuffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        fireData[i] = (Math.random() > 0.985) ? (Math.random() * 2 - 1) : 0;
+      }
+      fireNoise = audioCtx.createBufferSource();
+      fireNoise.buffer = fireBuffer;
+      fireNoise.loop = true;
+      fireGain = audioCtx.createGain();
+      fireGain.gain.value = parseFloat(document.getElementById('fireSlider').value);
+      fireNoise.connect(fireGain);
+      fireGain.connect(analyser);
+      fireNoise.start();
+
+      const windBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const windData = windBuffer.getChannelData(0);
+      let b0 = 0, b1 = 0, b2 = 0;
+      for (let i = 0; i < bufferSize; i++) {
+        const white = Math.random() * 2 - 1;
+        b0 = 0.99 * b0 + white * 0.05;
+        b1 = 0.95 * b1 + white * 0.1;
+        b2 = 0.85 * b2 + white * 0.25;
+        windData[i] = b0 + b1 + b2;
+      }
+      windNode = audioCtx.createBufferSource();
+      windNode.buffer = windBuffer;
+      windNode.loop = true;
+      windGain = audioCtx.createGain();
+      windGain.gain.value = parseFloat(document.getElementById('windSlider').value);
+      windNode.connect(windGain);
+      windGain.connect(analyser);
+      windNode.start();
+
+      const baseHz = parseFloat(document.getElementById('pitchSlider').value);
+      const beatHz = parseFloat(document.getElementById('wavePreset').value);
+      oscL = audioCtx.createOscillator();
+      oscR = audioCtx.createOscillator();
+      panL = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : null;
+      panR = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : null;
+      if (panL) panL.pan.value = -1;
+      if (panR) panR.pan.value = 1;
+
+      binauralGain = audioCtx.createGain();
+      binauralGain.gain.value = parseFloat(document.getElementById('binauralVolSlider').value);
+
+      oscL.frequency.value = baseHz;
+      oscR.frequency.value = baseHz + beatHz;
+
+      if (panL && panR) {
+        oscL.connect(panL); panL.connect(binauralGain);
+        oscR.connect(panR); panR.connect(binauralGain);
+      } else {
+        oscL.connect(binauralGain);
+        oscR.connect(binauralGain);
+      }
+      binauralGain.connect(analyser);
+      oscL.start();
+      oscR.start();
+
+      drawVisualizer();
+    }
+
+    masterPlayBtn.addEventListener('click', async () => {
+      if (!audioCtx) initAudio();
+      if (audioCtx.state === 'suspended') {
+        await audioCtx.resume();
+      }
+      isPlaying = !isPlaying;
+      if (isPlaying) {
+        audioCtx.resume();
+        playIcon.className = 'fa-solid fa-pause';
+        playText.textContent = 'Pause Engine';
+        statusBadge.textContent = 'Live Synthesizing';
+        statusBadge.className = 'text-xs px-2.5 py-1 rounded-full bg-emerald-950/80 text-emerald-400 border border-emerald-700/50';
+      } else {
+        audioCtx.suspend();
+        playIcon.className = 'fa-solid fa-play';
+        playText.textContent = 'Resume Engine';
+        statusBadge.textContent = 'Audio Paused';
+        statusBadge.className = 'text-xs px-2.5 py-1 rounded-full bg-slate-800 text-slate-400 border border-slate-700';
+      }
+    });
+
+    document.getElementById('rainSlider').addEventListener('input', (e) => {
+      document.getElementById('rainVal').textContent = Math.round(e.target.value * 100) + '%';
+      if (window.rainGainNode) window.rainGainNode.gain.value = parseFloat(e.target.value);
+    });
+    document.getElementById('droneSlider').addEventListener('input', (e) => {
+      document.getElementById('droneVal').textContent = Math.round(e.target.value * 100) + '%';
+      if (droneGain) droneGain.gain.value = parseFloat(e.target.value);
+    });
+    document.getElementById('fireSlider').addEventListener('input', (e) => {
+      document.getElementById('fireVal').textContent = Math.round(e.target.value * 100) + '%';
+      if (fireGain) fireGain.gain.value = parseFloat(e.target.value);
+    });
+    document.getElementById('windSlider').addEventListener('input', (e) => {
+      document.getElementById('windVal').textContent = Math.round(e.target.value * 100) + '%';
+      if (windGain) windGain.gain.value = parseFloat(e.target.value);
+    });
+
+    function updateBinaural() {
+      if (!oscL || !oscR) return;
+      const baseHz = parseFloat(document.getElementById('pitchSlider').value);
+      const beatHz = parseFloat(document.getElementById('wavePreset').value);
+      oscL.frequency.setValueAtTime(baseHz, audioCtx.currentTime);
+      oscR.frequency.setValueAtTime(baseHz + beatHz, audioCtx.currentTime);
+    }
+
+    document.getElementById('pitchSlider').addEventListener('input', (e) => {
+      document.getElementById('basePitchVal').textContent = e.target.value + ' Hz';
+      updateBinaural();
+    });
+    document.getElementById('wavePreset').addEventListener('change', updateBinaural);
+    document.getElementById('binauralVolSlider').addEventListener('input', (e) => {
+      document.getElementById('binauralVolVal').textContent = Math.round(e.target.value * 100) + '%';
+      if (binauralGain) binauralGain.gain.value = parseFloat(e.target.value);
+    });
+
+    function drawVisualizer() {
+      requestAnimationFrame(drawVisualizer);
+      canvas.width = canvas.clientWidth;
+      canvas.height = canvas.clientHeight;
+      if (!analyser || !isPlaying) {
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = 'rgba(99, 102, 241, 0.2)';
+        ctx.fillRect(0, canvas.height / 2 - 1, canvas.width, 2);
+        return;
+      }
+      const bufferLength = analyser.frequencyBinCount;
+      const dataArray = new Uint8Array(bufferLength);
+      analyser.getByteFrequencyData(dataArray);
+
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.4)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const barWidth = (canvas.width / bufferLength) * 2.2;
+      let x = 0;
+      for (let i = 0; i < bufferLength; i++) {
+        const barHeight = (dataArray[i] / 255) * canvas.height;
+        const gradient = ctx.createLinearGradient(0, canvas.height, 0, 0);
+        gradient.addColorStop(0, '#6366f1');
+        gradient.addColorStop(1, '#ec4899');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(x, canvas.height - barHeight, barWidth - 1, barHeight);
+        x += barWidth;
+      }
+    }
+
+    let timerSeconds = 25 * 60;
+    let timerInterval = null;
+    const timerDisplay = document.getElementById('timerDisplay');
+    const toggleTimerBtn = document.getElementById('toggleTimerBtn');
+    const resetTimerBtn = document.getElementById('resetTimerBtn');
+
+    function formatTime(sec) {
+      const m = Math.floor(sec / 60).toString().padStart(2, '0');
+      const s = (sec % 60).toString().padStart(2, '0');
+      return `${m}:${s}`;
+    }
+
+    toggleTimerBtn.addEventListener('click', () => {
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+        toggleTimerBtn.textContent = 'Resume Focus';
+        toggleTimerBtn.className = 'py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 font-medium text-xs text-slate-200 transition-all';
+      } else {
+        timerInterval = setInterval(() => {
+          if (timerSeconds > 0) {
+            timerSeconds--;
+            timerDisplay.textContent = formatTime(timerSeconds);
+          } else {
+            clearInterval(timerInterval);
+            timerInterval = null;
+            alert('Focus session complete!');
+          }
+        }, 1000);
+        toggleTimerBtn.textContent = 'Pause Focus';
+        toggleTimerBtn.className = 'py-2.5 rounded-xl bg-rose-900/80 hover:bg-rose-800 border border-rose-700 font-medium text-xs text-rose-200 transition-all';
+      }
+    });
+
+    resetTimerBtn.addEventListener('click', () => {
+      clearInterval(timerInterval);
+      timerInterval = null;
+      timerSeconds = 25 * 60;
+      timerDisplay.textContent = formatTime(timerSeconds);
+      toggleTimerBtn.textContent = 'Start Focus';
+      toggleTimerBtn.className = 'py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 font-medium text-xs text-slate-200 transition-all';
+    });
+
+    function copyUPI() {
+      navigator.clipboard.writeText('donation1@postbank').then(() => {
+        const label = document.getElementById('copyBtnLabel');
+        label.textContent = 'Copied!';
+        setTimeout(() => { label.textContent = 'Copy UPI ID'; }, 2500);
+      });
+    }
+  </script>
+</body>
+</html>
