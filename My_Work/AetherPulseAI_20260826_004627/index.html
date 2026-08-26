@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AetherPulse AI - Component Synthesis Engine</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darkbg: '#090d16',
+                        glassdark: 'rgba(15, 23, 42, 0.75)',
+                        accent: '#6366f1',
+                        accentglow: '#818cf8'
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Plus Jakarta+Sans', sans-serif; }
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glow-effect:hover {
+            box-shadow: 0 0 25px rgba(99, 102, 241, 0.4);
+        }
+        @keyframes pulseGlow {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 0.8; }
+        }
+        .animate-pulse-glow {
+            animation: pulseGlow 4s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-darkbg text-slate-100 min-h-screen flex flex-col selection:bg-indigo-500 selection:text-white relative overflow-x-hidden">
+
+    <!-- Background Gradients -->
+    <div class="absolute top-0 left-1/4 w-96 h-96 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none animate-pulse-glow"></div>
+    <div class="absolute top-1/3 right-1/4 w-96 h-96 bg-purple-600/15 rounded-full blur-3xl pointer-events-none animate-pulse-glow" style="animation-delay: 2s;"></div>
+
+    <!-- Header -->
+    <header class="w-full border-b border-slate-800/80 glass-panel sticky top-0 z-50 px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+                <i class="fa-solid fa-cube text-white text-lg"></i>
+            </div>
+            <div>
+                <h1 class="text-lg font-bold tracking-tight bg-gradient-to-r from-white via-indigo-200 to-indigo-400 bg-clip-text text-transparent">AetherPulse AI</h1>
+                <p class="text-xs text-slate-400">Neural UI Synthesis Engine</p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-4">
+            <span class="hidden sm:inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 mr-2 animate-pulse"></span> System Online
+            </span>
+            <button onclick="resetWorkspace()" class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-800/80 hover:bg-slate-700 text-slate-300 border border-slate-700 transition flex items-center space-x-2">
+                <i class="fa-solid fa-rotate-right"></i><span>Reset</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Application -->
+    <main class="flex-grow max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Left Control Panel -->
+        <div class="lg:col-span-5 flex flex-col space-y-6">
+            <div class="glass-panel rounded-2xl p-6 shadow-xl">
+                <h2 class="text-sm font-semibold uppercase tracking-wider text-indigo-400 mb-4 flex items-center">
+                    <i class="fa-solid fa-wand-magic-sparkles mr-2"></i> Prompt Synthesis
+                </h2>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-300 mb-2">Select Component Archetype</label>
+                        <div class="grid grid-cols-3 gap-2">
+                            <button onclick="setArchetype('hero', this)
+" class="archetype-btn px-3 py-2.5 rounded-xl text-xs font-medium bg-indigo-600/20 text-indigo-300 border border-indigo-500/40 text-center transition">Hero Section</button>
+                            <button onclick="setArchetype('pricing', this)" class="archetype-btn px-3 py-2.5 rounded-xl text-xs font-medium bg-slate-800/60 text-slate-400 border border-slate-700/60 text-center transition">Pricing Card</button>
+                            <button onclick="setArchetype('stats', this)" class="archetype-btn px-3 py-2.5 rounded-xl text-xs font-medium bg-slate-800/60 text-slate-400 border border-slate-700/60 text-center transition">Metric Grid</button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-slate-300 mb-2">Custom Neural Prompt</label>
+                        <textarea id="userPrompt" rows="3" class="w-full rounded-xl bg-slate-900/80 border border-slate-700 p-3 text-sm text-slate-200 focus:outline-none focus:border-indigo-500 transition resize-none" placeholder="Describe color accents, badges, call to action...">Futuristic SaaS hero with glowing violet accents, trust badges, and bold typography.</textarea>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-slate-300 mb-2">Emotional Tone / Vibe</label>
+                        <select id="vibeSelect" class="w-full rounded-xl bg-slate-900/80 border border-slate-700 p-3 text-sm text-slate-200 focus:outline-none focus:border-indigo-500 transition">
+                            <option value="cyberpunk">Cyberpunk Neon</option>
+                            <option value="corporate" selected>Elite Corporate Glass</option>
+                            <option value="minimal">Nordic Minimalist</option>
+                            <option value="vibrant">Vibrant Gradient Burst</option>
+                        </select>
+                    </div>
+
+                    <button onclick="synthesizeComponent()" class="w-full py-3.5 rounded-xl font-semibold bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-600/30 hover:shadow-indigo-600/50 transition flex items-center justify-center space-x-2 glow-effect">
+                        <i class="fa-solid fa-microchip"></i>
+                        <span>Generate Component</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Quick Stats / Status Card -->
+            <div class="glass-panel rounded-2xl p-6 shadow-xl">
+                <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Synthesis Metrics</h3>
+                <div class="grid grid-cols-2 gap-4 text-center">
+                    <div class="bg-slate-900/50 p-3 rounded-xl border border-slate-800">
+                        <div class="text-xl font-bold text-indigo-400" id="statLatency">0.34s</div>
+                        <div class="text-xs text-slate-400 mt-1">Response Latency</div>
+                    </div>
+                    <div class="bg-slate-900/50 p-3 rounded-xl border border-slate-800">
+                        <div class="text-xl font-bold text-violet-400" id="statTokens">1,420</div>
+                        <div class="text-xs text-slate-400 mt-1">Tokens Processed</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Live Preview & Code Panel -->
+        <div class="lg:col-span-7 flex flex-col space-y-6">
+            <div class="glass-panel rounded-2xl p-6 shadow-xl flex-grow flex flex-col">
+                <div class="flex items-center justify-between mb-4 border-b border-slate-800/80 pb-3">
+                    <div class="flex space-x-2">
+                        <button onclick="switchTab('preview')" id="tabPreviewBtn" class="px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 text-white transition">Live Preview</button>
+                        <button onclick="switchTab('code')" id="tabCodeBtn" class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-800/80 text-slate-400 hover:text-white transition">Tailwind Code</button>
+                    </div>
+                    <button onclick="copyCode()" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition flex items-center space-x-1.5">
+                        <i class="fa-regular fa-copy"></i><span id="copyText">Copy Code</span>
+                    </button>
+                </div>
+
+                <!-- Preview Container -->
+                <div id="previewContainer" class="flex-grow bg-slate-950/70 rounded-xl border border-slate-800/80 p-6 flex items-center justify-center relative overflow-hidden min-h-[350px]">
+                    <div id="previewOutput" class="w-full">
+                        <!-- Dynamic Output goes here -->
+                    </div>
+                </div>
+
+                <!-- Code Container -->
+                <div id="codeContainer" class="hidden flex-grow bg-slate-950/90 rounded-xl border border-slate-800/80 p-4 relative overflow-auto max-h-[400px]">
+                    <pre class="text-xs font-mono text-indigo-200"><code id="codeOutput">Select options and click Generate Component...</code></pre>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Cause-Driven Charity & Support Footer Section -->
+    <footer class="w-full border-t border-slate-800/80 glass-panel mt-12 py-8 px-6">
+        <div class="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 bg-slate-900/60 border border-slate-800 p-6 rounded-2xl shadow-2xl">
+            <div class="flex items-start space-x-4">
+                <div class="w-12 h-12 rounded-2xl bg-rose-500/20 flex-shrink-0 flex items-center justify-center border border-rose-500/30 text-rose-400 text-xl">
+                    <i class="fa-solid fa-heart-pulse"></i>
+                </div>
+                <div>
+                    <h4 class="text-sm font-bold text-slate-200 tracking-wide">Cause-Driven Social Impact Initiative</h4>
+                    <p class="text-xs text-slate-400 mt-1 leading-relaxed max-w-xl">
+                        95% of all contributions go directly towards Cancer Patient Support & School Education Initiatives (5% retained for server maintenance).
+                    </p>
+                    <div class="mt-3 flex flex-wrap items-center gap-3 text-xs">
+                        <span class="px-2.5 py-1 rounded-md bg-slate-800 text-slate-300 border border-slate-700">Receiver: <strong class="text-white">ASKAR ALI</strong></span>
+                        <span class="px-2.5 py-1 rounded-md bg-slate-800 text-slate-300 border border-slate-700">UPI ID: <strong id="upiIdText" class="text-indigo-400">donation1@postbank</strong></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row items-center gap-4 flex-shrink-0">
+                <div class="bg-white p-2 rounded-xl shadow-md">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?data=upi://pay?pa=donation1@postbank&pn=YUGRAAL_Cause" alt="Donation QR Code" class="w-20 h-20 object-contain">
+                </div>
+                <button onclick="copyUpiId()" class="w-full sm:w-auto px-5 py-2.5 rounded-xl text-xs font-bold bg-gradient-to-r from-rose-600 to-pink-600 text-white shadow-lg shadow-rose-600/30 hover:shadow-rose-600/50 transition flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-qrcode"></i>
+                    <span id="upiCopyBtnText">Copy UPI ID</span>
+                </button>
+            </div>
+        </div>
+        <div class="text-center mt-6 text-xs text-slate-500">
+            © 2025 AetherPulse AI Co-Creator Engine. Empowering humanity through intelligent web engineering.
+        </div>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        let currentArchetype = 'hero';
+        let currentVibe = 'corporate';
+
+        const templates = {
+            hero: {
+                corporate: `<div class="text-center max-w-xl mx-auto py-8">
+    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 mb-4">
+        <i class="fa-solid fa-bolt mr-1.5"></i> V2.4 Release Live
+    </span>
+    <h1 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mb-4">
+        Scale Your Enterprise with <span class="bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent">Precision Intelligence</span>
+    </h1>
+    <p class="text-sm text-slate-400 mb-6">
+        Deploy enterprise-grade neural pipelines in seconds with zero configuration.
+    </p>
+    <div class="flex justify-center space-x-3">
+        <button class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs transition shadow-lg shadow-indigo-600/30">Get Started</button>
+        <button class="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs transition border border-slate-700">Documentation</button>
+    </div>
+</div>`,
+                cyberpunk: `<div class="text-center max-w-xl mx-auto py-8 relative">
+    <div class="absolute -inset-1 bg-gradient-to-r from-pink-600 to-purple-600 rounded-2xl blur opacity-30"></div>
+    <div class="relative bg-slate-900 border border-pink-500/30 p-8 rounded-2xl">
+        <span class="text-xs font-mono text-pink-400 uppercase tracking-widest mb-2 block">// SYSTEM OVERRIDE ACTIVE</span>
+        <h1 class="text-3xl font-black text-white tracking-widest mb-4">NEON_PULSE // 2077</h1>
+        <p class="text-xs font-mono text-slate-300 mb-6">UNLEASH HIGH-FREQUENCY DATA STREAMS ACROSS GLOBAL NEURAL NODES.</p>
+        <button class="px-6 py-2.5 rounded font-mono text-xs bg-pink-600 hover:bg-pink-500 text-white font-bold shadow-lg shadow-pink-600/50">EXECUTE PROTOCOL</button>
+    </div>
+</div>`,
+                minimal: `<div class="text-left max-w-xl mx-auto py-8">
+    <h1 class="text-3xl font-light text-white tracking-tight mb-3">Pure clarity. <span class="font-normal text-slate-400">Zero noise.</span></h1>
+    <p class="text-sm text-slate-400 font-light mb-6">Thoughtfully crafted tools designed for maximum focus and effortless workflow.</p>
+    <a href="#" class="text-xs text-white underline underline-offset-4 hover:text-indigo-400 transition font-medium">Explore the collection &rarr;</a>
+</div>`,
+                vibrant: `<div class="text-center max-w-xl mx-auto py-8 bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 p-8 rounded-3xl border border-indigo-500/20">
+    <h1 class="text-3xl font-extrabold text-white mb-3">Ignite Your Digital Presence</h1>
+    <p class="text-sm text-slate-300 mb-6">Stunning color dynamics combined with high performance architecture.</p>
+    <button class="px-6 py-3 rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white text-xs font-bold shadow-xl">Start Creating Now</button>
+</div>`
+            },
+            pricing: {
+                corporate: `<div class="max-w-sm mx-auto bg-slate-900/90 border border-indigo-500/30 rounded-2xl p-6 shadow-2xl relative">
+    <div class="absolute -top-3 right-6 bg-indigo-600 text-white text-[10px] uppercase font-bold px-3 py-1 rounded-full">Popular</div>
+    <h3 class="text-sm font-bold text-white mb-1">Pro Enterprise</h3>
+    <p class="text-xs text-slate-400 mb-4">For scaling engineering teams.</p>
+    <div class="text-3xl font-extrabold text-white mb-6">$49<span class="text-xs text-slate-400 font-normal">/mo</span></div>
+    <ul class="space-y-2.5 text-xs text-slate-300 mb-6">
+        <li><i class="fa-solid fa-check text-indigo-400 mr-2"></i> Unlimited Neural Pipelines</li>
+        <li><i class="fa-solid fa-check text-indigo-400 mr-2"></i> Real-time Latency Optimization</li>
+        <li><i class="fa-solid fa-check text-indigo-400 mr-2"></i> Priority 24/7 Support</li>
+    </ul>
+    <button class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition">Upgrade Now</button>
+</div>`,
+                cyberpunk: `<div class="max-w-sm mx-auto bg-black border border-pink-500/40 rounded-xl p-6 shadow-2xl">
+    <div class="text-xs font-mono text-pink-500 mb-1">[TIER_01]</div>
+    <h3 class="text-lg font-mono font-bold text-white mb-2">CYBER_NODE</h3>
+    <div class="text-3xl font-mono font-black text-pink-400 mb-4">$99 <span class="text-xs text-slate-500">FLAT</span></div>
+    <p class="text-xs font-mono text-slate-400 mb-6">Direct neural link access with dedicated sub-routines.</p>
+    <button class="w-full py-3 bg-pink-600 text-white font-mono text-xs font-bold tracking-widest hover:bg-pink-500 transition">INITIALIZE</button>
+</div>`,
+                minimal: `<div class="max-w-sm mx-auto bg-slate-900/40 border border-slate-800 rounded-2xl p-6">
+    <h3 class="text-sm font-medium text-white mb-1">Standard Access</h3>
+    <div class="text-2xl font-light text-white mb-4">$29 <span class="text-xs text-slate-500">/month</span></div>
+    <p class="text-xs text-slate-400 mb-6 font-light">Clean, reliable access to essential tools.</p>
+    <button class="w-full py-2.5 rounded-xl bg-white text-slate-900 hover:bg-slate-200 text-xs font-medium transition">Choose Plan</button>
+</div>`,
+                vibrant: `<div class="max-w-sm mx-auto bg-gradient-to-b from-indigo-950 to-slate-900 border border-indigo-500/40 rounded-2xl p-6 shadow-2xl">
+    <h3 class="text-sm font-bold text-indigo-300 mb-1">Vibrant Pass</h3>
+    <div class="text-3xl font-extrabold text-white mb-4">$39 <span class="text-xs text-indigo-300">/mo</span></div>
+    <button class="w-full py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-pink-500 text-white text-xs font-bold shadow-lg">Get Pass</button>
+</div>`
+            },
+            stats: {
+                corporate: `<div class="grid grid-cols-3 gap-4 max-w-lg mx-auto">
+    <div class="bg-slate-900/80 border border-slate-800 p-4 rounded-xl text-center">
+        <div class="text-2xl font-bold text-indigo-400">99.9%</div>
+        <div class="text-[11px] text-slate-400 mt-1">Uptime SLA</div>
+    </div>
+    <div class="bg-slate-900/80 border border-slate-800 p-4 rounded-xl text-center">
+        <div class="text-2xl font-bold text-violet-400">14ms</div>
+        <div class="text-[11px] text-slate-400 mt-1">Avg Latency</div>
+    </div>
+    <div class="bg-slate-900/80 border border-slate-800 p-4 rounded-xl text-center">
+        <div class="text-2xl font-bold text-emerald-400">4.8M</div>
+        <div class="text-[11px] text-slate-400 mt-1">Requests/day</div>
+    </div>
+</div>`,
+                cyberpunk: `<div class="grid grid-cols-3 gap-4 max-w-lg mx-auto font-mono">
+    <div class="bg-black border border-pink-500/40 p-4 rounded text-center">
+        <div class="text-xl font-bold text-pink-400">[01]</div>
+        <div class="text-[10px] text-slate-500 mt-1">NODES_UP</div>
+    </div>
+    <div class="bg-black border border-pink-500/40 p-4 rounded text-center">
+        <div class="text-xl font-bold text-pink-400">99.9</div>
+        <div class="text-[10px] text-slate-500 mt-1">SYNC_RATE</div>
+    </div>
+    <div class="bg-black border border-pink-500/40 p-4 rounded text-center">
+        <div class="text-xl font-bold text-pink-400">0.02</div>
+        <div class="text-[10px] text-slate-500 mt-1">JITTER</div>
+    </div>
+</div>`,
+                minimal: `<div class="grid grid-cols-3 gap-6 max-w-lg mx-auto text-center">
+    <div>
+        <div class="text-2xl font-light text-white">12k</div>
+        <div class="text-xs text-slate-500 mt-1">Active users</div>
+    </div>
+    <div>
+        <div class="text-2xl font-light text-white">98%</div>
+        <div class="text-xs text-slate-500 mt-1">Retention</div>
+    </div>
+    <div>
+        <div class="text-2xl font-light text-white">24/7</div>
+        <div class="text-xs text-slate-500 mt-1">Monitoring</div>
+    </div>
+</div>`,
+                vibrant: `<div class="grid grid-cols-3 gap-4 max-w-lg mx-auto">
+    <div class="bg-indigo-900/20 border border-indigo-500/30 p-4 rounded-2xl text-center">
+        <div class="text-2xl font-extrabold text-indigo-400">10x</div>
+        <div class="text-[11px] text-slate-300 mt-1">Velocity</div>
+    </div>
+    <div class="bg-purple-900/20 border border-purple-500/30 p-4 rounded-2xl text-center">
+        <div class="text-2xl font-extrabold text-purple-400">100%</div>
+        <div class="text-[11px] text-slate-300 mt-1">Secure</div>
+    </div>
+    <div class="bg-pink-900/20 border border-pink-500/30 p-4 rounded-2xl text-center">
+        <div class="text-2xl font-extrabold text-pink-400">ZERO</div>
+        <div class="text-[11px] text-slate-300 mt-1">Downtime</div>
+    </div>
+</div>`
+            }
+        };
+
+        function setArchetype(type, btn) {
+            currentArchetype = type;
+            document.querySelectorAll('.archetype-btn').forEach(b => {
+                b.className = 'archetype-btn px-3 py-2.5 rounded-xl text-xs font-medium bg-slate-800/60 text-slate-400 border border-slate-700/60 text-center transition';
+            });
+            btn.className = 'archetype-btn px-3 py-2.5 rounded-xl text-xs font-medium bg-indigo-600/20 text-indigo-300 border border-indigo-500/40 text-center transition';
+            synthesizeComponent();
+        }
+
+        function synthesizeComponent() {
+            currentVibe = document.getElementById('vibeSelect').value;
+            const htmlSnippet = templates[currentArchetype][currentVibe] || templates['hero']['corporate'];
+            
+            document.getElementById('previewOutput').innerHTML = htmlSnippet;
+            document.getElementById('codeOutput').textContent = htmlSnippet;
+            
+            // Randomize slight latency & tokens for realistic feel
+            document.getElementById('statLatency').textContent = (Math.random() * 0.2 + 0.25).toFixed(2) + 's';
+            document.getElementById('statTokens').textContent = Math.floor(Math.random() * 500 + 1200).toLocaleString();
+        }
+
+        function switchTab(tab) {
+            const previewBtn = document.getElementById('tabPreviewBtn');
+            const codeBtn = document.getElementById('tabCodeBtn');
+            const previewContainer = document.getElementById('previewContainer');
+            const codeContainer = document.getElementById('codeContainer');
+
+            if (tab === 'preview') {
+                previewBtn.className = 'px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 text-white transition';
+                codeBtn.className = 'px-4 py-2 rounded-xl text-xs font-semibold bg-slate-800/80 text-slate-400 hover:text-white transition';
+                previewContainer.classList.remove('hidden');
+                codeContainer.classList.add('hidden');
+            } else {
+                codeBtn.className = 'px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 text-white transition';
+                previewBtn.className = 'px-4 py-2 rounded-xl text-xs font-semibold bg-slate-800/80 text-slate-400 hover:text-white transition';
+                codeContainer.classList.remove('hidden');
+                previewContainer.classList.add('hidden');
+            }
+        }
+
+        function copyCode() {
+            const codeText = document.getElementById('codeOutput').textContent;
+            navigator.clipboard.writeText(codeText);
+            const copyText = document.getElementById('copyText');
+            copyText.textContent = 'Copied!';
+            setTimeout(() => { copyText.textContent = 'Copy Code'; }, 2000);
+        }
+
+        function copyUpiId() {
+            navigator.clipboard.writeText('donation1@postbank');
+            const btnText = document.getElementById('upiCopyBtnText');
+            btnText.textContent = 'UPI Copied!';
+            setTimeout(() => { btnText.textContent = 'Copy UPI ID'; }, 2000);
+        }
+
+        function resetWorkspace() {
+            document.getElementById('userPrompt').value = 'Futuristic SaaS hero with glowing violet accents, trust badges, and bold typography.';
+            document.getElementById('vibeSelect').value = 'corporate';
+            synthesizeComponent();
+        }
+
+        // Initial load
+        window.onload = () => {
+            synthesizeComponent();
+        };
+    </script>
+</body>
+</html>
