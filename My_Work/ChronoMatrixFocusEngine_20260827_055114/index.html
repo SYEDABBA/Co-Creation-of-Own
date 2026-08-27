@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ChronoMatrix // Neuro-Focus Cockpit</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            cyber: {
+              bg: '#0a0d14',
+              card: '#111726',
+              border: '#1f293d',
+              accent: '#38bdf8',
+              purple: '#818cf8',
+              rose: '#fb7185'
+            }
+          }
+        }
+      }
+    };
+  </script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #07090e;
+    }
+    .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .glass-card {
+      background: rgba(17, 23, 38, 0.75);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .glow-cyan {
+      box-shadow: 0 0 25px -5px rgba(56, 189, 248, 0.25);
+    }
+    .glow-purple {
+      box-shadow: 0 0 25px -5px rgba(129, 140, 248, 0.25);
+    }
+  </style>
+</head>
+<body class="text-slate-100 min-h-screen flex flex-col selection:bg-cyan-500 selection:text-black">
+  <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+    <div class="absolute -top-40 -left-40 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl"></div>
+    <div class="absolute top-1/3 -right-40 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl"></div>
+    <div class="absolute -bottom-40 left-1/3 w-96 h-96 bg-rose-500/10 rounded-full blur-3xl"></div>
+  </div>
+
+  <header class="relative z-10 border-b border-white/10 backdrop-blur-md bg-black/30 sticky top-0 px-6 py-4 flex items-center justify-between">
+    <div class="flex items-center space-x-3">
+      <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-cyan-500 to-indigo-600 flex items-center justify-center text-white font-bold shadow-lg shadow-cyan-500/30">
+        <i class="fa-solid fa-atom text-lg animate-spin-slow"></i>
+      </div>
+      <div>
+        <h1 class="text-lg font-bold tracking-wider bg-gradient-to-r from-white via-slate-200 to-cyan-400 bg-clip-text text-transparent">
+          CHRONO<span class="text-cyan-400 font-extrabold">MATRIX</span>
+        </h1>
+        <p class="text-xs text-slate-400 font-mono tracking-tight">v2.4 // NEURO-FLOW ARCHITECTURE</p>
+      </div>
+    </div>
+    <div class="flex items-center space-x-4 font-mono text-xs">
+      <div class="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 flex items-center space-x-2">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span class="text-slate-300" id="status-indicator">SYSTEM ONLINE</span>
+      </div>
+      <div class="text-slate-400" id="live-clock">00:00:00 UTC</div>
+    </div>
+  </header>
+
+  <main class="relative z-10 flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <div class="lg:col-span-7 flex flex-col space-y-6">
+      <div class="glass-card glow-cyan rounded-2xl p-6 sm:p-8 flex flex-col items-center justify-center text-center relative overflow-hidden">
+        <div class="absolute top-4 left-4 flex space-x-2">
+          <button onclick="setMode('deep')" id="btn-mode-deep" class="px-3 py-1 text-xs rounded-md font-semibold transition-all bg-cyan-500 text-black shadow-md">Deep Flow (50m)</button>
+          <button onclick="setMode('sprint')" id="btn-mode-sprint" class="px-3 py-1 text-xs rounded-md font-semibold text-slate-400 hover:text-white bg-white/5 transition-all">Sprint (25m)</button>
+          <button onclick="setMode('recharge')" id="btn-mode-recharge" class="px-3 py-1 text-xs rounded-md font-semibold text-slate-400 hover:text-white bg-white/5 transition-all">Recharge (10m)</button>
+        </div>
+
+        <div class="my-8 relative flex items-center justify-center">
+          <svg class="w-64 h-64 sm:w-72 sm:h-72 transform -rotate-90">
+            <circle cx="144" cy="144" r="120" stroke="rgba(255,255,255,0.06)" stroke-width="10" fill="transparent" />
+            <circle id="timer-progress" cx="144" cy="144" r="120" stroke="#38bdf8" stroke-width="10" fill="transparent" stroke-dasharray="753.98" stroke-dashoffset="0" stroke-linecap="round" class="transition-all duration-1000 ease-linear" />
+          </svg>
+          <div class="absolute flex flex-col items-center justify-center text-center">
+            <span id="timer-display" class="text-5xl sm:text-6xl font-extrabold font-mono tracking-tight text-white drop-shadow-md">50:00</span>
+            <span id="cycle-phase" class="text-xs font-mono text-cyan-400 mt-2 tracking-widest uppercase">Deep Flow Phase</span>
+          </div>
+        </div>
+
+        <div class="flex items-center space-x-4">
+          <button onclick="toggleTimer()" id="btn-start" class="px-8 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-black font-bold flex items-center space-x-2 transition-all transform active:scale-95 shadow-lg shadow-cyan-500/25">
+            <i class="fa-solid fa-play" id="play-icon"></i>
+            <span id="play-text">INITIATE</span>
+          </button>
+          <button onclick="resetTimer()" class="p-3 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/10 transition-all">
+            <i class="fa-solid fa-rotate-left"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="glass-card rounded-2xl p-6">
+        <h3 class="text-sm font-semibold tracking-wider text-slate-400 uppercase mb-4 flex items-center justify-between">
+          <span><i class="fa-solid fa-wave-square text-cyan-400 mr-2"></i>Bio-Acoustic Synthesizer</span>
+          <span class="text-xs font-mono text-slate-500">WebAudio API</span>
+        </h3>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <button onclick="toggleSound('binaural')" id="snd-binaural" class="p-4 rounded-xl bg-white/5 border border-white/10 hover:border-cyan-400/50 flex flex-col items-start space-y-2 transition-all group">
+            <div class="flex items-center justify-between w-full">
+              <i class="fa-solid fa-brain text-cyan-400 text-lg"></i>
+              <span class="w-2 h-2 rounded-full bg-slate-600" id="ind-binaural"></span>
+            </div>
+            <div class="text-left">
+              <div class="font-medium text-sm text-slate-200 group-hover:text-white">Gamma 40Hz</div>
+              <div class="text-xs text-slate-500 font-mono">Deep Focus Resonance</div>
+            </div>
+          </button>
+          <button onclick="toggleSound('brown')" id="snd-brown" class="p-4 rounded-xl bg-white/5 border border-white/10 hover:border-indigo-400/50 flex flex-col items-start space-y-2 transition-all group">
+            <div class="flex items-center justify-between w-full">
+              <i class="fa-solid fa-water text-indigo-400 text-lg"></i>
+              <span class="w-2 h-2 rounded-full bg-slate-600" id="ind-brown"></span>
+            </div>
+            <div class="text-left">
+              <div class="font-medium text-sm text-slate-200 group-hover:text-white">Deep Cosmic Rain</div>
+              <div class="text-xs text-slate-500 font-mono">Brownian Mask</div>
+            </div>
+          </button>
+          <button onclick="toggleSound('zen')" id="snd-zen" class="p-4 rounded-xl bg-white/5 border border-white/10 hover:border-purple-400/50 flex flex-col items-start space-y-2 transition-all group">
+            <div class="flex items-center justify-between w-full">
+              <i class="fa-solid fa-wind text-purple-400 text-lg"></i>
+              <span class="w-2 h-2 rounded-full bg-slate-600" id="ind-zen"></span>
+            </div>
+            <div class="text-left">
+              <div class="font-medium text-sm text-slate-200 group-hover:text-white">Starlight Drone</div>
+              <div class="text-xs text-slate-500 font-mono">Harmonic 432Hz</div>
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="lg:col-span-5 flex flex-col space-y-6">
+      <div class="glass-card rounded-2xl p-6 flex flex-col flex-1">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-sm font-semibold tracking-wider text-slate-400 uppercase flex items-center space-x-2">
+            <i class="fa-solid fa-list-check text-indigo-400"></i>
+            <span>Tactical Action Queue</span>
+          </h3>
+          <span class="text-xs font-mono text-cyan-400 bg-cyan-400/10 px-2 py-0.5 rounded" id="task-counter">0 Pending</span>
+        </div>
+
+        <form onsubmit="addTask(event)" class="flex gap-2 mb-4">
+          <input type="text" id="task-input" placeholder="Enter high-impact objective..." class="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 transition-all font-sans">
+          <button type="submit" class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-medium text-sm transition-all">
+            <i class="fa-solid fa-plus"></i>
+          </button>
+        </form>
+
+        <div id="task-list" class="flex-1 overflow-y-auto max-h-64 space-y-2 pr-1">
+        </div>
+      </div>
+
+      <div class="glass-card rounded-2xl p-6">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-sm font-semibold tracking-wider text-slate-400 uppercase flex items-center space-x-2">
+            <i class="fa-solid fa-terminal text-rose-400"></i>
+            <span>Neuro Scratchpad</span>
+          </h3>
+          <button onclick="clearScratchpad()" class="text-xs text-slate-500 hover:text-slate-300 font-mono">Clear</button>
+        </div>
+        <textarea id="scratchpad" placeholder="Transient thoughts, regex snippets, quick keys..." class="w-full h-32 bg-black/40 border border-white/10 rounded-xl p-3 text-xs font-mono text-cyan-300 placeholder-slate-600 focus:outline-none focus:border-indigo-400 resize-none"></textarea>
+      </div>
+    </div>
+  </main>
+
+  <footer class="relative z-10 border-t border-white/10 bg-black/40 backdrop-blur-xl mt-12 py-12 px-4 sm:px-6">
+    <div class="max-w-4xl mx-auto">
+      <div class="glass-card border border-rose-500/20 rounded-3xl p-6 sm:p-8 glow-purple relative overflow-hidden bg-gradient-to-b from-slate-900/90 to-black/90">
+        <div class="absolute -top-16 -right-16 w-44 h-44 bg-rose-500/10 rounded-full blur-2xl"></div>
+        <div class="flex flex-col md:flex-row items-center gap-8">
+          <div class="relative flex-shrink-0">
+            <div class="w-36 h-36 rounded-2xl bg-white p-2.5 shadow-2xl flex items-center justify-center">
+              <img src="https://api.qrserver.com/v1/create-qr-code/?data=upi://pay?pa=donation1@postbank&pn=YUGRAAL_Cause" alt="Donation QR Code" class="w-full h-full object-contain rounded-lg">
+            </div>
+            <span class="absolute -bottom-2 -right-2 bg-emerald-500 text-black text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider shadow-lg">Verified</span>
+          </div>
+
+          <div class="flex-1 text-center md:text-left">
+            <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs font-semibold uppercase tracking-wider mb-2">
+              <i class="fa-solid fa-heart-pulse text-rose-400"></i>
+              <span>Humanitarian Impact Pledge</span>
+            </div>
+            <h3 class="text-xl font-bold text-white mb-2">
+              Direct Cause Support & Education Initiative
+            </h3>
+            <p class="text-sm text-slate-300 leading-relaxed mb-4">
+              <strong class="text-rose-400">95% of all contributions</strong> go directly towards Cancer Patient Support & School Education Initiatives (5% retained for server maintenance).
+            </p>
+            
+            <div class="flex flex-col sm:flex-row items-center gap-3">
+              <div class="bg-white/5 border border-white/10 px-3.5 py-2 rounded-xl text-xs font-mono text-slate-300 flex items-center justify-between w-full sm:w-auto space-x-4">
+                <span>Receiver: <strong class="text-white">ASKAR ALI</strong></span>
+                <span class="text-slate-500">|</span>
+                <span>UPI: <strong class="text-cyan-400">donation1@postbank</strong></span>
+              </div>
+              <button onclick="copyUPI()" id="btn-copy" class="w-full sm:w-auto px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white rounded-xl text-xs font-semibold border border-white/10 transition-all flex items-center justify-center space-x-2 active:scale-95">
+                <i class="fa-regular fa-copy" id="copy-icon"></i>
+                <span id="copy-text">Copy UPI ID</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="text-center text-xs text-slate-500 font-mono mt-8">
+        Engineered with precision // Zero ads, zero trackers // Powered by pure Web Standards
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    let totalSeconds = 50 * 60;
+    let remainingSeconds = 50 * 60;
+    let timerInterval = null;
+    let isRunning = false;
+    let currentMode = 'deep';
+
+    const modes = {
+      deep: { duration: 50 * 60, title: 'Deep Flow Phase', color: '#38bdf8' },
+      sprint: { duration: 25 * 60, title: 'Sprint Focus Phase', color: '#818cf8' },
+      recharge: { duration: 10 * 60, title: 'Neural Recharge', color: '#fb7185' }
+    };
+
+    const timerDisplay = document.getElementById('timer-display');
+    const cyclePhase = document.getElementById('cycle-phase');
+    const timerProgress = document.getElementById('timer-progress');
+    const playText = document.getElementById('play-text');
+    const playIcon = document.getElementById('play-icon');
+    const circumference = 2 * Math.PI * 120;
+
+    function updateDisplay() {
+      const mins = Math.floor(remainingSeconds / 60).toString().padStart(2, '0');
+      const secs = (remainingSeconds % 60).toString().padStart(2, '0');
+      timerDisplay.textContent = `${mins}:${secs}`;
+      
+      const fraction = remainingSeconds / totalSeconds;
+      const offset = circumference * (1 - fraction);
+      timerProgress.style.strokeDashoffset = offset;
+    }
+
+    function setMode(modeKey) {
+      if (isRunning) toggleTimer();
+      currentMode = modeKey;
+      totalSeconds = modes[modeKey].duration;
+      remainingSeconds = totalSeconds;
+      cyclePhase.textContent = modes[modeKey].title;
+      timerProgress.style.stroke = modes[modeKey].color;
+
+      ['deep', 'sprint', 'recharge'].forEach(m => {
+        const btn = document.getElementById(`btn-mode-${m}`);
+        if (m === modeKey) {
+          btn.className = 'px-3 py-1 text-xs rounded-md font-semibold transition-all bg-cyan-500 text-black shadow-md';
+        } else {
+          btn.className = 'px-3 py-1 text-xs rounded-md font-semibold text-slate-400 hover:text-white bg-white/5 transition-all';
+        }
+      });
+      updateDisplay();
+    }
+
+    function toggleTimer() {
+      if (isRunning) {
+        clearInterval(timerInterval);
+        isRunning = false;
+        playText.textContent = 'RESUME';
+        playIcon.className = 'fa-solid fa-play';
+      } else {
+        isRunning = true;
+        playText.textContent = 'PAUSE';
+        playIcon.className = 'fa-solid fa-pause';
+        timerInterval = setInterval(() => {
+          if (remainingSeconds > 0) {
+            remainingSeconds--;
+            updateDisplay();
+          } else {
+            clearInterval(timerInterval);
+            isRunning = false;
+            playText.textContent = 'START';
+            playIcon.className = 'fa-solid fa-play';
+            playNotificationSound();
+          }
+        }, 1000);
+      }
+    }
+
+    function resetTimer() {
+      if (isRunning) toggleTimer();
+      remainingSeconds = totalSeconds;
+      playText.textContent = 'INITIATE';
+      playIcon.className = 'fa-solid fa-play';
+      updateDisplay();
+    }
+
+    let audioCtx = null;
+    let activeOscillators = {};
+
+    function getAudioContext() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      return audioCtx;
+    }
+
+    function toggleSound(type) {
+      const ctx = getAudioContext();
+      const ind = document.getElementById(`ind-${type}`);
+      const btn = document.getElementById(`snd-${type}`);
+
+      if (activeOscillators[type]) {
+        activeOscillators[type].forEach(node => {
+          if (node.stop) node.stop();
+          if (node.disconnect) node.disconnect();
+        });
+        delete activeOscillators[type];
+        ind.className = 'w-2 h-2 rounded-full bg-slate-600';
+        btn.classList.remove('border-cyan-400', 'border-indigo-400', 'border-purple-400', 'bg-white/10');
+      } else {
+        const nodes = [];
+        if (type === 'binaural') {
+          const oscL = ctx.createOscillator();
+          const oscR = ctx.createOscillator();
+          const merger = ctx.createChannelMerger(2);
+          const gain = ctx.createGain();
+          gain.gain.value = 0.08;
+          oscL.frequency.value = 200;
+          oscR.frequency.value = 240;
+          oscL.connect(merger, 0, 0);
+          oscR.connect(merger, 0, 1);
+          merger.connect(gain);
+          gain.connect(ctx.destination);
+          oscL.start();
+          oscR.start();
+          nodes.push(oscL, oscR, gain);
+        } else if (type === 'brown') {
+          const bufferSize = ctx.sampleRate * 2;
+          const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+          const output = noiseBuffer.getChannelData(0);
+          let lastOut = 0.0;
+          for (let i = 0; i < bufferSize; i++) {
+            const white = Math.random() * 2 - 1;
+            output[i] = (lastOut + (0.02 * white)) / 1.02;
+            lastOut = output[i];
+            output[i] *= 3.5;
+          }
+          const whiteNoise = ctx.createBufferSource();
+          whiteNoise.buffer = noiseBuffer;
+          whiteNoise.loop = true;
+          const filter = ctx.createBiquadFilter();
+          filter.type = 'lowpass';
+          filter.frequency.value = 400;
+          const gain = ctx.createGain();
+          gain.gain.value = 0.15;
+          whiteNoise.connect(filter);
+          filter.connect(gain);
+          gain.connect(ctx.destination);
+          whiteNoise.start();
+          nodes.push(whiteNoise, filter, gain);
+        } else if (type === 'zen') {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.value = 432;
+          gain.gain.value = 0.05;
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start();
+          nodes.push(osc, gain);
+        }
+        activeOscillators[type] = nodes;
+        ind.className = 'w-2 h-2 rounded-full bg-cyan-400 shadow-md shadow-cyan-400';
+        btn.classList.add('bg-white/10');
+      }
+    }
+
+    function playNotificationSound() {
+      const ctx = getAudioContext();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.3);
+      gain.gain.setValueAtTime(0.2, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.5);
+    }
+
+    let tasks = JSON.parse(localStorage.getItem('chronomatrix_tasks') || '[]');
+
+    function saveAndRenderTasks() {
+      localStorage.setItem('chronomatrix_tasks', JSON.stringify(tasks));
+      const list = document.getElementById('task-list');
+      const counter = document.getElementById('task-counter');
+      list.innerHTML = '';
+      
+      const pendingCount = tasks.filter(t => !t.done).length;
+      counter.textContent = `${pendingCount} Pending`;
+
+      if (tasks.length === 0) {
+        list.innerHTML = '<div class="text-center text-xs text-slate-500 py-6 font-mono">No active tasks in queue. Add one above.</div>';
+        return;
+      }
+
+      tasks.forEach((task, idx) => {
+        const item = document.createElement('div');
+        item.className = `flex items-center justify-between p-3 rounded-xl bg-white/5 border ${task.done ? 'border-transparent opacity-50' : 'border-white/10'} hover:border-slate-600 transition-all text-xs font-medium`;
+        item.innerHTML = `
+          <div class="flex items-center space-x-3">
+            <button onclick="toggleTask(${idx})" class="w-5 h-5 rounded-md flex items-center justify-center border ${task.done ? 'bg-cyan-500 border-cyan-500 text-black' : 'border-slate-500 text-transparent hover:border-cyan-400'}">
+              <i class="fa-solid fa-check text-[10px]"></i>
+            </button>
+            <span class="${task.done ? 'line-through text-slate-400' : 'text-slate-200'}">${escapeHTML(task.text)}</span>
+          </div>
+          <button onclick="deleteTask(${idx})" class="text-slate-500 hover:text-rose-400 transition-colors">
+            <i class="fa-solid fa-trash-can"></i>
+          </button>
+        `;
+        list.appendChild(item);
+      });
+    }
+
+    function addTask(e) {
+      e.preventDefault();
+      const input = document.getElementById('task-input');
+      const text = input.value.trim();
+      if (text) {
+        tasks.push({ text, done: false });
+        input.value = '';
+        saveAndRenderTasks();
+      }
+    }
+
+    function toggleTask(idx) {
+      tasks[idx].done = !tasks[idx].done;
+      saveAndRenderTasks();
+    }
+
+    function deleteTask(idx) {
+      tasks.splice(idx, 1);
+      saveAndRenderTasks();
+    }
+
+    function escapeHTML(str) {
+      return str.replace(/[&<>'"']/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag));
+    }
+
+    const scratchpad = document.getElementById('scratchpad');
+    scratchpad.value = localStorage.getItem('chronomatrix_notes') || '';
+    scratchpad.addEventListener('input', () => {
+      localStorage.setItem('chronomatrix_notes', scratchpad.value);
+    });
+    function clearScratchpad() {
+      scratchpad.value = '';
+      localStorage.removeItem('chronomatrix_notes');
+    }
+
+    function copyUPI() {
+      const upi = 'donation1@postbank';
+      navigator.clipboard.writeText(upi).then(() => {
+        const btnText = document.getElementById('copy-text');
+        const btnIcon = document.getElementById('copy-icon');
+        btnText.textContent = 'Copied!';
+        btnIcon.className = 'fa-solid fa-check text-emerald-400';
+        setTimeout(() => {
+          btnText.textContent = 'Copy UPI ID';
+          btnIcon.className = 'fa-regular fa-copy';
+        }, 2500);
+      });
+    }
+
+    function updateClock() {
+      const now = new Date();
+      document.getElementById('live-clock').textContent = now.toUTCString().split(' ')[4] + ' UTC';
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    updateDisplay();
+    saveAndRenderTasks();
+  </script>
+</body>
+</html>
