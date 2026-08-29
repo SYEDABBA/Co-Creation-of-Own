@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NovaFlow Matrix | Futuristic Focus Engine</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        cyber: {
+                            50: '#f0fdfa',
+                            500: '#14b8a6',
+                            900: '#042f2e',
+                            accent: '#6366f1',
+                            neon: '#06b6d4'
+                        }
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background: radial-gradient(circle at 50% 0%, #1e1b4b 0%, #030712 100%);
+            min-height: 100vh;
+        }
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glass-panel-glow {
+            box-shadow: 0 0 25px -5px rgba(99, 102, 241, 0.15);
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #030712;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #312e81;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body class="text-slate-100 font-sans antialiased overflow-x-hidden">
+
+    <!-- Navigation -->
+    <nav class="border-b border-slate-800/80 glass-panel sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-cyan-400 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+                    <i class="fa-solid fa-atom text-slate-950 text-xl"></i>
+                </div>
+                <div>
+                    <span class="font-bold tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-indigo-400 text-lg">NOVAFLOW</span>
+                    <span class="text-xs text-slate-400 block tracking-widest">MATRIX OS v3.4</span>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <div class="text-xs bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-full flex items-center space-x-2 text-slate-300">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                    <span id="systemClock">00:00:00 UTC</span>
+                </div>
+                <button onclick="app.exportState()" class="text-xs bg-indigo-600/30 hover:bg-indigo-600/50 border border-indigo-500/30 px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5">
+                    <i class="fa-solid fa-download"></i> Export
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Workspace -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        
+        <!-- Top Grid: Timer & Stats -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Focus Engine -->
+            <div class="glass-panel glass-panel-glow rounded-2xl p-6 relative overflow-hidden flex flex-col justify-between">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-sm font-semibold tracking-wider text-cyan-400 uppercase flex items-center gap-2">
+                        <i class="fa-solid fa-stopwatch"></i> Focus Engine
+                    </h2>
+                    <span id="modeIndicator" class="text-xs font-mono bg-indigo-950/80 text-indigo-300 border border-indigo-700/50 px-2 py-0.5 rounded">DEEP FOCUS</span>
+                </div>
+                <div class="my-6 text-center">
+                    <div id="timerDisplay" class="font-mono text-6xl font-bold tracking-tighter bg-clip-text text-transparent bg-gradient-to-b from-white to-slate-400">
+                        25:00
+                    </div>
+                    <div class="w-full bg-slate-800/80 rounded-full h-1.5 mt-4 overflow-hidden">
+                        <div id="timerProgressBar" class="bg-gradient-to-r from-cyan-400 to-indigo-500 h-full w-0 transition-all duration-300"></div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-3 gap-2">
+                    <button id="startTimerBtn" onclick="app.toggleTimer()" class="bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 font-medium py-2 rounded-xl text-sm transition-all flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-play text-xs"></i> <span id="timerBtnText">Start</span>
+                    </button>
+                    <button onclick="app.resetTimer()" class="bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 text-slate-300 font-medium py-2 rounded-xl text-sm transition-all">
+                        Reset
+                    </button>
+                    <button onclick="app.switchMode()" class="bg-indigo-500/20 hover:bg-indigo-500/30 border border-indigo-500/40 text-indigo-300 font-medium py-2 rounded-xl text-sm transition-all">
+                        Mode
+                    </button>
+                </div>
+            </div>
+
+            <!-- Synthesized Soundscapes -->
+            <div class="glass-panel glass-panel-glow rounded-2xl p-6 flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-sm font-semibold tracking-wider text-indigo-400 uppercase flex items-center gap-2">
+                            <i class="fa-solid fa-wave-square"></i> Ambient Audio Synth
+                        </h2>
+                        <button id="soundToggleBtn" onclick="app.toggleAudio()" class="text-xs px-2.5 py-1 rounded bg-slate-800 border border-slate-700 hover:border-slate-600">
+                            <i class="fa-solid fa-volume-xmark" id="audioIcon"></i> Muted
+                        </button>
+                    </div>
+                    <p class="text-xs text-slate-400 mb-4">Algorithmic low-frequency brown and pink noise generator rendered via Web Audio API.</p>
+                    <div class="space-y-3">
+                        <div>
+                            <div class="flex justify-between text-xs text-slate-300 mb-1">
+                                <span>Frequency Texture</span>
+                                <span id="freqVal">180 Hz</span>
+                            </div>
+                            <input type="range" min="60" max="600" value="180" id="freqSlider" oninput="app.updateAudioParams()" class="w-full accent-indigo-500 bg-slate-800 rounded-lg h-1.5 cursor-pointer">
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs text-slate-300 mb-1">
+                                <span>Volume</span>
+                                <span id="volVal">40%</span>
+                            </div>
+                            <input type="range" min="0" max="100" value="40" id="volSlider" oninput="app.updateAudioParams()" class="w-full accent-cyan-400 bg-slate-800 rounded-lg h-1.5 cursor-pointer">
+                        </div>
+                    </div>
+                </div>
+                <div class="text-xs text-slate-500 pt-3 border-t border-slate-800/80 flex items-center justify-between">
+                    <span>Status: Dynamic Waveform</span>
+                    <span class="text-indigo-400 font-mono">BETA-4.2</span>
+                </div>
+            </div>
+
+            <!-- Cognitive Analytics -->
+            <div class="glass-panel glass-panel-glow rounded-2xl p-6 flex flex-col justify-between">
+                <div>
+                    <h2 class="text-sm font-semibold tracking-wider text-purple-400 uppercase flex items-center gap-2 mb-4">
+                        <i class="fa-solid fa-chart-pie"></i> Focus Analytics
+                    </h2>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="bg-slate-900/80 border border-slate-800/80 p-3 rounded-xl">
+                            <div class="text-xs text-slate-400">Completed Tasks</div>
+                            <div id="tasksCompletedCount" class="text-2xl font-bold text-slate-100 font-mono mt-1">0</div>
+                        </div>
+                        <div class="bg-slate-900/80 border border-slate-800/80 p-3 rounded-xl">
+                            <div class="text-xs text-slate-400">Focus Sessions</div>
+                            <div id="sessionsCompletedCount" class="text-2xl font-bold text-cyan-400 font-mono mt-1">0</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 bg-slate-900/50 border border-slate-800 p-3 rounded-xl">
+                    <div class="text-xs text-slate-400 mb-1 flex justify-between">
+                        <span>Daily Target Ratio</span>
+                        <span id="completionPercentage">0%</span>
+                    </div>
+                    <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
+                        <div id="completionBar" class="bg-gradient-to-r from-indigo-500 to-purple-500 h-full w-0 transition-all duration-500"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Task Matrix Board -->
+        <div class="glass-panel rounded-2xl p-6">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-100 flex items-center gap-2">
+                        <i class="fa-solid fa-layer-group text-indigo-400"></i> Eisenhower Matrix Matrix Orchestrator
+                    </h2>
+                    <p class="text-xs text-slate-400 mt-1">Categorize missions dynamically by Priority & Urgency vectors.</p>
+                </div>
+                <!-- Add Task Bar -->
+                <div class="flex gap-2 flex-wrap sm:flex-nowrap">
+                    <input type="text" id="taskInput" placeholder="Enter new directive..." class="bg-slate-900/90 border border-slate-700/80 text-sm rounded-xl px-4 py-2 text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-400 min-w-[240px]">
+                    <select id="taskQuadrant" class="bg-slate-900 border border-slate-700/80 text-xs rounded-xl px-3 py-2 text-slate-300 focus:outline-none focus:border-cyan-400">
+                        <option value="q1">Q1: Do First (Urgent & Important)</option>
+                        <option value="q2">Q2: Schedule (Important)</option>
+                        <option value="q3">Q3: Delegate (Urgent)</option>
+                        <option value="q4">Q4: Eliminate</option>
+                    </select>
+                    <button onclick="app.addTask()" class="bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-slate-950 font-semibold px-4 py-2 rounded-xl text-sm transition-all flex items-center gap-2 shrink-0">
+                        <i class="fa-solid fa-plus"></i> Add
+                    </button>
+                </div>
+            </div>
+
+            <!-- Quadrants -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Q1 -->
+                <div class="bg-slate-900/40 border border-red-500/20 rounded-xl p-4">
+                    <div class="flex items-center justify-between mb-3 border-b border-red-500/20 pb-2">
+                        <span class="text-xs font-semibold uppercase text-red-400 flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-red-400"></span> Q1: Immediate Action
+                        </span>
+                        <span id="q1Count" class="text-xs font-mono text-slate-400">0</span>
+                    </div>
+                    <div id="q1List" class="space-y-2 min-h-[100px]"></div>
+                </div>
+
+                <!-- Q2 -->
+                <div class="bg-slate-900/40 border border-indigo-500/20 rounded-xl p-4">
+                    <div class="flex items-center justify-between mb-3 border-b border-indigo-500/20 pb-2">
+                        <span class="text-xs font-semibold uppercase text-indigo-400 flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-indigo-400"></span> Q2: Strategic Planning
+                        </span>
+                        <span id="q2Count" class="text-xs font-mono text-slate-400">0</span>
+                    </div>
+                    <div id="q2List" class="space-y-2 min-h-[100px]"></div>
+                </div>
+
+                <!-- Q3 -->
+                <div class="bg-slate-900/40 border border-amber-500/20 rounded-xl p-4">
+                    <div class="flex items-center justify-between mb-3 border-b border-amber-500/20 pb-2">
+                        <span class="text-xs font-semibold uppercase text-amber-400 flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-amber-400"></span> Q3: Delegation
+                        </span>
+                        <span id="q3Count" class="text-xs font-mono text-slate-400">0</span>
+                    </div>
+                    <div id="q3List" class="space-y-2 min-h-[100px]"></div>
+                </div>
+
+                <!-- Q4 -->
+                <div class="bg-slate-900/40 border border-slate-700/40 rounded-xl p-4">
+                    <div class="flex items-center justify-between mb-3 border-b border-slate-700/40 pb-2">
+                        <span class="text-xs font-semibold uppercase text-slate-400 flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-slate-400"></span> Q4: Low Priority / Archive
+                        </span>
+                        <span id="q4Count" class="text-xs font-mono text-slate-400">0</span>
+                    </div>
+                    <div id="q4List" class="space-y-2 min-h-[100px]"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cause-Driven Charity & Support Section -->
+        <section class="glass-panel rounded-2xl p-6 sm:p-8 border border-indigo-500/20 relative overflow-hidden">
+            <div class="absolute -right-16 -bottom-16 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center relative z-10">
+                <div class="lg:col-span-2 space-y-4">
+                    <div class="inline-flex items-center space-x-2 bg-gradient-to-r from-rose-500/20 to-indigo-500/20 border border-rose-500/30 px-3 py-1 rounded-full text-xs font-semibold text-rose-300">
+                        <i class="fa-solid fa-hand-holding-heart text-rose-400"></i>
+                        <span>Impact Initiative</span>
+                    </div>
+                    <h3 class="text-2xl font-bold text-slate-100 tracking-tight">Pledge for Humanity: Support Life & Education</h3>
+                    <p class="text-slate-300 text-sm leading-relaxed">
+                        95% of all contributions go directly towards Cancer Patient Support & School Education Initiatives (5% retained for server maintenance).
+                    </p>
+                    <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-3">
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <span class="text-xs text-slate-400">Beneficiary / Verified Campaigner:</span>
+                            <span class="text-sm font-semibold text-indigo-300">ASKAR ALI</span>
+                        </div>
+                        <div class="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-800">
+                            <div class="flex items-center space-x-2">
+                                <span class="text-xs text-slate-400">UPI ID:</span>
+                                <code id="upiText" class="font-mono text-xs bg-slate-950 px-2.5 py-1 rounded border border-slate-800 text-cyan-300 font-semibold">donation1@postbank</code>
+                            </div>
+                            <button onclick="app.copyUpi()" class="text-xs bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5 shadow-sm shadow-indigo-600/30">
+                                <i class="fa-regular fa-copy" id="copyIcon"></i> <span id="copyBtnLabel">Copy UPI ID</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- QR Code Block -->
+                <div class="flex flex-col items-center justify-center p-4 bg-slate-950/60 rounded-xl border border-slate-800/80 text-center">
+                    <div class="p-2.5 bg-white rounded-xl shadow-lg shadow-indigo-500/10 mb-3">
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?data=upi://pay?pa=donation1@postbank&pn=YUGRAAL_Cause&size=160x160" alt="UPI QR Code" class="w-36 h-36 rounded-md">
+                    </div>
+                    <span class="text-[11px] font-medium text-slate-400 flex items-center gap-1.5">
+                        <i class="fa-solid fa-qrcode text-indigo-400"></i> Scan with any UPI app
+                    </span>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-900 py-6 text-center text-xs text-slate-500">
+        <p>NovaFlow Matrix Autonomous Interface &bull; Designed for Human Potential</p>
+    </footer>
+
+    <!-- Application Logic -->
+    <script>
+        const app = {
+            state: {
+                timerDuration: 25 * 60,
+                timerRemaining: 25 * 60,
+                timerInterval: null,
+                timerRunning: false,
+                mode: 'focus', // focus | break
+                sessions: 0,
+                tasks: [
+                    { id: 1, text: 'Review quarterly algorithmic output', quadrant: 'q1', completed: false },
+                    { id: 2, text: 'Architect neural graph pipeline', quadrant: 'q2', completed: false },
+                    { id: 3, text: 'Standardize telemetry protocols', quadrant: 'q3', completed: false }
+                ],
+                audioContext: null,
+                oscillator: null,
+                gainNode: null,
+                audioPlaying: false
+            },
+
+            init() {
+                this.loadFromStorage();
+                this.renderTasks();
+                this.updateStats();
+                this.startClock();
+            },
+
+            startClock() {
+                const update = () => {
+                    const now = new Date();
+                    document.getElementById('systemClock').textContent = now.toTimeString().split(' ')[0] + ' UTC';
+                };
+                update();
+                setInterval(update, 1000);
+            },
+
+            loadFromStorage() {
+                const saved = localStorage.getItem('novaflow_matrix_data');
+                if (saved) {
+                    try {
+                        const parsed = JSON.parse(saved);
+                        this.state.tasks = parsed.tasks || this.state.tasks;
+                        this.state.sessions = parsed.sessions || 0;
+                    } catch(e) {}
+                }
+            },
+
+            saveToStorage() {
+                localStorage.setItem('novaflow_matrix_data', JSON.stringify({
+                    tasks: this.state.tasks,
+                    sessions: this.state.sessions
+                }));
+            },
+
+            toggleTimer() {
+                if (this.state.timerRunning) {
+                    clearInterval(this.state.timerInterval);
+                    this.state.timerRunning = false;
+                    document.getElementById('timerBtnText').innerText = 'Start';
+                } else {
+                    this.state.timerRunning = true;
+                    document.getElementById('timerBtnText').innerText = 'Pause';
+                    this.state.timerInterval = setInterval(() => {
+                        if (this.state.timerRemaining > 0) {
+                            this.state.timerRemaining--;
+                            this.renderTimer();
+                        } else {
+                            this.handleTimerComplete();
+                        }
+                    }, 1000);
+                }
+            },
+
+            handleTimerComplete() {
+                clearInterval(this.state.timerInterval);
+                this.state.timerRunning = false;
+                document.getElementById('timerBtnText').innerText = 'Start';
+                
+                if (this.state.mode === 'focus') {
+                    this.state.sessions++;
+                    alert('Focus Cycle Complete! Take a well-deserved rest.');
+                    this.switchMode();
+                } else {
+                    alert('Rest Cycle Complete! Ready for another focus run?');
+                    this.switchMode();
+                }
+                this.updateStats();
+                this.saveToStorage();
+            },
+
+            switchMode() {
+                if (this.state.timerRunning) this.toggleTimer();
+                if (this.state.mode === 'focus') {
+                    this.state.mode = 'break';
+                    this.state.timerDuration = 5 * 60;
+                    document.getElementById('modeIndicator').innerText = 'RECOVERY';
+                    document.getElementById('modeIndicator').className = 'text-xs font-mono bg-cyan-950/80 text-cyan-300 border border-cyan-700/50 px-2 py-0.5 rounded';
+                } else {
+                    this.state.mode = 'focus';
+                    this.state.timerDuration = 25 * 60;
+                    document.getElementById('modeIndicator').innerText = 'DEEP FOCUS';
+                    document.getElementById('modeIndicator').className = 'text-xs font-mono bg-indigo-950/80 text-indigo-300 border border-indigo-700/50 px-2 py-0.5 rounded';
+                }
+                this.state.timerRemaining = this.state.timerDuration;
+                this.renderTimer();
+            },
+
+            resetTimer() {
+                if (this.state.timerRunning) this.toggleTimer();
+                this.state.timerRemaining = this.state.timerDuration;
+                this.renderTimer();
+            },
+
+            renderTimer() {
+                const m = Math.floor(this.state.timerRemaining / 60).toString().padStart(2, '0');
+                const s = (this.state.timerRemaining % 60).toString().padStart(2, '0');
+                document.getElementById('timerDisplay').innerText = `${m}:${s}`;
+                const progress = ((this.state.timerDuration - this.state.timerRemaining) / this.state.timerDuration) * 100;
+                document.getElementById('timerProgressBar').style.width = `${progress}%`;
+            },
+
+            addTask() {
+                const input = document.getElementById('taskInput');
+                const quadrant = document.getElementById('taskQuadrant').value;
+                const text = input.value.trim();
+                if (!text) return;
+
+                this.state.tasks.push({
+                    id: Date.now(),
+                    text,
+                    quadrant,
+                    completed: false
+                });
+                input.value = '';
+                this.renderTasks();
+                this.updateStats();
+                this.saveToStorage();
+            },
+
+            toggleTask(id) {
+                const task = this.state.tasks.find(t => t.id === id);
+                if (task) {
+                    task.completed = !task.completed;
+                    this.renderTasks();
+                    this.updateStats();
+                    this.saveToStorage();
+                }
+            },
+
+            deleteTask(id) {
+                this.state.tasks = this.state.tasks.filter(t => t.id !== id);
+                this.renderTasks();
+                this.updateStats();
+                this.saveToStorage();
+            },
+
+            renderTasks() {
+                const quads = ['q1', 'q2', 'q3', 'q4'];
+                quads.forEach(q => {
+                    const list = document.getElementById(`${q}List`);
+                    const filtered = this.state.tasks.filter(t => t.quadrant === q);
+                    document.getElementById(`${q}Count`).innerText = filtered.length;
+                    
+                    list.innerHTML = filtered.map(t => `
+                        <div class="flex items-center justify-between p-2.5 rounded-lg bg-slate-950/40 border border-slate-800/80 text-xs hover:border-slate-700 transition-all group">
+                            <div class="flex items-center space-x-2.5 overflow-hidden pr-2 cursor-pointer" onclick="app.toggleTask(${t.id})">
+                                <div class="w-4 h-4 rounded border ${t.completed ? 'bg-indigo-600 border-indigo-500' : 'border-slate-700 bg-slate-900'} flex items-center justify-center flex-shrink-0">
+                                    ${t.completed ? '<i class="fa-solid fa-check text-[10px] text-white"></i>' : ''}
+                                </div>
+                                <span class="${t.completed ? 'line-through text-slate-500' : 'text-slate-200'} truncate">${t.text}</span>
+                            </div>
+                            <button onclick="app.deleteTask(${t.id})" class="text-slate-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity p-1">
+                                <i class="fa-regular fa-trash-can"></i>
+                            </button>
+                        </div>
+                    `).join('') || '<div class="text-xs text-slate-600 italic text-center py-6">No active directives</div>';
+                });
+            },
+
+            updateStats() {
+                const total = this.state.tasks.length;
+                const completed = this.state.tasks.filter(t => t.completed).length;
+                document.getElementById('tasksCompletedCount').innerText = completed;
+                document.getElementById('sessionsCompletedCount').innerText = this.state.sessions;
+                
+                const pct = total === 0 ? 0 : Math.round((completed / total) * 100);
+                document.getElementById('completionPercentage').innerText = `${pct}%`;
+                document.getElementById('completionBar').style.width = `${pct}%`;
+            },
+
+            toggleAudio() {
+                if (!this.state.audioContext) {
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    this.state.audioContext = new AudioCtx();
+                }
+
+                if (!this.state.audioPlaying) {
+                    this.state.audioContext.resume();
+                    this.state.oscillator = this.state.audioContext.createOscillator();
+                    this.state.gainNode = this.state.audioContext.createGain();
+                    
+                    const freq = document.getElementById('freqSlider').value;
+                    const vol = document.getElementById('volSlider').value / 100;
+
+                    this.state.oscillator.type = 'sine';
+                    this.state.oscillator.frequency.setValueAtTime(freq, this.state.audioContext.currentTime);
+                    this.state.gainNode.gain.setValueAtTime(vol * 0.15, this.state.audioContext.currentTime);
+
+                    this.state.oscillator.connect(this.state.gainNode);
+                    this.state.gainNode.connect(this.state.audioContext.destination);
+                    this.state.oscillator.start();
+                    
+                    this.state.audioPlaying = true;
+                    document.getElementById('soundToggleBtn').innerHTML = '<i class="fa-solid fa-volume-high text-cyan-400"></i> Active';
+                } else {
+                    if (this.state.oscillator) {
+                        this.state.oscillator.stop();
+                        this.state.oscillator.disconnect();
+                    }
+                    this.state.audioPlaying = false;
+                    document.getElementById('soundToggleBtn').innerHTML = '<i class="fa-solid fa-volume-xmark"></i> Muted';
+                }
+            },
+
+            updateAudioParams() {
+                const freq = document.getElementById('freqSlider').value;
+                const vol = document.getElementById('volSlider').value;
+                
+                document.getElementById('freqVal').innerText = `${freq} Hz`;
+                document.getElementById('volVal').innerText = `${vol}%`;
+
+                if (this.state.audioPlaying && this.state.oscillator && this.state.gainNode) {
+                    this.state.oscillator.frequency.setTargetAtTime(freq, this.state.audioContext.currentTime, 0.05);
+                    this.state.gainNode.gain.setTargetAtTime((vol / 100) * 0.15, this.state.audioContext.currentTime, 0.05);
+                }
+            },
+
+            copyUpi() {
+                const upi = 'donation1@postbank';
+                navigator.clipboard.writeText(upi).then(() => {
+                    const label = document.getElementById('copyBtnLabel');
+                    const icon = document.getElementById('copyIcon');
+                    label.innerText = 'Copied!';
+                    icon.className = 'fa-solid fa-check text-emerald-400';
+                    setTimeout(() => {
+                        label.innerText = 'Copy UPI ID';
+                        icon.className = 'fa-regular fa-copy';
+                    }, 2000);
+                });
+            },
+
+            exportState() {
+                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(this.state, null, 2));
+                const downloadAnchor = document.createElement('a');
+                downloadAnchor.setAttribute("href", dataStr);
+                downloadAnchor.setAttribute("download", "novaflow_matrix_backup.json");
+                document.body.appendChild(downloadAnchor);
+                downloadAnchor.click();
+                downloadAnchor.remove();
+            }
+        };
+
+        window.addEventListener('DOMContentLoaded', () => app.init());
+    </script>
+</body>
+</html>
