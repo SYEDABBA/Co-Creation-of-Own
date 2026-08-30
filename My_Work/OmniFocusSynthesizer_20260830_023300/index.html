@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OmniFocus Synthesizer</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: { 500: '#6366f1', 600: '#4f46e5', 700: '#4338ca' },
+            glass: 'rgba(15, 23, 42, 0.65)'
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background: radial-gradient(circle at 20% 20%, #1e1b4b 0%, #0f172a 50%, #030712 100%);
+      min-height: 100vh;
+      color: #f8fafc;
+    }
+    .glass-panel {
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .glass-input {
+      background: rgba(30, 41, 59, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+  </style>
+</head>
+<body class="p-4 md:p-8 flex flex-col justify-between selection:bg-brand-500 selection:text-white">
+  <div class="max-w-7xl mx-auto w-full space-y-8">
+    <!-- Header -->
+    <header class="flex flex-col md:flex-row justify-between items-center gap-4 pb-6 border-b border-slate-800">
+      <div class="flex items-center gap-3">
+        <div class="p-3 bg-brand-500/20 text-brand-400 rounded-2xl border border-brand-500/30 shadow-lg shadow-brand-500/10">
+          <i data-lucide="cpu" class="w-7 h-7"></i>
+        </div>
+        <div>
+          <h1 class="text-2xl font-bold tracking-tight bg-gradient-to-r from-white via-slate-200 to-brand-400 bg-clip-text text-transparent">
+            OmniFocus Synthesizer
+          </h1>
+          <p class="text-xs text-slate-400">Neural Flow State Orchestration Engine</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-3 text-xs bg-slate-900/80 px-4 py-2 rounded-full border border-slate-800">
+        <span class="flex h-2 w-2 relative">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+        </span>
+        <span id="status-indicator" class="text-slate-300 font-medium">Engine Standby</span>
+      </div>
+    </header>
+
+    <!-- Main Grid -->
+    <main class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <!-- Left Column: Audio Engine & Timer -->
+      <div class="lg:col-span-5 space-y-6">
+        <!-- Timer Module -->
+        <div class="glass-panel rounded-3xl p-6 shadow-2xl relative overflow-hidden">
+          <div class="flex justify-between items-center mb-6">
+            <h2 class="text-sm uppercase tracking-wider font-semibold text-slate-400 flex items-center gap-2">
+              <i data-lucide="timer" class="w-4 h-4 text-brand-400"></i> Flow Cycle
+            </h2>
+            <div class="flex gap-1 bg-slate-900/60 p-1 rounded-xl border border-slate-800 text-xs">
+              <button id="mode-focus" class="px-3 py-1 rounded-lg font-medium transition bg-brand-600 text-white">Focus</button>
+              <button id="mode-break" class="px-3 py-1 rounded-lg font-medium text-slate-400 hover:text-white transition">Break</button>
+            </div>
+          </div>
+
+          <div class="text-center py-6">
+            <div id="timer-display" class="text-6xl md:text-7xl font-mono font-bold tracking-tighter text-white drop-shadow-md">
+              25:00
+            </div>
+            <p id="cycle-count" class="text-xs text-slate-400 mt-2 font-mono">Cycle 1 / 4</p>
+          </div>
+
+          <div class="flex justify-center gap-4 mt-2">
+            <button id="btn-timer-toggle" class="px-6 py-3 bg-brand-600 hover:bg-brand-500 text-white rounded-xl font-medium transition flex items-center gap-2 shadow-lg shadow-brand-600/25 active:scale-95">
+              <i data-lucide="play" id="icon-timer-toggle" class="w-4 h-4"></i>
+              <span id="btn-timer-text">Start Session</span>
+            </button>
+            <button id="btn-timer-reset" class="p-3 bg-slate-800/80 hover:bg-slate-700 text-slate-300 rounded-xl transition border border-slate-700">
+              <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Ambient Synthesizer Module -->
+        <div class="glass-panel rounded-3xl p-6 shadow-2xl space-y-5">
+          <h2 class="text-sm uppercase tracking-wider font-semibold text-slate-400 flex items-center gap-2">
+            <i data-lucide="waveform" class="w-4 h-4 text-emerald-400"></i> Procedural Soundscape
+          </h2>
+          
+          <div class="space-y-4 text-sm">
+            <div>
+              <div class="flex justify-between mb-1.5">
+                <span class="text-slate-300 font-medium">Brownian Neural Noise</span>
+                <span id="val-brown" class="text-xs text-slate-400">0%</span>
+              </div>
+              <input type="range" id="vol-brown" min="0" max="1" step="0.01" value="0" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500" />
+            </div>
+
+            <div>
+              <div class="flex justify-between mb-1.5">
+                <span class="text-slate-300 font-medium">Alpha Wave (40Hz Binaural Pulse)</span>
+                <span id="val-binaural" class="text-xs text-slate-400">0%</span>
+              </div>
+              <input type="range" id="vol-binaural" min="0" max="1" step="0.01" value="0" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500" />
+            </div>
+          </div>
+          <p class="text-[11px] text-slate-400 italic">Pure WebAudio procedural generation. Zero external streaming buffers.</p>
+        </div>
+      </div>
+
+      <!-- Right Column: Priority Task Matrix -->
+      <div class="lg:col-span-7 space-y-6">
+        <div class="glass-panel rounded-3xl p-6 shadow-2xl space-y-5 h-full flex flex-col justify-between">
+          <div>
+            <div class="flex justify-between items-center mb-4">
+              <h2 class="text-sm uppercase tracking-wider font-semibold text-slate-400 flex items-center gap-2">
+                <i data-lucide="check-square" class="w-4 h-4 text-brand-400"></i> High-Focus Queue
+              </h2>
+              <span id="task-counter" class="text-xs bg-slate-800 px-3 py-1 rounded-full text-slate-400 font-mono">0 Active</span>
+            </div>
+
+            <!-- Add Task Bar -->
+            <form id="task-form" class="flex gap-2 mb-4">
+              <input type="text" id="task-input" placeholder="Define next high-leverage objective..." required class="flex-1 glass-input rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-500/50" />
+              <button type="submit" class="px-4 py-2.5 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-sm font-medium transition flex items-center gap-1.5">
+                <i data-lucide="plus" class="w-4 h-4"></i> Add
+              </button>
+            </form>
+
+            <!-- Tasks List -->
+            <div id="task-list" class="space-y-2 max-h-[340px] overflow-y-auto pr-1">
+              <div class="text-center py-10 text-slate-500 text-sm">
+                No objectives logged. Add an objective to prime focus.
+              </div>
+            </div>
+          </div>
+
+          <!-- Session Telemetry -->
+          <div class="grid grid-cols-3 gap-3 pt-4 border-t border-slate-800 text-center">
+            <div class="bg-slate-900/50 p-3 rounded-2xl border border-slate-800/80">
+              <p class="text-[11px] text-slate-400">Completed</p>
+              <p id="stat-completed" class="text-lg font-bold font-mono text-emerald-400">0</p>
+            </div>
+            <div class="bg-slate-900/50 p-3 rounded-2xl border border-slate-800/80">
+              <p class="text-[11px] text-slate-400">Focus Mins</p>
+              <p id="stat-minutes" class="text-lg font-bold font-mono text-indigo-400">0</p>
+            </div>
+            <div class="bg-slate-900/50 p-3 rounded-2xl border border-slate-800/80">
+              <p class="text-[11px] text-slate-400">Velocity Score</p>
+              <p id="stat-velocity" class="text-lg font-bold font-mono text-amber-400">100%</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Cause-Driven Charity Section -->
+    <footer class="mt-12">
+      <div class="glass-panel rounded-3xl p-6 md:p-8 border border-slate-800 shadow-2xl relative overflow-hidden bg-gradient-to-br from-slate-900/90 via-slate-900/60 to-indigo-950/40">
+        <div class="flex flex-col lg:flex-row items-center justify-between gap-6">
+          <div class="space-y-3 max-w-2xl text-center lg:text-left">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-semibold uppercase tracking-wider">
+              <i data-lucide="heart-handshake" class="w-3.5 h-3.5"></i> Cause &amp; Support Initiative
+            </div>
+            <h3 class="text-lg md:text-xl font-bold text-white tracking-tight">
+              Empowering Lives Through Health &amp; Education
+            </h3>
+            <p class="text-sm text-slate-300 leading-relaxed">
+              95% of all contributions go directly towards Cancer Patient Support &amp; School Education Initiatives (5% retained for server maintenance).
+            </p>
+            <div class="flex flex-wrap items-center justify-center lg:justify-start gap-4 text-xs text-slate-400 pt-1">
+              <span>Beneficiary: <strong class="text-slate-200">ASKAR ALI</strong></span>
+              <span class="hidden sm:inline">&bull;</span>
+              <span>UPI ID: <strong class="text-slate-200">donation1@postbank</strong></span>
+            </div>
+          </div>
+
+          <div class="flex flex-col sm:flex-row items-center gap-4 shrink-0 bg-slate-950/60 p-4 rounded-2xl border border-slate-800">
+            <img src="https://api.qrserver.com/v1/create-qr-code/?data=upi://pay?pa=donation1@postbank&amp;pn=YUGRAAL_Cause&amp;size=110x110" alt="UPI QR Code" class="w-24 h-24 rounded-xl border border-white/10 shadow" />
+            <div class="flex flex-col gap-2 w-full sm:w-auto text-center sm:text-left">
+              <button id="btn-copy-upi" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-medium transition flex items-center justify-center gap-2 shadow">
+                <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                <span id="copy-upi-text">Copy UPI ID</span>
+              </button>
+              <span class="text-[10px] text-slate-400 text-center">Instant UPI Verification</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    lucide.createIcons();
+
+    // Audio Synthesizer Context
+    let audioCtx = null;
+    let brownNoiseNode = null;
+    let brownGain = null;
+    let oscLeft = null;
+    let oscRight = null;
+    let binauralGain = null;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    function getBrownNoise() {
+      const bufferSize = 2 * audioCtx.sampleRate;
+      const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const output = noiseBuffer.getChannelData(0);
+      let lastOut = 0.0;
+      for (let i = 0; i < bufferSize; i++) {
+        const white = Math.random() * 2 - 1;
+        output[i] = (lastOut + (0.02 * white)) / 1.02;
+        lastOut = output[i];
+        output[i] *= 3.5;
+      }
+      const whiteNoise = audioCtx.createBufferSource();
+      whiteNoise.buffer = noiseBuffer;
+      whiteNoise.loop = true;
+      return whiteNoise;
+    }
+
+    const volBrown = document.getElementById('vol-brown');
+    const valBrown = document.getElementById('val-brown');
+    volBrown.addEventListener('input', (e) => {
+      initAudio();
+      const val = parseFloat(e.target.value);
+      valBrown.innerText = Math.round(val * 100) + '%';
+      if (!brownGain) {
+        brownGain = audioCtx.createGain();
+        brownGain.connect(audioCtx.destination);
+        brownNoiseNode = getBrownNoise();
+        brownNoiseNode.connect(brownGain);
+        brownNoiseNode.start();
+      }
+      brownGain.gain.setValueAtTime(val * 0.4, audioCtx.currentTime);
+    });
+
+    const volBinaural = document.getElementById('vol-binaural');
+    const valBinaural = document.getElementById('val-binaural');
+    volBinaural.addEventListener('input', (e) => {
+      initAudio();
+      const val = parseFloat(e.target.value);
+      valBinaural.innerText = Math.round(val * 100) + '%';
+      if (!binauralGain) {
+        binauralGain = audioCtx.createGain();
+        binauralGain.connect(audioCtx.destination);
+
+        const merger = audioCtx.createChannelMerger(2);
+        merger.connect(binauralGain);
+
+        oscLeft = audioCtx.createOscillator();
+        oscLeft.frequency.value = 210;
+        oscLeft.connect(merger, 0, 0);
+        oscLeft.start();
+
+        oscRight = audioCtx.createOscillator();
+        oscRight.frequency.value = 250;
+        oscRight.connect(merger, 0, 1);
+        oscRight.start();
+      }
+      binauralGain.gain.setValueAtTime(val * 0.15, audioCtx.currentTime);
+    });
+
+    // Timer Engine
+    let timerDuration = 25 * 60;
+    let timeLeft = timerDuration;
+    let timerInterval = null;
+    let isRunning = false;
+    let completedCycles = 0;
+    let totalFocusMins = 0;
+
+    const timerDisplay = document.getElementById('timer-display');
+    const btnTimerToggle = document.getElementById('btn-timer-toggle');
+    const btnTimerText = document.getElementById('btn-timer-text');
+    const iconTimerToggle = document.getElementById('icon-timer-toggle');
+    const btnTimerReset = document.getElementById('btn-timer-reset');
+    const statusIndicator = document.getElementById('status-indicator');
+    const modeFocus = document.getElementById('mode-focus');
+    const modeBreak = document.getElementById('mode-break');
+
+    function updateTimerView() {
+      const m = Math.floor(timeLeft / 60);
+      const s = timeLeft % 60;
+      timerDisplay.innerText = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    }
+
+    function toggleTimer() {
+      if (isRunning) {
+        clearInterval(timerInterval);
+        isRunning = false;
+        btnTimerText.innerText = 'Resume';
+        iconTimerToggle.setAttribute('data-lucide', 'play');
+        statusIndicator.innerText = 'Flow Paused';
+      } else {
+        initAudio();
+        isRunning = true;
+        btnTimerText.innerText = 'Pause';
+        iconTimerToggle.setAttribute('data-lucide', 'pause');
+        statusIndicator.innerText = 'Deep Flow Active';
+        timerInterval = setInterval(() => {
+          if (timeLeft > 0) {
+            timeLeft--;
+            updateTimerView();
+            if (timeLeft % 60 === 0 && modeFocus.classList.contains('bg-brand-600')) {
+              totalFocusMins++;
+              document.getElementById('stat-minutes').innerText = totalFocusMins;
+            }
+          } else {
+            clearInterval(timerInterval);
+            isRunning = false;
+            btnTimerText.innerText = 'Start Session';
+            iconTimerToggle.setAttribute('data-lucide', 'play');
+            completedCycles++;
+            document.getElementById('cycle-count').innerText = `Cycle ${completedCycles + 1} / 4`;
+            statusIndicator.innerText = 'Cycle Concluded';
+          }
+        }, 1000);
+      }
+      lucide.createIcons();
+    }
+
+    btnTimerToggle.addEventListener('click', toggleTimer);
+    btnTimerReset.addEventListener('click', () => {
+      clearInterval(timerInterval);
+      isRunning = false;
+      timeLeft = timerDuration;
+      updateTimerView();
+      btnTimerText.innerText = 'Start Session';
+      iconTimerToggle.setAttribute('data-lucide', 'play');
+      statusIndicator.innerText = 'Engine Standby';
+      lucide.createIcons();
+    });
+
+    modeFocus.addEventListener('click', () => {
+      modeFocus.className = 'px-3 py-1 rounded-lg font-medium transition bg-brand-600 text-white';
+      modeBreak.className = 'px-3 py-1 rounded-lg font-medium text-slate-400 hover:text-white transition';
+      timerDuration = 25 * 60;
+      timeLeft = timerDuration;
+      updateTimerView();
+    });
+
+    modeBreak.addEventListener('click', () => {
+      modeBreak.className = 'px-3 py-1 rounded-lg font-medium transition bg-brand-600 text-white';
+      modeFocus.className = 'px-3 py-1 rounded-lg font-medium text-slate-400 hover:text-white transition';
+      timerDuration = 5 * 60;
+      timeLeft = timerDuration;
+      updateTimerView();
+    });
+
+    // Task Engine
+    let tasks = [];
+    let completedTasks = 0;
+    const taskForm = document.getElementById('task-form');
+    const taskInput = document.getElementById('task-input');
+    const taskList = document.getElementById('task-list');
+    const taskCounter = document.getElementById('task-counter');
+    const statCompleted = document.getElementById('stat-completed');
+
+    function renderTasks() {
+      if (tasks.length === 0) {
+        taskList.innerHTML = '<div class="text-center py-10 text-slate-500 text-sm">No objectives logged. Add an objective to prime focus.</div>';
+      } else {
+        taskList.innerHTML = tasks.map((t, idx) => `
+          <div class="flex items-center justify-between p-3 rounded-xl bg-slate-900/60 border border-slate-800 text-sm">
+            <div class="flex items-center gap-3 flex-1">
+              <button onclick="toggleTask(${idx})" class="w-5 h-5 rounded-lg border flex items-center justify-center ${t.done ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400' : 'border-slate-700 hover:border-brand-500'}">
+                ${t.done ? '<i data-lucide="check" class="w-3.5 h-3.5"></i>' : ''}
+              </button>
+              <span class="${t.done ? 'line-through text-slate-500' : 'text-slate-200'}">${t.text}</span>
+            </div>
+            <button onclick="deleteTask(${idx})" class="text-slate-500 hover:text-rose-400 p-1">
+              <i data-lucide="trash-2" class="w-4 h-4"></i>
+            </button>
+          </div>
+        `).join('');
+      }
+      taskCounter.innerText = `${tasks.filter(t => !t.done).length} Active`;
+      statCompleted.innerText = completedTasks;
+      lucide.createIcons();
+    }
+
+    taskForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const val = taskInput.value.trim();
+      if (!val) return;
+      tasks.push({ text: val, done: false });
+      taskInput.value = '';
+      renderTasks();
+    });
+
+    window.toggleTask = function(idx) {
+      tasks[idx].done = !tasks[idx].done;
+      if (tasks[idx].done) completedTasks++; else completedTasks--;
+      renderTasks();
+    };
+
+    window.deleteTask = function(idx) {
+      if (tasks[idx].done) completedTasks--;
+      tasks.splice(idx, 1);
+      renderTasks();
+    };
+
+    // Copy UPI
+    const btnCopyUpi = document.getElementById('btn-copy-upi');
+    const copyUpiText = document.getElementById('copy-upi-text');
+    btnCopyUpi.addEventListener('click', () => {
+      navigator.clipboard.writeText('donation1@postbank').then(() => {
+        copyUpiText.innerText = 'Copied!';
+        setTimeout(() => {
+          copyUpiText.innerText = 'Copy UPI ID';
+        }, 2000);
+      });
+    });
+  </script>
+</body>
+</html>
