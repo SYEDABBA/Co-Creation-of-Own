@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ApexFocus // FlowEngine</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              400: '#818cf8',
+              500: '#6366f1',
+              600: '#4f46e5',
+              900: '#1e1b4b'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: radial-gradient(circle at 10% 20%, rgba(30, 27, 75, 0.7) 0%, rgba(15, 23, 42, 1) 90%);
+    }
+    .glass-card {
+      background: rgba(30, 41, 59, 0.65);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .glass-card:hover {
+      border-color: rgba(99, 102, 241, 0.3);
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.5);
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: rgba(99, 102, 241, 0.3);
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body class="min-h-screen text-slate-100 flex flex-col custom-scrollbar">
+
+  <!-- Top Navigation -->
+  <header class="border-b border-slate-800/80 bg-slate-950/60 sticky top-0 z-40 backdrop-blur-lg px-6 py-4 flex flex-wrap justify-between items-center gap-4">
+    <div class="flex items-center space-x-3">
+      <div class="h-10 w-10 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-400 flex items-center justify-center shadow-lg shadow-indigo-500/20 text-white font-black text-xl">
+        <i class="fa-solid fa-bolt-lightning"></i>
+      </div>
+      <div>
+        <h1 class="font-extrabold text-lg tracking-tight text-white flex items-center gap-2">
+          APEX<span class="text-brand-400 font-light">FOCUS</span>
+          <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 bg-brand-500/20 text-brand-400 rounded-full border border-brand-500/30">v2.4</span>
+        </h1>
+        <p class="text-xs text-slate-400">Cognitive Workspace & Ambient Engine</p>
+      </div>
+    </div>
+
+    <div class="flex items-center space-x-4">
+      <div id="ambientStatusBadge" class="hidden sm:flex items-center space-x-2 px-3 py-1.5 rounded-full bg-slate-800/80 border border-slate-700/60 text-xs text-slate-300">
+        <span class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span id="activeSoundText">Audio Synthesis Idle</span>
+      </div>
+      <button id="btnToggleAudioEngine" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition flex items-center gap-2">
+        <i class="fa-solid fa-headphones text-brand-400"></i> Ambient Audio
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Content Grid -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
+    
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      
+      <!-- Left Column: Flow Timer & Ambient Controls (4 cols) -->
+      <div class="lg:col-span-4 space-y-6">
+        
+        <!-- Flow Timer Widget -->
+        <div class="glass-card rounded-2xl p-6 shadow-xl relative overflow-hidden">
+          <div class="absolute -right-8 -top-8 w-28 h-28 bg-brand-500/10 rounded-full blur-2xl pointer-events-none"></div>
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-sm font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+              <i class="fa-regular fa-clock text-brand-400"></i> Flow Cycle
+            </h2>
+            <span id="timerModeLabel" class="text-xs px-2.5 py-0.5 rounded-full bg-indigo-950 text-indigo-300 border border-indigo-700/50">Focus (25m)</span>
+          </div>
+
+          <div class="text-center py-6">
+            <div id="timerDisplay" class="text-6xl font-black tracking-tighter text-white font-mono drop-shadow-md">25:00</div>
+            <p id="sessionCount" class="text-xs text-slate-400 mt-2">Completed Sessions: 0 / 4</p>
+          </div>
+
+          <div class="grid grid-cols-3 gap-2 mt-2">
+            <button id="btnStartTimer" class="col-span-2 py-3 bg-brand-600 hover:bg-brand-500 active:scale-95 text-white font-bold rounded-xl text-sm transition shadow-lg shadow-brand-600/30 flex items-center justify-center gap-2">
+              <i class="fa-solid fa-play text-xs"></i> <span id="timerBtnText">Start Session</span>
+            </button>
+            <button id="btnResetTimer" class="py-3 bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-300 font-semibold rounded-xl text-xs transition border border-slate-700 flex items-center justify-center gap-1.5">
+              <i class="fa-solid fa-rotate-left text-xs"></i> Reset
+            </button>
+          </div>
+
+          <div class="flex gap-2 mt-4 pt-4 border-t border-slate-800/80">
+            <button class="timer-preset flex-1 py-1.5 text-xs rounded-lg bg-slate-800/60 hover:bg-slate-700 text-slate-300 border border-slate-700/50 transition" data-mins="25" data-mode="Focus">25m Focus</button>
+            <button class="timer-preset flex-1 py-1.5 text-xs rounded-lg bg-slate-800/60 hover:bg-slate-700 text-slate-300 border border-slate-700/50 transition" data-mins="5" data-mode="Short Rest">5m Rest</button>
+            <button class="timer-preset flex-1 py-1.5 text-xs rounded-lg bg-slate-800/60 hover:bg-slate-700 text-slate-300 border border-slate-700/50 transition" data-mins="15" data-mode="Deep Rest">15m Rest</button>
+          </div>
+        </div>
+
+        <!-- Ambient Synthesizer Deck -->
+        <div class="glass-card rounded-2xl p-6 shadow-xl space-y-4">
+          <div class="flex justify-between items-center">
+            <h2 class="text-sm font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+              <i class="fa-solid fa-sliders text-brand-400"></i> Generative Audio
+            </h2>
+            <span class="text-[11px] text-brand-400 font-mono">WebAudio API</span>
+          </div>
+
+          <!-- Sound Channels -->
+          <div class="space-y-3">
+            <!-- White Noise / Rain Tone -->
+            <div class="p-3 rounded-xl bg-slate-900/60 border border-slate-800/80 space-y-2">
+              <div class="flex justify-between items-center text-xs font-medium">
+                <span class="flex items-center gap-2 text-slate-200"><i class="fa-solid fa-cloud-rain text-cyan-400"></i> Deep Rainfall</span>
+                <span id="valRain" class="text-slate-400 font-mono">0%</span>
+              </div>
+              <input type="range" id="sliderRain" min="0" max="100" value="0" class="w-full accent-indigo-500 cursor-pointer bg-slate-800 h-1.5 rounded-lg">
+            </div>
+
+            <!-- Brown Noise Tone -->
+            <div class="p-3 rounded-xl bg-slate-900/60 border border-slate-800/80 space-y-2">
+              <div class="flex justify-between items-center text-xs font-medium">
+                <span class="flex items-center gap-2 text-slate-200"><i class="fa-solid fa-water text-indigo-400"></i> Brown Noise (Flow)</span>
+                <span id="valBrown" class="text-slate-400 font-mono">0%</span>
+              </div>
+              <input type="range" id="sliderBrown" min="0" max="100" value="0" class="w-full accent-indigo-500 cursor-pointer bg-slate-800 h-1.5 rounded-lg">
+            </div>
+
+            <!-- Binaural 40Hz Tone -->
+            <div class="p-3 rounded-xl bg-slate-900/60 border border-slate-800/80 space-y-2">
+              <div class="flex justify-between items-center text-xs font-medium">
+                <span class="flex items-center gap-2 text-slate-200"><i class="fa-solid fa-brain text-purple-400"></i> 40Hz Gamma Focus</span>
+                <span id="valBinaural" class="text-slate-400 font-mono">0%</span>
+              </div>
+              <input type="range" id="sliderBinaural" min="0" max="100" value="0" class="w-full accent-indigo-500 cursor-pointer bg-slate-800 h-1.5 rounded-lg">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Priority Matrix & Instant Scratchpad (8 cols) -->
+      <div class="lg:col-span-8 space-y-6">
+        
+        <!-- Eisenhower Priority Matrix -->
+        <div class="glass-card rounded-2xl p-6 shadow-xl space-y-5">
+          <div class="flex flex-wrap justify-between items-center gap-3">
+            <div>
+              <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-layer-group text-brand-400"></i> Eisenhower Matrix
+              </h2>
+              <p class="text-xs text-slate-400">Categorize execution based on urgency and strategic value</p>
+            </div>
+            
+            <!-- Add Task Form Modal/Inline Trigger -->
+            <div class="flex items-center gap-2 w-full sm:w-auto">
+              <input type="text" id="taskInput" placeholder="Type task & press Add..." class="bg-slate-900/90 border border-slate-700/80 rounded-xl px-3.5 py-2 text-xs text-slate-200 focus:outline-none focus:border-brand-500 w-full sm:w-64 placeholder:text-slate-500">
+              <select id="taskQuadrant" class="bg-slate-900/90 border border-slate-700/80 rounded-xl px-2.5 py-2 text-xs text-slate-200 focus:outline-none focus:border-brand-500">
+                <option value="q1">Do First</option>
+                <option value="q2">Schedule</option>
+                <option value="q3">Delegate</option>
+                <option value="q4">Eliminate</option>
+              </select>
+              <button id="btnAddTask" class="px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-md shadow-brand-600/30 shrink-0">
+                <i class="fa-solid fa-plus"></i> Add
+              </button>
+            </div>
+          </div>
+
+          <!-- Matrix 4 Quadrants -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            
+            <!-- Q1: Urgent & Important -->
+            <div class="p-4 rounded-xl bg-slate-900/70 border border-rose-500/20 flex flex-col h-56">
+              <div class="flex justify-between items-center mb-2">
+                <span class="text-xs font-bold text-rose-400 uppercase tracking-wider flex items-center gap-1.5">
+                  <span class="h-2 w-2 rounded-full bg-rose-500"></span> Urgent & Important (Do First)
+                </span>
+                <span id="countQ1" class="text-[10px] font-mono bg-rose-500/10 text-rose-300 px-2 py-0.5 rounded-full border border-rose-500/20">0</span>
+              </div>
+              <div id="listQ1" class="flex-1 overflow-y-auto space-y-2 pr-1 custom-scrollbar text-xs">
+                <!-- Rendered dynamically -->
+              </div>
+            </div>
+
+            <!-- Q2: Not Urgent but Important -->
+            <div class="p-4 rounded-xl bg-slate-900/70 border border-indigo-500/20 flex flex-col h-56">
+              <div class="flex justify-between items-center mb-2">
+                <span class="text-xs font-bold text-indigo-400 uppercase tracking-wider flex items-center gap-1.5">
+                  <span class="h-2 w-2 rounded-full bg-indigo-500"></span> Strategic & Growth (Schedule)
+                </span>
+                <span id="countQ2" class="text-[10px] font-mono bg-indigo-500/10 text-indigo-300 px-2 py-0.5 rounded-full border border-indigo-500/20">0</span>
+              </div>
+              <div id="listQ2" class="flex-1 overflow-y-auto space-y-2 pr-1 custom-scrollbar text-xs">
+                <!-- Rendered dynamically -->
+              </div>
+            </div>
+
+            <!-- Q3: Urgent but Not Important -->
+            <div class="p-4 rounded-xl bg-slate-900/70 border border-amber-500/20 flex flex-col h-56">
+              <div class="flex justify-between items-center mb-2">
+                <span class="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
+                  <span class="h-2 w-2 rounded-full bg-amber-500"></span> Interruptions (Delegate)
+                </span>
+                <span id="countQ3" class="text-[10px] font-mono bg-amber-500/10 text-amber-300 px-2 py-0.5 rounded-full border border-amber-500/20">0</span>
+              </div>
+              <div id="listQ3" class="flex-1 overflow-y-auto space-y-2 pr-1 custom-scrollbar text-xs">
+                <!-- Rendered dynamically -->
+              </div>
+            </div>
+
+            <!-- Q4: Not Urgent & Not Important -->
+            <div class="p-4 rounded-xl bg-slate-900/70 border border-slate-700/40 flex flex-col h-56">
+              <div class="flex justify-between items-center mb-2">
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                  <span class="h-2 w-2 rounded-full bg-slate-500"></span> Distractions (Eliminate)
+                </span>
+                <span id="countQ4" class="text-[10px] font-mono bg-slate-700 text-slate-300 px-2 py-0.5 rounded-full">0</span>
+              </div>
+              <div id="listQ4" class="flex-1 overflow-y-auto space-y-2 pr-1 custom-scrollbar text-xs">
+                <!-- Rendered dynamically -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Neural Scratchpad -->
+        <div class="glass-card rounded-2xl p-6 shadow-xl space-y-3">
+          <div class="flex justify-between items-center">
+            <h2 class="text-sm font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+              <i class="fa-solid fa-pen-nib text-brand-400"></i> Deep Focus Scratchpad
+            </h2>
+            <span id="saveStatus" class="text-[11px] text-slate-500 flex items-center gap-1.5"><i class="fa-solid fa-cloud text-[10px]"></i> Synced locally</span>
+          </div>
+          <textarea id="scratchpad" rows="4" placeholder="Dump thoughts, code snippets, or mental clarity notes here..." class="w-full bg-slate-900/80 border border-slate-800 rounded-xl p-3 text-xs text-slate-200 placeholder:text-slate-600 focus:outline-none focus:border-brand-500 resize-none font-mono custom-scrollbar"></textarea>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- CAUSE-DRIVEN CHARITY / DONATION SECTION -->
+    <section class="glass-card rounded-3xl p-6 sm:p-8 border border-indigo-500/20 relative overflow-hidden mt-12 bg-gradient-to-br from-slate-900/90 via-indigo-950/20 to-slate-900/90 shadow-2xl">
+      <div class="absolute top-0 right-0 w-96 h-96 bg-brand-500/10 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20"></div>
+      
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
+        
+        <div class="lg:col-span-8 space-y-4">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-semibold">
+            <i class="fa-solid fa-heart-pulse animate-pulse"></i> Direct Impact Mission
+          </div>
+          
+          <h3 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight leading-snug">
+            Empowering Recovery & Educating the Next Generation
+          </h3>
+          
+          <p class="text-slate-300 text-sm leading-relaxed max-w-2xl">
+            <span class="font-bold text-amber-300 underline underline-offset-4 decoration-amber-400/40">95% of all contributions go directly towards Cancer Patient Support & School Education Initiatives</span> (5% retained for server maintenance). Your direct contribution creates real-world medical access and educational supplies for underprivileged students.
+          </p>
+
+          <!-- Receiver Badges -->
+          <div class="pt-2 flex flex-wrap items-center gap-4 text-xs text-slate-300">
+            <div class="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-950/60 border border-slate-800">
+              <i class="fa-solid fa-user-shield text-emerald-400"></i>
+              <span>Verified Beneficiary: <strong class="text-white">ASKAR ALI</strong></span>
+            </div>
+            
+            <div class="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-950/60 border border-slate-800 font-mono">
+              <i class="fa-solid fa-receipt text-brand-400"></i>
+              <span>UPI: <strong class="text-brand-300">donation1@postbank</strong></span>
+              <button id="btnCopyUpi" title="Copy UPI ID" class="ml-2 text-slate-400 hover:text-white bg-slate-800 px-2.5 py-1 rounded-lg border border-slate-700 transition flex items-center gap-1 active:scale-95">
+                <i class="fa-regular fa-copy text-xs"></i> <span id="copyBtnText">Copy</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- QR Code Card -->
+        <div class="lg:col-span-4 flex flex-col items-center justify-center p-6 rounded-2xl bg-slate-950/80 border border-slate-800 shadow-inner text-center">
+          <p class="text-xs font-semibold text-slate-400 mb-3 flex items-center gap-1.5">
+            <i class="fa-solid fa-qrcode text-brand-400"></i> Scan with any UPI / Banking App
+          </p>
+          
+          <div class="p-3 bg-white rounded-2xl shadow-xl border border-white/20">
+            <img src="https://api.qrserver.com/v1/create-qr-code/?data=upi://pay?pa=donation1@postbank&pn=YUGRAAL_Cause" alt="Donation QR Code" class="w-36 h-36 object-contain rounded-lg" loading="lazy">
+          </div>
+          
+          <p class="text-[11px] text-slate-500 mt-3 font-mono">Scan & Support Transparent Initiatives</p>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-slate-800/80 py-6 px-6 text-center text-xs text-slate-500 bg-slate-950/50 mt-10">
+    <p>ApexFocus Engine &bull; Designed for Cognitive Peak Performance & Humanitarian Impact.</p>
+  </footer>
+
+  <!-- Integrated Modular Logic -->
+  <script>
+    // ====================================
+    // 1. FLOW TIMER ENGINE
+    // ====================================
+    let timerDuration = 25 * 60;
+    let timeRemaining = 25 * 60;
+    let timerInterval = null;
+    let isRunning = false;
+    let completedSessions = 0;
+
+    const timerDisplay = document.getElementById('timerDisplay');
+    const btnStartTimer = document.getElementById('btnStartTimer');
+    const timerBtnText = document.getElementById('timerBtnText');
+    const btnResetTimer = document.getElementById('btnResetTimer');
+    const timerModeLabel = document.getElementById('timerModeLabel');
+    const sessionCount = document.getElementById('sessionCount');
+    const presetButtons = document.querySelectorAll('.timer-preset');
+
+    function updateTimerDisplay() {
+      const mins = Math.floor(timeRemaining / 60).toString().padStart(2, '0');
+      const secs = (timeRemaining % 60).toString().padStart(2, '0');
+      timerDisplay.textContent = `${mins}:${secs}`;
+    }
+
+    function toggleTimer() {
+      if (isRunning) {
+        clearInterval(timerInterval);
+        isRunning = false;
+        timerBtnText.textContent = 'Resume';
+      } else {
+        isRunning = true;
+        timerBtnText.textContent = 'Pause';
+        timerInterval = setInterval(() => {
+          if (timeRemaining > 0) {
+            timeRemaining--;
+            updateTimerDisplay();
+          } else {
+            clearInterval(timerInterval);
+            isRunning = false;
+            timerBtnText.textContent = 'Start Session';
+            completedSessions++;
+            sessionCount.textContent = `Completed Sessions: ${completedSessions} / 4`;
+            alert('Timer cycle finished! Take a moment to breathe.');
+            timeRemaining = timerDuration;
+            updateTimerDisplay();
+          }
+        }, 1000);
+      }
+    }
+
+    function resetTimer() {
+      clearInterval(timerInterval);
+      isRunning = false;
+      timeRemaining = timerDuration;
+      timerBtnText.textContent = 'Start Session';
+      updateTimerDisplay();
+    }
+
+    btnStartTimer.addEventListener('click', toggleTimer);
+    btnResetTimer.addEventListener('click', resetTimer);
+
+    presetButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        presetButtons.forEach(b => b.classList.remove('bg-indigo-600', 'text-white'));
+        btn.classList.add('bg-indigo-600', 'text-white');
+        const mins = parseInt(btn.getAttribute('data-mins'), 10);
+        const mode = btn.getAttribute('data-mode');
+        timerDuration = mins * 60;
+        timeRemaining = timerDuration;
+        timerModeLabel.textContent = `${mode} (${mins}m)`;
+        resetTimer();
+      });
+    });
+
+    // ====================================
+    // 2. WEB AUDIO AMBIENT SYNTHESIZER
+    // ====================================
+    let audioCtx = null;
+    let rainNode = null, rainGain = null;
+    let brownNoiseNode = null, brownGain = null;
+    let oscLeft = null, oscRight = null, binauralGain = null;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    // White Noise (Rain)
+    function setupRain() {
+      const bufferSize = audioCtx.sampleRate * 2;
+      const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const output = noiseBuffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        output[i] = Math.random() * 2 - 1;
+      }
+      const whiteNoise = audioCtx.createBufferSource();
+      whiteNoise.buffer = noiseBuffer;
+      whiteNoise.loop = true;
+
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.value = 1000;
+
+      rainGain = audioCtx.createGain();
+      rainGain.gain.value = 0;
+
+      whiteNoise.connect(filter);
+      filter.connect(rainGain);
+      rainGain.connect(audioCtx.destination);
+      whiteNoise.start();
+      rainNode = whiteNoise;
+    }
+
+    // Brown Noise
+    function setupBrownNoise() {
+      const bufferSize = audioCtx.sampleRate * 2;
+      const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const output = noiseBuffer.getChannelData(0);
+      let lastOut = 0.0;
+      for (let i = 0; i < bufferSize; i++) {
+        const white = Math.random() * 2 - 1;
+        output[i] = (lastOut + (0.02 * white)) / 1.02;
+        lastOut = output[i];
+        output[i] *= 3.5; 
+      }
+      const brownSource = audioCtx.createBufferSource();
+      brownSource.buffer = noiseBuffer;
+      brownSource.loop = true;
+
+      brownGain = audioCtx.createGain();
+      brownGain.gain.value = 0;
+
+      brownSource.connect(brownGain);
+      brownGain.connect(audioCtx.destination);
+      brownSource.start();
+      brownNoiseNode = brownSource;
+    }
+
+    // Binaural 40Hz Gamma Focus (200Hz Left, 240Hz Right)
+    function setupBinaural() {
+      const merger = audioCtx.createChannelMerger(2);
+      oscLeft = audioCtx.createOscillator();
+      oscRight = audioCtx.createOscillator();
+
+      oscLeft.frequency.value = 200;
+      oscRight.frequency.value = 240;
+
+      oscLeft.connect(merger, 0, 0);
+      oscRight.connect(merger, 0, 1);
+
+      binauralGain = audioCtx.createGain();
+      binauralGain.gain.value = 0;
+
+      merger.connect(binauralGain);
+      binauralGain.connect(audioCtx.destination);
+
+      oscLeft.start();
+      oscRight.start();
+    }
+
+    function ensureAudioNodes() {
+      initAudio();
+      if (!rainGain) setupRain();
+      if (!brownGain) setupBrownNoise();
+      if (!binauralGain) setupBinaural();
+    }
+
+    const sliderRain = document.getElementById('sliderRain');
+    const sliderBrown = document.getElementById('sliderBrown');
+    const sliderBinaural = document.getElementById('sliderBinaural');
+    const activeSoundText = document.getElementById('activeSoundText');
+
+    function updateAudioStatus() {
+      const r = parseInt(sliderRain.value, 10);
+      const b = parseInt(sliderBrown.value, 10);
+      const bin = parseInt(sliderBinaural.value, 10);
+      if (r > 0 || b > 0 || bin > 0) {
+        activeSoundText.textContent = 'Synthesizer Active';
+      } else {
+        activeSoundText.textContent = 'Audio Synthesis Idle';
+      }
+    }
+
+    sliderRain.addEventListener('input', (e) => {
+      ensureAudioNodes();
+      const val = e.target.value / 100;
+      document.getElementById('valRain').textContent = `${e.target.value}%`;
+      rainGain.gain.setValueAtTime(val * 0.4, audioCtx.currentTime);
+      updateAudioStatus();
+    });
+
+    sliderBrown.addEventListener('input', (e) => {
+      ensureAudioNodes();
+      const val = e.target.value / 100;
+      document.getElementById('valBrown').textContent = `${e.target.value}%`;
+      brownGain.gain.setValueAtTime(val * 0.35, audioCtx.currentTime);
+      updateAudioStatus();
+    });
+
+    sliderBinaural.addEventListener('input', (e) => {
+      ensureAudioNodes();
+      const val = e.target.value / 100;
+      document.getElementById('valBinaural').textContent = `${e.target.value}%`;
+      binauralGain.gain.setValueAtTime(val * 0.15, audioCtx.currentTime);
+      updateAudioStatus();
+    });
+
+    document.getElementById('btnToggleAudioEngine').addEventListener('click', () => {
+      ensureAudioNodes();
+      alert('Ambient Audio Engine initialized. Adjust the channel sliders to blend custom focus frequencies.');
+    });
+
+    // ====================================
+    // 3. EISENHOWER TASK MATRIX LOGIC
+    // ====================================
+    let tasks = JSON.parse(localStorage.getItem('apexfocus_tasks')) || [
+      { id: 1, text: 'Deploy production cloud cluster', quadrant: 'q1' },
+      { id: 2, text: 'Review quarterly architecture roadmap', quadrant: 'q2' },
+      { id: 3, text: 'Filter non-critical vendor emails', quadrant: 'q3' },
+      { id: 4, text: 'Browse passive social feeds', quadrant: 'q4' }
+    ];
+
+    function saveAndRenderTasks() {
+      localStorage.setItem('apexfocus_tasks', JSON.stringify(tasks));
+      ['q1', 'q2', 'q3', 'q4'].forEach(q => {
+        const container = document.getElementById(`list${q.toUpperCase()}`);
+        const badge = document.getElementById(`count${q.toUpperCase()}`);
+        const filtered = tasks.filter(t => t.quadrant === q);
+        badge.textContent = filtered.length;
+        
+        container.innerHTML = filtered.length === 0 
+          ? '<p class="text-slate-600 text-xs italic py-2">No tasks queued.</p>'
+          : filtered.map(t => `
+            <div class="flex justify-between items-center p-2 rounded-lg bg-slate-800/80 border border-slate-700/50 group hover:border-slate-600 transition">
+              <span class="text-slate-200 truncate pr-2">${escapeHtml(t.text)}</span>
+              <button onclick="deleteTask(${t.id})" class="text-slate-500 hover:text-rose-400 opacity-80 group-hover:opacity-100 transition">
+                <i class="fa-solid fa-trash-can text-xs"></i>
+              </button>
+            </div>
+          `).join('');
+      });
+    }
+
+    function escapeHtml(string) {
+      const div = document.createElement('div');
+      div.innerText = string;
+      return div.innerHTML;
+    }
+
+    function deleteTask(id) {
+      tasks = tasks.filter(t => t.id !== id);
+      saveAndRenderTasks();
+    }
+
+    document.getElementById('btnAddTask').addEventListener('click', () => {
+      const input = document.getElementById('taskInput');
+      const quad = document.getElementById('taskQuadrant').value;
+      if (!input.value.trim()) return;
+      
+      tasks.push({
+        id: Date.now(),
+        text: input.value.trim(),
+        quadrant: quad
+      });
+      input.value = '';
+      saveAndRenderTasks();
+    });
+
+    // ====================================
+    // 4. PERSISTENT SCRATCHPAD
+    // ====================================
+    const scratchpad = document.getElementById('scratchpad');
+    scratchpad.value = localStorage.getItem('apexfocus_scratchpad') || '';
+    scratchpad.addEventListener('input', (e) => {
+      localStorage.setItem('apexfocus_scratchpad', e.target.value);
+    });
+
+    // ====================================
+    // 5. UPI COPY INTERACTION
+    // ====================================
+    document.getElementById('btnCopyUpi').addEventListener('click', () => {
+      navigator.clipboard.writeText('donation1@postbank').then(() => {
+        const copyBtnText = document.getElementById('copyBtnText');
+        copyBtnText.textContent = 'Copied!';
+        setTimeout(() => {
+          copyBtnText.textContent = 'Copy';
+        }, 2000);
+      });
+    });
+
+    // Initial Render
+    saveAndRenderTasks();
+    updateTimerDisplay();
+  </script>
+</body>
+</html>
