@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AetherFlow - Ambient Soundscape & Focus Workspace</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: { 500: '#6366f1', 600: '#4f46e5', 700: '#4338ca' }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background: radial-gradient(circle at 50% 20%, #1e1b4b, #0f172a 70%, #020617);
+      font-family: system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+    }
+    .glass {
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .glass-card {
+      background: rgba(30, 41, 59, 0.45);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    input[type="range"] {
+      accent-color: #818cf8;
+    }
+  </style>
+</head>
+<body class="text-slate-100 flex flex-col min-h-screen antialiased selection:bg-indigo-500 selection:text-white">
+
+  <!-- Navigation -->
+  <header class="glass sticky top-0 z-50 border-b border-slate-800/80 px-6 py-4 flex items-center justify-between">
+    <div class="flex items-center space-x-3">
+      <div class="h-10 w-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+        <i class="fa-solid fa-wave-square text-white text-lg"></i>
+      </div>
+      <div>
+        <h1 class="text-lg font-bold tracking-wider bg-gradient-to-r from-indigo-300 via-purple-200 to-pink-300 bg-clip-text text-transparent">AETHERFLOW</h1>
+        <p class="text-xs text-slate-400">Neural Flow & Ambient Engine</p>
+      </div>
+    </div>
+    <div class="flex items-center space-x-4">
+      <button id="master-play" class="flex items-center space-x-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium transition shadow-lg shadow-indigo-600/30 active:scale-95">
+        <i id="master-icon" class="fa-solid fa-play text-sm"></i>
+        <span id="master-text">Start Session</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Workspace -->
+  <main class="flex-1 max-w-7xl mx-auto w-full p-4 sm:p-6 lg:p-8 space-y-8">
+    <!-- Visualizer Canvas & Flow Timer Banner -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div class="lg:col-span-2 glass rounded-2xl p-6 relative overflow-hidden shadow-2xl flex flex-col justify-between">
+        <div class="flex justify-between items-center z-10">
+          <div>
+            <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">Audio Reactive</span>
+            <h2 class="text-xl font-bold mt-2 text-slate-100">Atmospheric Resonator</h2>
+          </div>
+          <div class="text-xs text-slate-400 bg-slate-800/60 px-3 py-1.5 rounded-lg border border-slate-700/50 flex items-center space-x-2">
+            <span class="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span id="audio-status">Web Audio Ready</span>
+          </div>
+        </div>
+        
+        <div class="my-6 h-48 w-full relative flex items-center justify-center">
+          <canvas id="visualizer" class="w-full h-full rounded-xl bg-slate-950/60 border border-slate-800/60"></canvas>
+        </div>
+
+        <div class="flex flex-wrap items-center justify-between gap-4 text-xs text-slate-400 z-10">
+          <span>Preset: <strong id="active-preset" class="text-indigo-300">Deep Alpha Focus (10Hz)</strong></span>
+          <div class="flex space-x-2">
+            <button class="preset-btn px-3 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-200 transition" data-preset="focus">Alpha Focus</button>
+            <button class="preset-btn px-3 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-200 transition" data-preset="rain">Night Rain</button>
+            <button class="preset-btn px-3 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-200 transition" data-preset="theta">Theta Zen</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Productivity & Timer Card -->
+      <div class="glass rounded-2xl p-6 flex flex-col justify-between space-y-6 shadow-2xl">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+          <h3 class="text-base font-semibold text-slate-200 flex items-center gap-2">
+            <i class="fa-regular fa-clock text-indigo-400"></i> Deep Work Timer
+          </h3>
+          <span id="timer-mode" class="text-xs uppercase tracking-wider text-slate-400 font-semibold">Focus</span>
+        </div>
+
+        <div class="text-center py-4">
+          <div id="timer-display" class="text-5xl font-extrabold tracking-tight text-slate-100 font-mono">25:00</div>
+          <p class="text-xs text-slate-400 mt-2">Maintain cadence to maximize neuroplasticity</p>
+        </div>
+
+        <div class="flex items-center justify-center gap-3">
+          <button id="timer-toggle" class="w-full py-2.5 rounded-xl bg-indigo-600/90 hover:bg-indigo-600 text-white font-medium text-sm transition">
+            Start Timer
+          </button>
+          <button id="timer-reset" class="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition">
+            <i class="fa-solid fa-rotate-right text-sm"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sound Synthesizer Mixers Grid -->
+    <section class="space-y-4">
+      <div class="flex items-center justify-between">
+        <h3 class="text-lg font-bold text-slate-200 flex items-center gap-2">
+          <i class="fa-solid fa-sliders text-indigo-400"></i> Multi-Track Atmospheric Matrix
+        </h3>
+        <span class="text-xs text-slate-400">Adjust sliders to blend layers in real-time</span>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <!-- Track 1: Binaural Beat -->
+        <div class="glass-card p-5 rounded-2xl flex flex-col justify-between space-y-4 hover:border-slate-700 transition">
+          <div class="flex justify-between items-start">
+            <div class="flex items-center space-x-3">
+              <div class="p-2.5 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                <i class="fa-solid fa-brain"></i>
+              </div>
+              <div>
+                <h4 class="font-medium text-sm text-slate-200">Binaural Sine</h4>
+                <span class="text-xs text-slate-400">Carrier: 216Hz</span>
+              </div>
+            </div>
+          </div>
+          <div class="space-y-2">
+            <div class="flex justify-between text-xs text-slate-400">
+              <span>Volume</span>
+              <span id="vol-binaural-val">40%</span>
+            </div>
+            <input id="vol-binaural" type="range" min="0" max="100" value="40" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+          </div>
+        </div>
+
+        <!-- Track 2: Pink Noise / Rain Simulator -->
+        <div class="glass-card p-5 rounded-2xl flex flex-col justify-between space-y-4 hover:border-slate-700 transition">
+          <div class="flex justify-between items-start">
+            <div class="flex items-center space-x-3">
+              <div class="p-2.5 rounded-xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+                <i class="fa-solid fa-cloud-rain"></i>
+              </div>
+              <div>
+                <h4 class="font-medium text-sm text-slate-200">Rainfall Texture</h4>
+                <span class="text-xs text-slate-400">Stochastic Noise</span>
+              </div>
+            </div>
+          </div>
+          <div class="space-y-2">
+            <div class="flex justify-between text-xs text-slate-400">
+              <span>Volume</span>
+              <span id="vol-rain-val">30%</span>
+            </div>
+            <input id="vol-rain" type="range" min="0" max="100" value="30" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+          </div>
+        </div>
+
+        <!-- Track 3: Warm Pad Drone -->
+        <div class="glass-card p-5 rounded-2xl flex flex-col justify-between space-y-4 hover:border-slate-700 transition">
+          <div class="flex justify-between items-start">
+            <div class="flex items-center space-x-3">
+              <div class="p-2.5 rounded-xl bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                <i class="fa-solid fa-compact-disc"></i>
+              </div>
+              <div>
+                <h4 class="font-medium text-sm text-slate-200">Cosmic Drone</h4>
+                <span class="text-xs text-slate-400">Harmonic 432Hz</span>
+              </div>
+            </div>
+          </div>
+          <div class="space-y-2">
+            <div class="flex justify-between text-xs text-slate-400">
+              <span>Volume</span>
+              <span id="vol-drone-val">25%</span>
+            </div>
+            <input id="vol-drone" type="range" min="0" max="100" value="25" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+          </div>
+        </div>
+
+        <!-- Track 4: Brown Noise (Deep Calming) -->
+        <div class="glass-card p-5 rounded-2xl flex flex-col justify-between space-y-4 hover:border-slate-700 transition">
+          <div class="flex justify-between items-start">
+            <div class="flex items-center space-x-3">
+              <div class="p-2.5 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                <i class="fa-solid fa-wind"></i>
+              </div>
+              <div>
+                <h4 class="font-medium text-sm text-slate-200">Brownian Noise</h4>
+                <span class="text-xs text-slate-400">Low End Rumble</span>
+              </div>
+            </div>
+          </div>
+          <div class="space-y-2">
+            <div class="flex justify-between text-xs text-slate-400">
+              <span>Volume</span>
+              <span id="vol-brown-val">20%</span>
+            </div>
+            <input id="vol-brown" type="range" min="0" max="100" value="20" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Cause-Driven Charity & Support Section -->
+  <footer class="mt-12 border-t border-slate-800/80 bg-slate-950/80 pt-10 pb-12 px-4 sm:px-6">
+    <div class="max-w-4xl mx-auto glass rounded-3xl p-6 sm:p-8 border border-indigo-500/20 shadow-2xl relative overflow-hidden">
+      <div class="absolute -right-12 -top-12 w-44 h-44 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      
+      <div class="flex flex-col md:flex-row items-center gap-8">
+        <!-- QR Code Display -->
+        <div class="flex-shrink-0 flex flex-col items-center bg-slate-900/90 p-4 rounded-2xl border border-slate-700/60 shadow-inner">
+          <img 
+            src="https://api.qrserver.com/v1/create-qr-code/?data=upi://pay?pa=donation1@postbank&pn=YUGRAAL_Cause&size=160x160" 
+            alt="Direct Donation UPI QR Code"
+            class="w-36 h-36 rounded-xl bg-white p-2"
+            loading="lazy"
+          />
+          <span class="text-[11px] text-indigo-300 font-mono mt-2.5 font-semibold">Scan via any UPI App</span>
+        </div>
+
+        <!-- Details & Mission -->
+        <div class="flex-1 text-center md:text-left space-y-3">
+          <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs font-medium">
+            <i class="fa-solid fa-hand-holding-heart text-rose-400"></i>
+            <span>Humanitarian Cause Initiative</span>
+          </div>
+          
+          <h3 class="text-lg sm:text-xl font-bold text-slate-100">
+            Help Us Empower Lives & Foster Education
+          </h3>
+          
+          <p class="text-sm text-slate-300 leading-relaxed">
+            <span class="font-semibold text-emerald-400">95% of all contributions</span> go directly towards <strong class="text-white">Cancer Patient Support & School Education Initiatives</strong> (5% retained for server maintenance).
+          </p>
+
+          <div class="pt-2 flex flex-wrap items-center justify-center md:justify-start gap-3 text-xs">
+            <div class="bg-slate-800/90 px-3.5 py-2 rounded-xl border border-slate-700 flex items-center gap-2">
+              <span class="text-slate-400">Beneficiary:</span>
+              <span class="font-semibold text-slate-200">ASKAR ALI</span>
+            </div>
+
+            <div class="bg-slate-800/90 px-3.5 py-2 rounded-xl border border-slate-700 flex items-center gap-2 font-mono">
+              <span class="text-slate-400">UPI ID:</span>
+              <span id="upi-id-text" class="text-indigo-300 select-all">donation1@postbank</span>
+            </div>
+
+            <button id="copy-upi-btn" class="px-4 py-2 bg-indigo-600/80 hover:bg-indigo-600 active:scale-95 text-white rounded-xl transition flex items-center gap-1.5 shadow-md shadow-indigo-600/20 font-medium">
+              <i class="fa-regular fa-copy text-xs"></i>
+              <span id="copy-btn-text">Copy UPI ID</span>
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <div class="mt-6 pt-4 border-t border-slate-800/60 text-center text-xs text-slate-500">
+        Crafted with purpose. Zero intrusive ads or third-party affiliate trackers. Pure open digital craftsmanship.
+      </div>
+    </div>
+  </footer>
+
+  <!-- Application Logic -->
+  <script>
+    // Audio Matrix State
+    let audioCtx = null;
+    let isPlaying = false;
+    let analyser = null;
+
+    // Audio Nodes
+    let binauralLeft, binauralRight, binauralGain;
+    let rainNode, rainGain;
+    let droneOsc1, droneOsc2, droneGain;
+    let brownNoiseNode, brownGain;
+
+    // Canvas Visualizer
+    const canvas = document.getElementById('visualizer');
+    const ctx = canvas.getContext('2d');
+
+    function resizeCanvas() {
+      canvas.width = canvas.parentElement.clientWidth;
+      canvas.height = canvas.parentElement.clientHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function initAudio() {
+      if (audioCtx) return;
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      audioCtx = new AudioContext();
+
+      analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 64;
+      analyser.connect(audioCtx.destination);
+
+      // 1. Binaural Beat Synthesizer (Left 216Hz, Right 226Hz => 10Hz Alpha Focus)
+      const merger = audioCtx.createChannelMerger(2);
+      binauralLeft = audioCtx.createOscillator();
+      binauralRight = audioCtx.createOscillator();
+      binauralLeft.type = 'sine';
+      binauralRight.type = 'sine';
+      binauralLeft.frequency.value = 216;
+      binauralRight.frequency.value = 226;
+
+      const leftGain = audioCtx.createGain();
+      const rightGain = audioCtx.createGain();
+      binauralLeft.connect(leftGain).connect(merger, 0, 0);
+      binauralRight.connect(rightGain).connect(merger, 0, 1);
+
+      binauralGain = audioCtx.createGain();
+      binauralGain.gain.value = 0.4;
+      merger.connect(binauralGain).connect(analyser);
+
+      binauralLeft.start();
+      binauralRight.start();
+
+      // 2. Rain Sound Generator (Pink / Bandpassed Noise)
+      const bufferSize = audioCtx.sampleRate * 2;
+      const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const output = noiseBuffer.getChannelData(0);
+      let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+      for (let i = 0; i < bufferSize; i++) {
+        const white = Math.random() * 2 - 1;
+        b0 = 0.99886 * b0 + white * 0.0555179;
+        b1 = 0.99332 * b1 + white * 0.0750759;
+        b2 = 0.96900 * b2 + white * 0.1538520;
+        b3 = 0.86650 * b3 + white * 0.3104856;
+        b4 = 0.55000 * b4 + white * 0.5329522;
+        b5 = -0.7616 * b5 - white * 0.0168980;
+        output[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.04;
+        b6 = white * 0.115926;
+      }
+
+      rainNode = audioCtx.createBufferSource();
+      rainNode.buffer = noiseBuffer;
+      rainNode.loop = true;
+
+      const rainFilter = audioCtx.createBiquadFilter();
+      rainFilter.type = 'lowpass';
+      rainFilter.frequency.value = 1200;
+
+      rainGain = audioCtx.createGain();
+      rainGain.gain.value = 0.3;
+      rainNode.connect(rainFilter).connect(rainGain).connect(analyser);
+      rainNode.start();
+
+      // 3. Drone Oscillator
+      droneOsc1 = audioCtx.createOscillator();
+      droneOsc2 = audioCtx.createOscillator();
+      droneOsc1.type = 'triangle';
+      droneOsc2.type = 'sine';
+      droneOsc1.frequency.value = 108;
+      droneOsc2.frequency.value = 216;
+      droneGain = audioCtx.createGain();
+      droneGain.gain.value = 0.25;
+      droneOsc1.connect(droneGain);
+      droneOsc2.connect(droneGain);
+      droneGain.connect(analyser);
+      droneOsc1.start();
+      droneOsc2.start();
+
+      // 4. Brownian Low End
+      const brownBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const brownOut = brownBuffer.getChannelData(0);
+      let lastOut = 0.0;
+      for (let i = 0; i < bufferSize; i++) {
+        const white = Math.random() * 2 - 1;
+        brownOut[i] = (lastOut + (0.02 * white)) / 1.02;
+        lastOut = brownOut[i];
+        brownOut[i] *= 1.2;
+      }
+      brownNoiseNode = audioCtx.createBufferSource();
+      brownNoiseNode.buffer = brownBuffer;
+      brownNoiseNode.loop = true;
+      brownGain = audioCtx.createGain();
+      brownGain.gain.value = 0.2;
+      brownNoiseNode.connect(brownGain).connect(analyser);
+      brownNoiseNode.start();
+
+      renderVisualizer();
+    }
+
+    // Visualizer loop
+    function renderVisualizer() {
+      requestAnimationFrame(renderVisualizer);
+      if (!analyser) return;
+      const bufferLength = analyser.frequencyBinCount;
+      const dataArray = new Uint8Array(bufferLength);
+      analyser.getByteFrequencyData(dataArray);
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const barWidth = (canvas.width / bufferLength) * 2;
+      let x = 0;
+
+      for (let i = 0; i < bufferLength; i++) {
+        const barHeight = (dataArray[i] / 255) * (canvas.height * 0.85);
+        const gradient = ctx.createLinearGradient(0, canvas.height, 0, 0);
+        gradient.addColorStop(0, 'rgba(99, 102, 241, 0.2)');
+        gradient.addColorStop(1, 'rgba(168, 85, 247, 0.9)');
+        
+        ctx.fillStyle = gradient;
+        ctx.fillRect(x, canvas.height - barHeight, barWidth - 4, barHeight);
+        x += barWidth + 2;
+      }
+    }
+
+    // Master Play/Pause
+    const masterBtn = document.getElementById('master-play');
+    const masterIcon = document.getElementById('master-icon');
+    const masterText = document.getElementById('master-text');
+    const audioStatus = document.getElementById('audio-status');
+
+    masterBtn.addEventListener('click', () => {
+      initAudio();
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+
+      if (!isPlaying) {
+        audioCtx.resume();
+        isPlaying = true;
+        masterIcon.className = 'fa-solid fa-pause text-sm';
+        masterText.textContent = 'Pause Matrix';
+        audioStatus.textContent = 'Acoustic Synthesis Active';
+      } else {
+        audioCtx.suspend();
+        isPlaying = false;
+        masterIcon.className = 'fa-solid fa-play text-sm';
+        masterText.textContent = 'Start Session';
+        audioStatus.textContent = 'Acoustic Paused';
+      }
+    });
+
+    // Volume Sliders
+    function bindSlider(sliderId, labelId, gainNodeAccessor) {
+      const slider = document.getElementById(sliderId);
+      const label = document.getElementById(labelId);
+      slider.addEventListener('input', (e) => {
+        const val = e.target.value;
+        label.textContent = val + '%';
+        if (audioCtx) {
+          const gainNode = gainNodeAccessor();
+          if (gainNode) gainNode.gain.setValueAtTime(val / 100, audioCtx.currentTime);
+        }
+      });
+    }
+
+    bindSlider('vol-binaural', 'vol-binaural-val', () => binauralGain);
+    bindSlider('vol-rain', 'vol-rain-val', () => rainGain);
+    bindSlider('vol-drone', 'vol-drone-val', () => droneGain);
+    bindSlider('vol-brown', 'vol-brown-val', () => brownGain);
+
+    // Presets
+    const presets = {
+      focus: { name: 'Alpha Focus (10Hz)', bin: 45, rain: 20, drone: 30, brown: 20 },
+      rain: { name: 'Gentle Rainstorm', bin: 10, rain: 80, drone: 10, brown: 40 },
+      theta: { name: 'Deep Theta Zen (5.5Hz)', bin: 60, rain: 25, drone: 40, brown: 30 }
+    };
+
+    document.querySelectorAll('.preset-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const p = presets[btn.dataset.preset];
+        if (!p) return;
+        document.getElementById('active-preset').textContent = p.name;
+        
+        const setVal = (id, val) => {
+          const slider = document.getElementById(id);
+          slider.value = val;
+          slider.dispatchEvent(new Event('input'));
+        };
+
+        setVal('vol-binaural', p.bin);
+        setVal('vol-rain', p.rain);
+        setVal('vol-drone', p.drone);
+        setVal('vol-brown', p.brown);
+      });
+    });
+
+    // Pomodoro Timer Logic
+    let timerTime = 25 * 60;
+    let timerInterval = null;
+    let isTimerRunning = false;
+    const timerDisplay = document.getElementById('timer-display');
+    const timerToggle = document.getElementById('timer-toggle');
+    const timerReset = document.getElementById('timer-reset');
+
+    function updateTimerDisplay() {
+      const m = Math.floor(timerTime / 60).toString().padStart(2, '0');
+      const s = (timerTime % 60).toString().padStart(2, '0');
+      timerDisplay.textContent = `${m}:${s}`;
+    }
+
+    timerToggle.addEventListener('click', () => {
+      if (!isTimerRunning) {
+        isTimerRunning = true;
+        timerToggle.textContent = 'Pause Timer';
+        timerToggle.classList.replace('bg-indigo-600/90', 'bg-amber-600/90');
+        timerInterval = setInterval(() => {
+          if (timerTime > 0) {
+            timerTime--;
+            updateTimerDisplay();
+          } else {
+            clearInterval(timerInterval);
+            isTimerRunning = false;
+            timerToggle.textContent = 'Restart Timer';
+          }
+        }, 1000);
+      } else {
+        clearInterval(timerInterval);
+        isTimerRunning = false;
+        timerToggle.textContent = 'Resume Timer';
+        timerToggle.classList.replace('bg-amber-600/90', 'bg-indigo-600/90');
+      }
+    });
+
+    timerReset.addEventListener('click', () => {
+      clearInterval(timerInterval);
+      isTimerRunning = false;
+      timerTime = 25 * 60;
+      updateTimerDisplay();
+      timerToggle.textContent = 'Start Timer';
+      timerToggle.className = 'w-full py-2.5 rounded-xl bg-indigo-600/90 hover:bg-indigo-600 text-white font-medium text-sm transition';
+    });
+
+    // Copy UPI ID function
+    const copyBtn = document.getElementById('copy-upi-btn');
+    const copyText = document.getElementById('copy-btn-text');
+    copyBtn.addEventListener('click', () => {
+      navigator.clipboard.writeText('donation1@postbank').then(() => {
+        copyText.textContent = 'Copied!';
+        copyBtn.classList.replace('bg-indigo-600/80', 'bg-emerald-600');
+        setTimeout(() => {
+          copyText.textContent = 'Copy UPI ID';
+          copyBtn.classList.replace('bg-emerald-600', 'bg-indigo-600/80');
+        }, 2000);
+      });
+    });
+  </script>
+</body>
+</html>
