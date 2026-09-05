@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ChronosFlow // Ambient Focus Engine</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: { 50: '#ecfdf5', 500: '#10b981', 600: '#059669', 900: '#064e3b' },
+            surface: 'rgba(15, 23, 42, 0.75)',
+            card: 'rgba(30, 41, 59, 0.65)'
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    .glass { background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); }
+    .glow { box-shadow: 0 0 35px -5px rgba(16, 185, 129, 0.25); }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between font-sans selection:bg-emerald-500 selection:text-black">
+
+  <!-- Navigation -->
+  <header class="w-full border-b border-slate-800/80 glass sticky top-0 z-40">
+    <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center font-bold text-slate-950 text-base shadow-lg shadow-emerald-500/20">CF</div>
+        <span class="font-semibold tracking-wide text-lg text-white">Chronos<span class="text-emerald-400">Flow</span></span>
+      </div>
+      <div class="flex items-center space-x-4 text-xs tracking-wider uppercase text-slate-400">
+        <span class="flex items-center space-x-1.5">
+          <span id="audioIndicator" class="inline-block w-2 h-2 rounded-full bg-slate-600"></span>
+          <span id="audioStatusText">Audio Idle</span>
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Engine Core -->
+  <main class="flex-1 max-w-5xl w-full mx-auto px-6 py-12 flex flex-col items-center justify-center">
+    <div class="w-full grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
+      
+      <!-- Timer Core -->
+      <div class="md:col-span-2 glass rounded-2xl p-8 glow flex flex-col items-center justify-center text-center relative overflow-hidden">
+        <div class="absolute -top-24 -left-24 w-60 h-60 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        
+        <div class="flex space-x-2 mb-8 bg-slate-900/60 p-1.5 rounded-xl border border-slate-800 text-xs font-medium">
+          <button id="modeFocus" class="px-4 py-2 rounded-lg bg-emerald-500 text-slate-950 font-semibold transition">Deep Focus (25m)</button>
+          <button id="modeShort" class="px-4 py-2 rounded-lg text-slate-300 hover:text-white transition">Rest (5m)</button>
+          <button id="modeLong" class="px-4 py-2 rounded-lg text-slate-300 hover:text-white transition">Recharge (15m)</button>
+        </div>
+
+        <div class="text-7xl md:text-8xl font-mono font-bold tracking-tighter text-white mb-8 select-none" id="timerDisplay">25:00</div>
+
+        <div class="flex space-x-4 w-full max-w-xs">
+          <button id="toggleBtn" class="flex-1 py-3 px-6 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold transition duration-200 transform active:scale-95 shadow-lg shadow-emerald-500/25">Start Focus</button>
+          <button id="resetBtn" class="py-3 px-6 rounded-xl glass hover:bg-slate-800 text-slate-300 transition duration-200">Reset</button>
+        </div>
+      </div>
+
+      <!-- Ambient Audio Synthesizer -->
+      <div class="glass rounded-2xl p-6 flex flex-col justify-between h-full">
+        <div>
+          <h3 class="text-base font-semibold text-white mb-1 flex items-center justify-between">
+            <span>Neural Synthesizer</span>
+            <span class="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">WebAudio API</span>
+          </h3>
+          <p class="text-xs text-slate-400 mb-6">Generate real-time calibrated ambient noise without external streams.</p>
+
+          <div class="space-y-4">
+            <div>
+              <label class="text-xs font-medium text-slate-300 mb-2 block">Sound Profile</label>
+              <div class="grid grid-cols-2 gap-2 text-xs">
+                <button id="soundPink" class="py-2 px-3 rounded-lg border border-slate-700 hover:border-emerald-500 text-slate-300 focus:outline-none transition active-sound bg-slate-800/80 border-emerald-500 text-emerald-400">Pink Noise</button>
+                <button id="soundSine" class="py-2 px-3 rounded-lg border border-slate-700 hover:border-emerald-500 text-slate-300 focus:outline-none transition">Alpha Wave</button>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex justify-between text-xs text-slate-400 mb-1.5">
+                <span>Intensity</span>
+                <span id="volDisplay">30%</span>
+              </div>
+              <input id="volSlider" type="range" min="0" max="1" step="0.01" value="0.30" class="w-full accent-emerald-500 cursor-pointer bg-slate-800 rounded-lg h-1.5 appearance-none">
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-6 pt-6 border-t border-slate-800">
+          <button id="soundToggle" class="w-full py-2.5 rounded-xl border border-emerald-500/50 hover:bg-emerald-500/10 text-emerald-400 text-xs font-semibold uppercase tracking-wider transition">Activate Ambience</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Cause-Driven Charity & Support Section -->
+  <footer class="w-full border-t border-slate-800/80 bg-slate-950/80 backdrop-blur-lg pt-10 pb-8 px-6 mt-12">
+    <div class="max-w-4xl mx-auto glass rounded-2xl p-6 sm:p-8 border border-emerald-500/20 shadow-xl">
+      <div class="flex flex-col md:flex-row items-center gap-6 justify-between">
+        
+        <!-- Initiative Details -->
+        <div class="flex-1 text-center md:text-left space-y-2">
+          <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-medium mb-1">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+            <span>Direct Impact Commitment</span>
+          </div>
+          <h4 class="text-lg font-bold text-white tracking-tight">Cancer Patient Support &amp; School Education Initiatives</h4>
+          <p class="text-sm text-slate-300 leading-relaxed">
+            95% of all contributions go directly towards Cancer Patient Support &amp; School Education Initiatives (5% retained for server maintenance).
+          </p>
+          <div class="text-xs text-slate-400 pt-1">
+            Beneficiary: <span class="text-slate-200 font-semibold">ASKAR ALI</span> &bull; UPI: <span class="font-mono text-emerald-400">donation1@postbank</span>
+          </div>
+        </div>
+
+        <!-- QR & Action Module -->
+        <div class="flex flex-col sm:flex-row items-center gap-4 shrink-0 bg-slate-900/80 p-4 rounded-xl border border-slate-800">
+          <img 
+            src="https://api.qrserver.com/v1/create-qr-code/?data=upi://pay?pa=donation1@postbank&pn=YUGRAAL_Cause&size=110x110" 
+            alt="Scan to Donate UPI" 
+            class="w-24 h-24 rounded-lg bg-white p-1 border border-slate-700 shadow-md"
+            loading="lazy"
+          />
+          <div class="flex flex-col space-y-2 w-full sm:w-auto">
+            <button 
+              id="copyUpiBtn" 
+              class="text-xs font-semibold py-2.5 px-4 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 transition active:scale-95 text-center flex items-center justify-center space-x-1.5">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
+              <span id="copyText">Copy UPI ID</span>
+            </button>
+            <span class="text-[10px] text-center text-slate-400 font-mono">Instant Mobile Payment</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <div class="text-center text-xs text-slate-500 mt-6 font-mono">&copy; ChronosFlow Engine. Designed for purposeful productivity.</div>
+  </footer>
+
+  <!-- Client Script Logic -->
+  <script>
+    // Pomodoro Logic
+    let timerInterval = null;
+    let remainingSeconds = 25 * 60;
+    let currentTotal = 25 * 60;
+    let isRunning = false;
+
+    const display = document.getElementById('timerDisplay');
+    const toggleBtn = document.getElementById('toggleBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const modeFocus = document.getElementById('modeFocus');
+    const modeShort = document.getElementById('modeShort');
+    const modeLong = document.getElementById('modeLong');
+
+    function updateDisplay() {
+      const m = Math.floor(remainingSeconds / 60).toString().padStart(2, '0');
+      const s = (remainingSeconds % 60).toString().padStart(2, '0');
+      display.textContent = `${m}:${s}`;
+    }
+
+    function switchMode(seconds, activeBtn) {
+      clearInterval(timerInterval);
+      isRunning = false;
+      toggleBtn.textContent = 'Start Focus';
+      toggleBtn.classList.replace('bg-amber-400', 'bg-emerald-500');
+      remainingSeconds = seconds;
+      currentTotal = seconds;
+      updateDisplay();
+
+      [modeFocus, modeShort, modeLong].forEach(btn => {
+        btn.className = 'px-4 py-2 rounded-lg text-slate-300 hover:text-white transition';
+      });
+      activeBtn.className = 'px-4 py-2 rounded-lg bg-emerald-500 text-slate-950 font-semibold transition';
+    }
+
+    modeFocus.addEventListener('click', () => switchMode(25 * 60, modeFocus));
+    modeShort.addEventListener('click', () => switchMode(5 * 60, modeShort));
+    modeLong.addEventListener('click', () => switchMode(15 * 60, modeLong));
+
+    toggleBtn.addEventListener('click', () => {
+      if (!isRunning) {
+        isRunning = true;
+        toggleBtn.textContent = 'Pause';
+        toggleBtn.classList.replace('bg-emerald-500', 'bg-amber-400');
+        timerInterval = setInterval(() => {
+          if (remainingSeconds > 0) {
+            remainingSeconds--;
+            updateDisplay();
+          } else {
+            clearInterval(timerInterval);
+            isRunning = false;
+            toggleBtn.textContent = 'Completed';
+            toggleBtn.classList.replace('bg-amber-400', 'bg-emerald-500');
+          }
+        }, 1000);
+      } else {
+        isRunning = false;
+        clearInterval(timerInterval);
+        toggleBtn.textContent = 'Resume';
+        toggleBtn.classList.replace('bg-amber-400', 'bg-emerald-500');
+      }
+    });
+
+    resetBtn.addEventListener('click', () => {
+      clearInterval(timerInterval);
+      isRunning = false;
+      remainingSeconds = currentTotal;
+      updateDisplay();
+      toggleBtn.textContent = 'Start Focus';
+      toggleBtn.classList.replace('bg-amber-400', 'bg-emerald-500');
+    });
+
+    // Audio Synthesizer (Web Audio API)
+    let audioCtx = null;
+    let activeSource = null;
+    let gainNode = null;
+    let soundType = 'pink';
+    let isAudioPlaying = false;
+
+    const soundToggle = document.getElementById('soundToggle');
+    const volSlider = document.getElementById('volSlider');
+    const volDisplay = document.getElementById('volDisplay');
+    const soundPink = document.getElementById('soundPink');
+    const soundSine = document.getElementById('soundSine');
+    const audioIndicator = document.getElementById('audioIndicator');
+    const audioStatusText = document.getElementById('audioStatusText');
+
+    function initAudio() {
+      if (!audioCtx) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioContextClass();
+        gainNode = audioCtx.createGain();
+        gainNode.gain.setValueAtTime(parseFloat(volSlider.value), audioCtx.currentTime);
+        gainNode.connect(audioCtx.destination);
+      }
+    }
+
+    function createNoiseNode() {
+      const bufferSize = audioCtx.sampleRate * 2;
+      const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const data = buffer.getChannelData(0);
+      let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+
+      for (let i = 0; i < bufferSize; i++) {
+        const white = Math.random() * 2 - 1;
+        b0 = 0.99886 * b0 + white * 0.0555179;
+        b1 = 0.99332 * b1 + white * 0.0750759;
+        b2 = 0.96900 * b2 + white * 0.1538520;
+        b3 = 0.86650 * b3 + white * 0.3104856;
+        b4 = 0.55000 * b4 + white * 0.5329522;
+        b5 = -0.7616 * b5 - white * 0.0168980;
+        data[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.11;
+        b6 = white * 0.115926;
+      }
+
+      const noise = audioCtx.createBufferSource();
+      noise.buffer = buffer;
+      noise.loop = true;
+      return noise;
+    }
+
+    function createSineNode() {
+      const osc = audioCtx.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(108, audioCtx.currentTime);
+      return osc;
+    }
+
+    function startAudio() {
+      initAudio();
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      activeSource = soundType === 'pink' ? createNoiseNode() : createSineNode();
+      activeSource.connect(gainNode);
+      activeSource.start();
+      isAudioPlaying = true;
+      soundToggle.textContent = 'Deactivate Ambience';
+      soundToggle.classList.add('bg-emerald-500/20');
+      audioIndicator.className = 'inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse';
+      audioStatusText.textContent = soundType === 'pink' ? 'Pink Noise Live' : 'Alpha Wave Live';
+    }
+
+    function stopAudio() {
+      if (activeSource) {
+        activeSource.stop();
+        activeSource.disconnect();
+        activeSource = null;
+      }
+      isAudioPlaying = false;
+      soundToggle.textContent = 'Activate Ambience';
+      soundToggle.classList.remove('bg-emerald-500/20');
+      audioIndicator.className = 'inline-block w-2 h-2 rounded-full bg-slate-600';
+      audioStatusText.textContent = 'Audio Idle';
+    }
+
+    soundToggle.addEventListener('click', () => {
+      if (!isAudioPlaying) startAudio();
+      else stopAudio();
+    });
+
+    volSlider.addEventListener('input', (e) => {
+      const val = parseFloat(e.target.value);
+      volDisplay.textContent = Math.round(val * 100) + '%';
+      if (gainNode) {
+        gainNode.gain.setValueAtTime(val, audioCtx.currentTime);
+      }
+    });
+
+    soundPink.addEventListener('click', () => {
+      soundType = 'pink';
+      soundPink.className = 'py-2 px-3 rounded-lg border border-emerald-500 bg-slate-800/80 text-emerald-400 text-xs transition';
+      soundSine.className = 'py-2 px-3 rounded-lg border border-slate-700 hover:border-emerald-500 text-slate-300 text-xs transition';
+      if (isAudioPlaying) { stopAudio(); startAudio(); }
+    });
+
+    soundSine.addEventListener('click', () => {
+      soundType = 'sine';
+      soundSine.className = 'py-2 px-3 rounded-lg border border-emerald-500 bg-slate-800/80 text-emerald-400 text-xs transition';
+      soundPink.className = 'py-2 px-3 rounded-lg border border-slate-700 hover:border-emerald-500 text-slate-300 text-xs transition';
+      if (isAudioPlaying) { stopAudio(); startAudio(); }
+    });
+
+    // Copy UPI Functionality
+    const copyUpiBtn = document.getElementById('copyUpiBtn');
+    const copyText = document.getElementById('copyText');
+    copyUpiBtn.addEventListener('click', () => {
+      navigator.clipboard.writeText('donation1@postbank').then(() => {
+        copyText.textContent = 'Copied!';
+        setTimeout(() => {
+          copyText.textContent = 'Copy UPI ID';
+        }, 2000);
+      }).catch(() => {
+        copyText.textContent = 'donation1@postbank';
+      });
+    });
+  </script>
+</body>
+</html>
