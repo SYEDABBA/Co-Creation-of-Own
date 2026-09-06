@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChronosAura AI - Circadian Productivity & Ambient Workspace</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        glass: 'rgba(255, 255, 255, 0.05)',
+                        glassBorder: 'rgba(255, 255, 255, 0.1)',
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style> 
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glow-effect {
+            box-shadow: 0 0 40px -10px rgba(99, 102, 241, 0.3);
+        }
+        @keyframes pulseGlow {
+            0%, 100% { opacity: 0.4; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.05); }
+        }
+        .animate-glow { animation: pulseGlow 6s infinite ease-in-out; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between relative overflow-x-hidden">
+
+    <!-- Background Gradients -->
+    <div class="absolute top-0 left-1/4 w-96 h-96 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none animate-glow"></div>
+    <div class="absolute bottom-1/3 right-1/4 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl pointer-events-none animate-glow" style="animation-delay: 3s;"></div>
+
+    <!-- Header -->
+    <header class="w-full border-b border-white/10 bg-slate-900/40 backdrop-blur-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+                    <i class="fa-solid fa-atom text-white text-lg"></i>
+                </div>
+                <span class="text-xl font-bold tracking-tight bg-gradient-to-r from-white via-indigo-200 to-purple-300 bg-clip-text text-transparent">ChronosAura AI</span>
+            </div>
+            <div class="flex items-center space-x-6">
+                <div id="live-clock" class="text-sm font-medium text-slate-400 bg-white/5 px-4 py-2 rounded-full border border-white/5"></div>
+                <button onclick="resetAllData()" class="text-xs text-slate-400 hover:text-white transition bg-white/5 hover:bg-white/10 px-3 py-2 rounded-lg border border-white/5">
+                    <i class="fa-solid fa-rotate mr-1"></i> Reset
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Dashboard -->
+    <main class="max-w-7xl mx-auto px-6 py-10 w-full flex-grow grid grid-cols-1 lg:grid-cols-3 gap-8 z-10">
+        
+        <!-- Left Column: Circadian & AI State -->
+        <div class="space-y-8">
+            <!-- AI State Card -->
+            <div class="glass-panel rounded-3xl p-6 glow-effect relative overflow-hidden">
+                <div class="absolute top-0 right-0 p-6 opacity-10 text-6xl">
+                    <i class="fa-solid fa-brain text-indigo-400"></i>
+                </div>
+                <span class="text-xs font-semibold tracking-wider text-indigo-400 uppercase">AI Circadian Engine</span>
+                <h2 id="ai-phase-title" class="text-2xl font-bold mt-1 text-white">Analyzing Energy...</h2>
+                <p id="ai-phase-desc" class="text-sm text-slate-300 mt-2 leading-relaxed">Synchronizing your local rhythm with high-output cognitive sprint recommendations.</p>
+                <div class="mt-6 pt-4 border-t border-white/10 flex justify-between items-center">
+                    <span class="text-xs text-slate-400">Recommended Tempo:</span>
+                    <span id="ai-tempo" class="text-xs font-bold text-indigo-300 bg-indigo-500/20 px-3 py-1 rounded-full">Deep Work (50m)</span>
+                </div>
+            </div>
+
+            <!-- Focus Timer Widget -->
+            <div class="glass-panel rounded-3xl p-6 text-center">
+                <h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Neural Focus Timer</h3>
+                <div id="timer-display" class="text-6xl font-extrabold tracking-tight text-white mb-6 font-mono">25:00</div>
+                <div class="flex justify-center space-x-3">
+                    <button id="timer-toggle-btn" onclick="toggleTimer()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-3 rounded-2xl font-semibold shadow-lg shadow-indigo-600/30 transition flex-1 max-w-[140px]">
+                        <i class="fa-solid fa-play mr-2"></i> Start
+                    </button>
+                    <button onclick="resetTimer()" class="bg-white/5 hover:bg-white/10 text-slate-300 px-4 py-3 rounded-2xl border border-white/10 transition">
+                        <i class="fa-solid fa-rotate-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Center & Right Columns: Task Matrix & Utilities -->
+        <div class="lg:col-span-2 space-y-8">
+            <!-- Interactive Task Matrix -->
+            <div class="glass-panel rounded-3xl p-6 md:p-8">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
+                    <div>
+                        <h3 class="text-xl font-bold text-white">Neural Task Matrix</h3>
+                        <p class="text-xs text-slate-400 mt-0.5">Prioritized automatically based on your circadian energy window.</p>
+                    </div>
+                    <form id="task-form" onsubmit="addTask(event)" class="flex space-x-2">
+                        <input type="text" id="task-input" placeholder="Add new objective..." required
+                            class="bg-slate-900/80 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-indigo-500 transition w-full sm:w-64">
+                        <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2.5 rounded-xl font-semibold transition shrink-0">
+                            <i class="fa-solid fa-plus"></i>
+                        </button>
+                    </form>
+                </div>
+
+                <div class="space-y-3 max-h-[340px] overflow-y-auto pr-1" id="task-list">
+                    <!-- Dynamic Tasks Injected Here -->
+                </div>
+            </div>
+
+            <!-- Ambient Soundscapes -->
+            <div class="glass-panel rounded-3xl p-6 md:p-8">
+                <h3 class="text-xl font-bold text-white mb-2">Cognitive Soundscapes</h3>
+                <p class="text-xs text-slate-400 mb-6">Select frequency environments designed to induce flow state.</p>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <button onclick="setSoundscape('Rain', this)", class="sound-btn bg-slate-900/60 hover:bg-indigo-600/20 border border-white/10 p-4 rounded-2xl text-left transition group">
+                        <i class="fa-solid fa-cloud-rain text-indigo-400 text-lg mb-2 block group-hover:scale-110 transition"></i>
+                        <div class="font-semibold text-sm text-white">Midnight Rain</div>
+                        <div class="text-xs text-slate-400">Deep Sleep & Flow</div>
+                    </button>
+                    <button onclick="setSoundscape('Café', this)", class="sound-btn bg-slate-900/60 hover:bg-indigo-600/20 border border-white/10 p-4 rounded-2xl text-left transition group">
+                        <i class="fa-solid fa-mug-hot text-indigo-400 text-lg mb-2 block group-hover:scale-110 transition"></i>
+                        <div class="font-semibold text-sm text-white">Neon Café</div>
+                        <div class="text-xs text-slate-400">Creative Sprint</div>
+                    </button>
+                    <button onclick="setSoundscape('Cosmic', this)", class="sound-btn bg-slate-900/60 hover:bg-indigo-600/20 border border-white/10 p-4 rounded-2xl text-left transition group">
+                        <i class="fa-solid fa-satellite text-indigo-400 text-lg mb-2 block group-hover:scale-110 transition"></i>
+                        <div class="font-semibold text-sm text-white">Cosmic Drone</div>
+                        <div class="text-xs text-slate-400">Deep Analytical Work</div>
+                    </button>
+                </div>
+                <div id="active-sound-status" class="mt-4 text-xs text-indigo-300 bg-indigo-500/10 border border-indigo-500/20 p-3 rounded-xl hidden">
+                    <i class="fa-solid fa-volume-high mr-2"></i> Active soundscape simulation: <span id="sound-name" class="font-bold">None</span>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Cause-Driven Charity Section (Mandatory & Respectful) -->
+    <footer class="w-full border-t border-white/10 bg-slate-900/60 backdrop-blur-md mt-16">
+        <div class="max-w-7xl mx-auto px-6 py-10">
+            <div class="glass-panel rounded-3xl p-8 border border-white/10 flex flex-col lg:flex-row items-center justify-between gap-8 bg-gradient-to-r from-indigo-950/40 via-slate-900/60 to-purple-950/40">
+                
+                <div class="space-y-3 max-w-xl text-center lg:text-left">
+                    <div class="inline-flex items-center space-x-2 bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs font-semibold px-3 py-1 rounded-full">
+                        <i class="fa-solid fa-heart text-rose-400"></i>
+                        <span>Impact & Cause Initiative</span>
+                    </div>
+                    <h4 class="text-lg font-bold text-white">Support Cancer Patient Care & Education</h4>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        95% of all contributions go directly towards Cancer Patient Support & School Education Initiatives (5% retained for server maintenance). Empowering futures and healing lives.
+                    </p>
+                    <div class="text-xs text-slate-400 font-mono">
+                        Receiver: <span class="text-white font-bold">ASKAR ALI</span> | UPI ID: <span id="upi-id-text" class="text-indigo-300 font-bold">donation1@postbank</span>
+                    </div>
+                </div>
+
+                <div class="flex flex-col sm:flex-row items-center gap-6 bg-slate-900/80 p-6 rounded-2xl border border-white/10">
+                    <div class="bg-white p-2 rounded-xl shadow-lg">
+                        <img id="qr-code-img" src="https://api.qrserver.com/v1/create-qr-code/?data=upi://pay?pa=donation1@postbank&pn=YUGRAAL_Cause" alt="Donation QR Code" class="w-28 h-28 object-contain">
+                    </div>
+                    <div class="flex flex-col space-y-3 w-full sm:w-auto">
+                        <button onclick="copyUpiId()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition flex items-center justify-center space-x-2 shadow-lg shadow-indigo-600/30">
+                            <i class="fa-regular fa-copy"></i>
+                            <span id="copy-btn-text">Copy UPI ID</span>
+                        </button>
+                        <a href="upi://pay?pa=donation1@postbank&pn=YUGRAAL_Cause" class="bg-white/5 hover:bg-white/10 border border-white/10 text-slate-200 text-xs font-semibold px-4 py-2.5 rounded-xl transition text-center">
+                            <i class="fa-solid fa-qrcode mr-1.5"></i> Open UPI App
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="mt-8 text-center text-xs text-slate-500">
+                &copy; <span id="current-year"></span> ChronosAura AI &bull; Engineered with precision under YUGRAAL Co-Creator Engine.
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // Footer Year
+        document.getElementById('current-year').textContent = new Date().getFullYear();
+
+        // Live Clock & Circadian Calculation
+        function updateClockAndCircadian() {
+            const now = new Date();
+            const hours = now.getHours();
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            document.getElementById('live-clock').innerHTML = `<i class="fa-regular fa-clock mr-2 text-indigo-400"></i>${hours % 12 || 12}:${minutes}:${seconds} ${hours >= 12 ? 'PM' : 'AM'}`;
+
+            let phaseTitle = "Peak Cognitive Window";
+            let phaseDesc = "Your cortisol and alertness are optimized for high-complexity problem solving and deep strategic output.";
+            let tempo = "Deep Work (50m)";
+
+            if (hours >= 5 && hours < 9) {
+                phaseTitle = "Morning Priming Phase";
+                phaseDesc = "Gentle awakening and intention setting. Best suited for planning and high-level vision alignment.";
+                tempo = "Light Focus (25m)";
+            } else if (hours >= 12 && hours < 15) {
+                phaseTitle = "Post-Meridian Dip";
+                phaseDesc = "Natural energy trough. Ideal for administrative tasks, hydration, and light creative brainstorming.";
+                tempo = "Admin Flow (20m)";
+            } else if (hours >= 20 || hours < 5) {
+                phaseTitle = "Restorative Twilight";
+                phaseDesc = "Cognitive wind-down. Focus should shift toward review, journaling, and sleep preparation.";
+                tempo = "Wind Down (15m)";
+            }
+
+            document.getElementById('ai-phase-title').textContent = phaseTitle;
+            document.getElementById('ai-phase-desc').textContent = phaseDesc;
+            document.getElementById('ai-tempo').textContent = tempo;
+        }
+        setInterval(updateClockAndCircadian, 1000);
+        updateClockAndCircadian();
+
+        // Focus Timer Logic
+        let timerInterval = null;
+        let timeLeft = 25 * 60;
+        let isRunning = false;
+
+        function toggleTimer() {
+            const btn = document.getElementById('timer-toggle-btn');
+            if (isRunning) {
+                clearInterval(timerInterval);
+                isRunning = false;
+                btn.innerHTML = '<i class="fa-solid fa-play mr-2"></i> Start';
+                btn.classList.remove('bg-rose-600', 'hover:bg-rose-500', 'shadow-rose-600/30');
+                btn.classList.add('bg-indigo-600', 'hover:bg-indigo-500', 'shadow-indigo-600/30');
+            } else {
+                isRunning = true;
+                btn.innerHTML = '<i class="fa-solid fa-pause mr-2"></i> Pause';
+                btn.classList.remove('bg-indigo-600', 'hover:bg-indigo-500', 'shadow-indigo-600/30');
+                btn.classList.add('bg-rose-600', 'hover:bg-rose-500', 'shadow-rose-600/30');
+                timerInterval = setInterval(() => {
+                    if (timeLeft > 0) {
+                        timeLeft--;
+                        updateTimerDisplay();
+                    } else {
+                        clearInterval(timerInterval);
+                        isRunning = false;
+                        alert('Focus sprint complete! Take a restorative break.');
+                        resetTimer();
+                    }
+                }, 1000);
+            }
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            isRunning = false;
+            timeLeft = 25 * 60;
+            updateTimerDisplay();
+            const btn = document.getElementById('timer-toggle-btn');
+            btn.innerHTML = '<i class="fa-solid fa-play mr-2"></i> Start';
+            btn.classList.remove('bg-rose-600', 'hover:bg-rose-500', 'shadow-rose-600/30');
+            btn.classList.add('bg-indigo-600', 'hover:bg-indigo-500', 'shadow-indigo-600/30');
+        }
+
+        function updateTimerDisplay() {
+            const mins = Math.floor(timeLeft / 60);
+            const secs = timeLeft % 60;
+            document.getElementById('timer-display').textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        }
+
+        // Task Matrix Logic
+        let tasks = JSON.parse(localStorage.getItem('chronos_tasks')) || [
+            { id: 1, text: 'Review architecture specification document', completed: false },
+            { id: 2, text: 'Execute 50-minute deep engineering sprint', completed: true },
+            { id: 3, text: 'Hydrate & perform 5-minute visual reset', completed: false }
+        ];
+
+        function renderTasks() {
+            const list = document.getElementById('task-list');
+            list.innerHTML = '';
+            if (tasks.length === 0) {
+                list.innerHTML = '<div class="text-center py-8 text-xs text-slate-500">No active tasks in matrix. Add one above.</div>';
+                return;
+            }
+            tasks.forEach(task => {
+                const item = document.createElement('div');
+                item.className = `flex items-center justify-between p-4 rounded-2xl border transition ${task.completed ? 'bg-slate-900/30 border-white/5 opacity-60' : 'bg-slate-900/60 border-white/10 hover:border-indigo-500/40'}`;
+                item.innerHTML = `
+                    <div class="flex items-center space-x-3 cursor-pointer flex-grow" onclick="toggleTask(${task.id})">
+                        <div class="w-5 h-5 rounded-lg border flex items-center justify-center transition ${task.completed ? 'bg-indigo-600 border-indigo-600 text-white' : 'border-white/20 bg-slate-800'}">
+                            ${task.completed ? '<i class="fa-solid fa-check text-xs"></i>' : ''}
+                        </div>
+                        <span class="text-sm text-slate-200 ${task.completed ? 'line-through text-slate-400' : ''}">${task.text}</span>
+                    </div>
+                    <button onclick="deleteTask(${task.id})" class="text-slate-500 hover:text-rose-400 transition p-2">
+                        <i class="fa-solid fa-trash-can text-xs"></i>
+                    </button>
+                `;
+                list.appendChild(item);
+            });
+            localStorage.setItem('chronos_tasks', JSON.stringify(tasks));
+        }
+
+        function addTask(e) {
+            e.preventDefault();
+            const input = document.getElementById('task-input');
+            const text = input.value.trim();
+            if (!text) return;
+            tasks.unshift({ id: Date.now(), text, completed: false });
+            input.value = '';
+            renderTasks();
+        }
+
+        function toggleTask(id) {
+            tasks = tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t);
+            renderTasks();
+        }
+
+        function deleteTask(id) {
+            tasks = tasks.filter(t => t.id !== id);
+            renderTasks();
+        }
+
+        renderTasks();
+
+        // Soundscape Simulation
+        function setSoundscape(name, btnElement) {
+            document.querySelectorAll('.sound-btn').forEach(b => b.classList.remove('border-indigo-500', 'bg-indigo-600/20'));
+            btnElement.classList.add('border-indigo-500', 'bg-indigo-600/20');
+            const status = document.getElementById('active-sound-status');
+            status.classList.remove('hidden');
+            document.getElementById('sound-name').textContent = name;
+        }
+
+        // Copy UPI ID
+        function copyUpiId() {
+            const upi = 'donation1@postbank';
+            navigator.clipboard.writeText(upi).then(() => {
+                const btnText = document.getElementById('copy-btn-text');
+                btnText.textContent = 'Copied!';
+                setTimeout(() => {
+                    btnText.textContent = 'Copy UPI ID';
+                }, 2000);
+            });
+        }
+
+        // Reset Data
+        function resetAllData() {
+            if (confirm('Reset all tasks and state?')) {
+                localStorage.clear();
+                location.reload();
+            }
+        }
+    </script>
+</body>
+</html>
