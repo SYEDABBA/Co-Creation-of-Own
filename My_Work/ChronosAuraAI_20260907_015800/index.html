@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChronosAura AI - Circadian Productivity & Bio-Rhythm Engine</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .glass { background: rgba(18, 18, 26, 0.7); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); }
+        .glass-card { background: rgba(25, 25, 38, 0.5); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.06); }
+        @keyframes pulseGlow { 0%, 100% { opacity: 0.4; transform: scale(1); } 50% { opacity: 0.8; transform: scale(1.05); } }
+        .animate-pulse-glow { animation: pulseGlow 6s infinite ease-in-out; }
+    </style>
+</head>
+<body class="bg-[#0b0b13] text-slate-100 min-h-screen flex flex-col justify-between relative overflow-x-hidden">
+
+    <!-- Background Gradients -->
+    <div class="absolute top-0 left-1/4 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl pointer-events-none animate-pulse-glow"></div>
+    <div class="absolute top-1/3 right-1/4 w-96 h-96 bg-cyan-600/15 rounded-full blur-3xl pointer-events-none animate-pulse-glow" style="animation-delay: 3s;"></div>
+
+    <!-- Header -->
+    <header class="w-full border-b border-white/5 glass sticky top-0 z-50 px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-purple-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
+                <i class="fa-solid fa-atom text-white text-lg"></i>
+            </div>
+            <div>
+                <h1 class="font-bold text-lg tracking-tight bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">ChronosAura AI</h1>
+                <p class="text-xs text-slate-400">Circadian Workflow Engine</p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-4">
+            <div id="liveClock" class="text-sm font-mono px-3 py-1.5 rounded-lg glass-card text-cyan-300">00:00:00</div>
+            <button onclick="resetApp()" class="text-xs px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 transition border border-white/10 text-slate-300">
+                <i class="fa-solid fa-rotate-right mr-1"></i> Reset
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-6 py-10 w-full grid grid-cols-1 lg:grid-cols-3 gap-8 z-10 flex-grow">
+        
+        <!-- Left Column: Chronotype & Inputs -->
+        <div class="space-y-6">
+            <div class="glass-card p-6 rounded-2xl">
+                <h2 class="text-base font-semibold mb-4 flex items-center text-cyan-300">
+                    <i class="fa-solid fa-sliders mr-2"></i> Bio-Parameters
+                </h2>
+                <div class="space-y-4">
+                    <div>
+                        <label class="text-xs text-slate-400 block mb-1">Chronotype Profile</label>
+                        <select id="chronotypeSelect" class="w-full bg-slate-900/80 border border-white/10 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-cyan-500 transition">
+                            <option value="lion">🦁 Lion (Early riser, peak morning energy)</option>
+                            <option value="bear" selected>🐻 Bear (Sun cycle aligned, steady focus)</option>
+                            <option value="wolf">🐺 Wolf (Night owl, peak evening creativity)</option>
+                            <option value="dolphin">🐬 Dolphin (Light sleeper, erratic bursts)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-xs text-slate-400 block mb-1">Target Focus Goal</label>
+                        <input type="text" id="taskInput" placeholder="e.g., Architecture System Design" class="w-full bg-slate-900/80 border border-white/10 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-cyan-500 transition">
+                    </div>
+                    <button onclick="generateAISchedule()" class="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-purple-600 font-semibold text-sm shadow-lg shadow-purple-500/25 hover:opacity-95 transition transform active:scale-98">
+                        <i class="fa-solid fa-wand-magic-sparkles mr-2"></i> Synthesize AI Flowplan
+                    </button>
+                </div>
+            </div>
+
+            <!-- Focus Timer Widget -->
+            <div class="glass-card p-6 rounded-2xl text-center">
+                <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Circadian Focus Timer</h3>
+                <div id="timerDisplay" class="text-5xl font-extrabold font-mono text-white mb-4 tracking-wider">25:00</div>
+                <div class="flex justify-center space-x-3">
+                    <button onclick="startTimer()" class="px-5 py-2 rounded-xl bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 hover:bg-cyan-500/30 transition text-sm font-medium"><i class="fa-solid fa-play mr-1"></i> Start</button>
+                    <button onclick="pauseTimer()" class="px-5 py-2 rounded-xl bg-yellow-500/20 text-yellow-300 border border-yellow-500/30 hover:bg-yellow-500/30 transition text-sm font-medium"><i class="fa-solid fa-pause mr-1"></i> Pause</button>
+                    <button onclick="stopTimer()" class="px-5 py-2 rounded-xl bg-rose-500/20 text-rose-300 border border-rose-500/30 hover:bg-rose-500/30 transition text-sm font-medium"><i class="fa-solid fa-stop mr-1"></i> Reset</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Center & Right Columns: AI Schedule & Bio-Metrics -->
+        <div class="lg:col-span-2 space-y-6">
+            <div class="glass-card p-6 rounded-2xl">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-base font-semibold text-purple-300 flex items-center">
+                        <i class="fa-solid fa-brain mr-2"></i> Optimized Circadian Flowplan
+                    </h2>
+                    <span id="aiStatusBadge" class="text-xs px-2.5 py-1 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">Ready</span>
+                </div>
+                <div id="scheduleContainer" class="space-y-3">
+                    <div class="p-4 rounded-xl bg-white/5 border border-white/5 text-slate-400 text-sm text-center py-8">
+                        Configure your bio-parameters and click <span class="text-cyan-400 font-medium">Synthesize AI Flowplan</span> to generate your optimal day.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bio-Rhythm Analytics Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="glass-card p-4 rounded-xl">
+                    <p class="text-xs text-slate-400">Cognitive Peak</p>
+                    <h4 id="metricPeak" class="text-lg font-bold text-cyan-300 mt-1">09:00 - 11:30</h4>
+                    <div class="w-full bg-white/5 rounded-full h-1.5 mt-3">
+                        <div class="bg-cyan-400 h-1.5 rounded-full" style="width: 85%"></div>
+                    </div>
+                </div>
+                <div class="glass-card p-4 rounded-xl">
+                    <p class="text-xs text-slate-400">Flow State Probability</p>
+                    <h4 id="metricFlow" class="text-lg font-bold text-purple-300 mt-1">94.2%</h4>
+                    <div class="w-full bg-white/5 rounded-full h-1.5 mt-3">
+                        <div class="bg-purple-400 h-1.5 rounded-full" style="width: 94%"></div>
+                    </div>
+                </div>
+                <div class="glass-card p-4 rounded-xl">
+                    <p class="text-xs text-slate-400">Suggested Rest Window</p>
+                    <h4 id="metricRest" class="text-lg font-bold text-emerald-300 mt-1">14:00 - 15:00</h4>
+                    <div class="w-full bg-white/5 rounded-full h-1.5 mt-3">
+                        <div class="bg-emerald-400 h-1.5 rounded-full" style="width: 60%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Cause-Driven Charity & Support Footer Section (MANDATORY) -->
+    <footer class="w-full border-t border-white/10 bg-[#07070c] pt-8 pb-10 px-6 mt-12 z-20">
+        <div class="max-w-5xl mx-auto glass-card p-6 md:p-8 rounded-2xl border border-cyan-500/20 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-6">
+            <div class="space-y-3 text-center md:text-left flex-1">
+                <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-400 text-xs font-semibold border border-cyan-500/20">
+                    <i class="fa-solid fa-heart-pulse"></i>
+                    <span>Philanthropic Mission</span>
+                </div>
+                <h3 class="text-lg font-bold text-white">Support Cancer Patients & School Education</h3>
+                <p class="text-xs text-slate-300 leading-relaxed">
+                    95% of all contributions go directly towards Cancer Patient Support & School Education Initiatives (5% retained for server maintenance).
+                </p>
+                <div class="pt-2 flex flex-wrap items-center justify-center md:justify-start gap-4 text-xs">
+                    <span class="text-slate-400">Receiver: <strong class="text-white">ASKAR ALI</strong></span>
+                    <span class="text-slate-400">UPI ID: <code id="upiIdText" class="text-cyan-300 font-mono bg-white/5 px-2 py-1 rounded border border-white/10">donation1@postbank</code></span>
+                    <button onclick="copyUpi()" class="px-3 py-1.5 rounded-lg bg-cyan-500 text-slate-950 font-bold hover:bg-cyan-400 transition flex items-center space-x-1 shadow-md shadow-cyan-500/20">
+                        <i class="fa-solid fa-copy"></i>
+                        <span id="copyBtnText">Copy UPI ID</span>
+                    </button>
+                </div>
+            </div>
+            <div class="flex flex-col items-center justify-center bg-white/5 p-4 rounded-xl border border-white/10">
+                <img src="https://api.qrserver.com/v1/create-qr-code/?data=upi://pay?pa=donation1@postbank&pn=YUGRAAL_Cause" alt="Donation UPI QR Code" class="w-28 h-28 rounded-lg shadow-md bg-white p-1">
+                <span class="text-[10px] text-slate-400 mt-2 font-mono">Scan to Donate via UPI</span>
+            </div>
+        </div>
+        <div class="text-center text-xs text-slate-500 mt-8">
+            &copy; <span id="currentYear"></span> ChronosAura AI Engine. Built with elite web architecture. No ads, pure utility.
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script>
+        // Live Clock
+        setInterval(() => {
+            const now = new Date();
+            document.getElementById('liveClock').innerText = now.toTimeString().split(' ')[0];
+        }, 1000);
+        document.getElementById('currentYear').innerText = new Date().getFullYear();
+
+        // Copy UPI function
+        function copyUpi() {
+            navigator.clipboard.writeText('donation1@postbank');
+            const btnText = document.getElementById('copyBtnText');
+            btnText.innerText = 'Copied!';
+            setTimeout(() => { btnText.innerText = 'Copy UPI ID'; }, 2000);
+        }
+
+        // Timer Logic
+        let timerInterval;
+        let timeLeft = 25 * 60;
+        let isRunning = false;
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            document.getElementById('timerDisplay').innerText = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        function startTimer() {
+            if (!isRunning) {
+                isRunning = true;
+                timerInterval = setInterval(() => {
+                    if (timeLeft > 0) {
+                        timeLeft--;
+                        updateTimerDisplay();
+                    } else {
+                        clearInterval(timerInterval);
+                        isRunning = false;
+                        alert('Focus session completed! Take a rejuvenating break.');
+                    }
+                }, 1000);
+            }
+        }
+
+        function pauseTimer() {
+            clearInterval(timerInterval);
+            isRunning = false;
+        }
+
+        function stopTimer() {
+            clearInterval(timerInterval);
+            isRunning = false;
+            timeLeft = 25 * 60;
+            updateTimerDisplay();
+        }
+
+        // AI Schedule Generator
+        function generateAISchedule() {
+            const chronotype = document.getElementById('chronotypeSelect').value;
+            const task = document.getElementById('taskInput').value.trim() || 'Deep Cognitive Work';
+            const badge = document.getElementById('aiStatusBadge');
+            const container = document.getElementById('scheduleContainer');
+
+            badge.innerText = 'Synthesizing...';
+            badge.className = 'text-xs px-2.5 py-1 rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/20 animate-pulse';
+
+            setTimeout(() => {
+                badge.innerText = 'Optimized';
+                badge.className = 'text-xs px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+
+                let scheduleHTML = '';
+                const plans = {
+                    lion: [
+                        { time: '06:30 - 08:00', title: 'High-Alert Ideation & Strategy', desc: 'Peak cortisol and body temperature window for ' + task },
+                        { time: '09:00 - 11:30', title: 'Deep Execution Sprint', desc: 'Uninterrupted focus block with zero distractions' },
+                        { time: '13:00 - 15:00', title: 'Collaborative Syncs & Reviews', desc: 'Moderate energy suited for group communication' },
+                        { time: '16:00 - 18:00', title: 'Administrative & Wind-down', desc: 'Low-effort task processing' }
+                    ],
+                    bear: [
+                        { time: '08:30 - 10:30', title: 'Sunlight Alignment & Warm-up', desc: 'Light review and preparation for ' + task },
+                        { time: '10:30 - 13:00', title: 'Primary Flow State', desc: 'Maximum cognitive output and problem solving' },
+                        { time: '14:30 - 16:30', title: 'Secondary Focus & Execution', desc: 'Steady secondary energy surge' },
+                        { time: '17:00 - 18:30', title: 'Reflection & Planning', desc: 'Organizing tomorrow’s circadian schedule' }
+                    ],
+                    wolf: [
+                        { time: '10:00 - 11:30', title: 'Gentle Awakening & Inbox Zero', desc: 'Gradual ramp up suited for night profiles' },
+                        { time: '14:00 - 17:00', title: 'Afternoon Creative Surge', desc: 'Initial energy rise focused on ' + task },
+                        { time: '18:30 - 21:00', title: 'Peak Night Flow State', desc: 'Unmatched nocturnal focus and deep design work' },
+                        { time: '21:30 - 23:00', title: 'Final Polish & Wrap Up', desc: 'Completing loose threads before rest' }
+                    ],
+                    dolphin: [
+                        { time: '09:00 - 10:30', title: 'Fragmented Morning Focus', desc: 'Short sprint for ' + task },
+                        { time: '11:00 - 12:30', title: 'Analytical Problem Solving', desc: 'Alert window before midday dip' },
+                        { time: '15:00 - 16:30', title: 'Post-Rest Micro-Burst', desc: 'High intensity short-duration task block' },
+                        { time: '17:00 - 18:30', title: 'Steady Wrap-up', desc: 'Low stress review phase' }
+                    ]
+                };
+
+                const selectedPlan = plans[chronotype] || plans['bear'];
+                selectedPlan.forEach((item, index) => {
+                    scheduleHTML += `
+                        <div class="p-4 rounded-xl bg-white/5 border border-white/5 flex items-start space-x-4 hover:border-cyan-500/30 transition">
+                            <div class="w-8 h-8 rounded-lg bg-cyan-500/10 text-cyan-300 font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">0${index+1}</div>
+                            <div class="flex-1">
+                                <div class="flex items-center justify-between">
+                                    <h4 class="font-semibold text-sm text-white">${item.title}</h4>
+                                    <span class="text-xs font-mono text-cyan-300 px-2 py-0.5 rounded bg-cyan-500/10">${item.time}</span>
+                                </div>
+                                <p class="text-xs text-slate-400 mt-1">${item.desc}</p>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                container.innerHTML = scheduleHTML;
+            }, 800);
+        }
+
+        function resetApp() {
+            document.getElementById('taskInput').value = '';
+            document.getElementById('scheduleContainer').innerHTML = `
+                <div class="p-4 rounded-xl bg-white/5 border border-white/5 text-slate-400 text-sm text-center py-8">
+                    Configure your bio-parameters and click <span class="text-cyan-400 font-medium">Synthesize AI Flowplan</span> to generate your optimal day.
+                </div>
+            `;
+            document.getElementById('aiStatusBadge').innerText = 'Ready';
+            document.getElementById('aiStatusBadge').className = 'text-xs px-2.5 py-1 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20';
+            stopTimer();
+        }
+    </script>
+</body>
+</html>
