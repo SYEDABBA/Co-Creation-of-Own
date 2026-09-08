@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NovaFlow // Ambient Studio</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Plus Jakarta Sans', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            cyber: {
+              900: '#07090e',
+              800: '#0d111a',
+              700: '#161c2b',
+              accent: '#38bdf8',
+              glow: '#818cf8'
+            }
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    body {
+      background-color: #07090e;
+      color: #e2e8f0;
+      overflow-x: hidden;
+    }
+    .glass-card {
+      background: rgba(13, 17, 26, 0.7);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    }
+    .glass-card-hover {
+      transition: all 0.3s ease;
+    }
+    .glass-card-hover:hover {
+      border-color: rgba(56, 189, 248, 0.3);
+      box-shadow: 0 12px 40px -10px rgba(56, 189, 248, 0.2);
+    }
+    input[type=range] {
+      accent-color: #38bdf8;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col font-sans selection:bg-sky-500/30 selection:text-sky-200">
+  <!-- Header -->
+  <header class="border-b border-white/5 bg-cyber-900/60 backdrop-blur sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-sky-500 to-indigo-500 flex items-center justify-center shadow-lg shadow-sky-500/20">
+          <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
+          </svg>
+        </div>
+        <div>
+          <span class="font-bold tracking-tight text-white text-lg">Nova<span class="text-sky-400">Flow</span></span>
+          <span class="text-[10px] uppercase font-mono px-2 py-0.5 ml-2 bg-sky-950/60 border border-sky-500/30 text-sky-400 rounded-full">v2.4 Core</span>
+        </div>
+      </div>
+      <div class="flex items-center space-x-4">
+        <button id="master-mute" class="px-3 py-1.5 text-xs font-mono rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 transition text-slate-300 flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span id="audio-state-text">AUDIO READY</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Area -->
+  <main class="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    <!-- Hero Visualizer -->
+    <div class="glass-card rounded-2xl p-6 relative overflow-hidden border border-white/10">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4 z-10 relative">
+        <div>
+          <h1 class="text-2xl font-bold tracking-tight text-white">Harmonic Neuro-Acoustics</h1>
+          <p class="text-sm text-slate-400 mt-0.5">Synthesized neural sound layers engineered for cognitive flow states</p>
+        </div>
+        <div class="flex items-center space-x-3">
+          <button id="play-all-btn" class="px-4 py-2 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-medium text-sm transition shadow-lg shadow-sky-500/20 flex items-center space-x-2">
+            <svg id="play-icon" class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"/></svg>
+            <span id="play-label">Engage Master Audio</span>
+          </button>
+        </div>
+      </div>
+      <div class="h-36 w-full rounded-xl overflow-hidden bg-black/40 border border-white/5 relative">
+        <canvas id="visualizer-canvas" class="w-full h-full"></canvas>
+      </div>
+    </div>
+
+    <!-- Channels Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <!-- Layer 1: Binaural Waves -->
+      <div class="glass-card glass-card-hover rounded-2xl p-5 flex flex-col justify-between space-y-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-3">
+            <div class="w-9 h-9 rounded-lg bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            </div>
+            <div>
+              <h3 class="text-sm font-semibold text-white">Alpha Pulse</h3>
+              <span class="text-[11px] font-mono text-slate-400">10 Hz Binaural</span>
+            </div>
+          </div>
+          <button class="channel-toggle w-8 h-8 rounded-lg border border-white/10 flex items-center justify-center text-slate-400 hover:text-white transition" data-channel="alpha">
+            <span class="w-2.5 h-2.5 rounded-full bg-slate-600"></span>
+          </button>
+        </div>
+        <div>
+          <div class="flex justify-between text-xs font-mono text-slate-400 mb-1.5">
+            <span>Intensity</span>
+            <span class="val-disp">0%</span>
+          </div>
+          <input type="range" min="0" max="1" step="0.01" value="0" class="channel-slider w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer" data-channel="alpha" />
+        </div>
+      </div>
+
+      <!-- Layer 2: Deep Brown Noise -->
+      <div class="glass-card glass-card-hover rounded-2xl p-5 flex flex-col justify-between space-y-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-3">
+            <div class="w-9 h-9 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 00-9.78 2.096A4.001 4.001 0 003 15z"/></svg>
+            </div>
+            <div>
+              <h3 class="text-sm font-semibold text-white">Brown Noise</h3>
+              <span class="text-[11px] font-mono text-slate-400">Warm Aerodynamics</span>
+            </div>
+          </div>
+          <button class="channel-toggle w-8 h-8 rounded-lg border border-white/10 flex items-center justify-center text-slate-400 hover:text-white transition" data-channel="brown">
+            <span class="w-2.5 h-2.5 rounded-full bg-slate-600"></span>
+          </button>
+        </div>
+        <div>
+          <div class="flex justify-between text-xs font-mono text-slate-400 mb-1.5">
+            <span>Intensity</span>
+            <span class="val-disp">0%</span>
+          </div>
+          <input type="range" min="0" max="1" step="0.01" value="0" class="channel-slider w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer" data-channel="brown" />
+        </div>
+      </div>
+
+      <!-- Layer 3: Rain Stream -->
+      <div class="glass-card glass-card-hover rounded-2xl p-5 flex flex-col justify-between space-y-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-3">
+            <div class="w-9 h-9 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
+            </div>
+            <div>
+              <h3 class="text-sm font-semibold text-white">Zen Rain</h3>
+              <span class="text-[11px] font-mono text-slate-400">Bio-Dynamic Filter</span>
+            </div>
+          </div>
+          <button class="channel-toggle w-8 h-8 rounded-lg border border-white/10 flex items-center justify-center text-slate-400 hover:text-white transition" data-channel="rain">
+            <span class="w-2.5 h-2.5 rounded-full bg-slate-600"></span>
+          </button>
+        </div>
+        <div>
+          <div class="flex justify-between text-xs font-mono text-slate-400 mb-1.5">
+            <span>Intensity</span>
+            <span class="val-disp">0%</span>
+          </div>
+          <input type="range" min="0" max="1" step="0.01" value="0" class="channel-slider w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer" data-channel="rain" />
+        </div>
+      </div>
+
+      <!-- Layer 4: Celestial Drone -->
+      <div class="glass-card glass-card-hover rounded-2xl p-5 flex flex-col justify-between space-y-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-3">
+            <div class="w-9 h-9 rounded-lg bg-violet-500/10 border border-violet-500/20 flex items-center justify-center text-violet-400">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+            </div>
+            <div>
+              <h3 class="text-sm font-semibold text-white">Aether Pad</h3>
+              <span class="text-[11px] font-mono text-slate-400">432Hz Sub-Harmonics</span>
+            </div>
+          </div>
+          <button class="channel-toggle w-8 h-8 rounded-lg border border-white/10 flex items-center justify-center text-slate-400 hover:text-white transition" data-channel="pad">
+            <span class="w-2.5 h-2.5 rounded-full bg-slate-600"></span>
+          </button>
+        </div>
+        <div>
+          <div class="flex justify-between text-xs font-mono text-slate-400 mb-1.5">
+            <span>Intensity</span>
+            <span class="val-disp">0%</span>
+          </div>
+          <input type="range" min="0" max="1" step="0.01" value="0" class="channel-slider w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer" data-channel="pad" />
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Charity & Support Banner -->
+  <footer class="w-full border-t border-white/10 bg-cyber-900/90 py-10 px-4 sm:px-6 lg:px-8 mt-12">
+    <div class="max-w-5xl mx-auto glass-card rounded-3xl p-6 sm:p-8 border border-white/10 relative overflow-hidden">
+      <div class="absolute -top-24 -right-24 w-72 h-72 bg-sky-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="flex flex-col lg:flex-row items-center justify-between gap-8">
+        <div class="space-y-4 max-w-xl text-center lg:text-left">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-semibold">
+            <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"/></svg>
+            Direct Humanitarian Cause
+          </div>
+          <h3 class="text-xl sm:text-2xl font-bold tracking-tight text-white">Empower Lives Through Technology</h3>
+          <p class="text-sm text-slate-300 leading-relaxed">
+            95% of all contributions go directly towards Cancer Patient Support &amp; School Education Initiatives (5% retained for server maintenance).
+          </p>
+          <div class="flex flex-wrap items-center justify-center lg:justify-start gap-4 pt-2 text-xs font-mono text-slate-400">
+            <div>Recipient: <span class="text-slate-100 font-semibold">ASKAR ALI</span></div>
+            <div class="h-3 w-px bg-white/10 hidden sm:block"></div>
+            <div class="flex items-center gap-2">
+              UPI ID: <span class="text-sky-300 font-semibold bg-white/5 px-2 py-0.5 rounded border border-white/10">donation1@postbank</span>
+              <button id="copy-upi-btn" class="text-xs bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 px-2.5 py-1 rounded transition border border-sky-400/30 active:scale-95">
+                Copy UPI ID
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="flex flex-col items-center bg-black/50 p-4 rounded-2xl border border-white/10 shadow-xl">
+          <img 
+            src="https://api.qrserver.com/v1/create-qr-code/?data=upi://pay?pa=donation1@postbank&pn=YUGRAAL_Cause" 
+            alt="Direct Donation QR Code" 
+            class="w-36 h-36 rounded-lg bg-white p-1 shadow-md"
+            loading="lazy"
+          />
+          <span class="text-[11px] font-mono text-slate-400 mt-2 flex items-center gap-1">
+            <svg class="w-3 h-3 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+            Instant UPI Pay
+          </span>
+        </div>
+      </div>
+    </div>
+    <div class="text-center text-xs text-slate-500 mt-6 font-mono">
+      NovaFlow Audio Architecture // YUGRAAL Systems
+    </div>
+  </footer>
+
+  <!-- Audio Logic -->
+  <script>
+    let audioCtx = null;
+    let isPlaying = false;
+    const channels = {
+      alpha: { gain: null, node: null, volume: 0 },
+      brown: { gain: null, node: null, volume: 0 },
+      rain: { gain: null, node: null, volume: 0 },
+      pad: { gain: null, node: null, volume: 0 }
+    };
+
+    let analyser = null;
+    let canvas = document.getElementById('visualizer-canvas');
+    let ctx = canvas.getContext('2d');
+
+    function initAudio() {
+      if (audioCtx) return;
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 64;
+
+      // Setup Alpha (Binaural Beats 200Hz + 210Hz)
+      const alphaLeft = audioCtx.createOscillator();
+      const alphaRight = audioCtx.createOscillator();
+      const merger = audioCtx.createChannelMerger(2);
+      alphaLeft.frequency.value = 200;
+      alphaRight.frequency.value = 210;
+      alphaLeft.connect(merger, 0, 0);
+      alphaRight.connect(merger, 0, 1);
+      channels.alpha.gain = audioCtx.createGain();
+      channels.alpha.gain.gain.value = 0;
+      merger.connect(channels.alpha.gain);
+      channels.alpha.gain.connect(analyser);
+      alphaLeft.start();
+      alphaRight.start();
+
+      // Setup Brown Noise
+      const bufferSize = audioCtx.sampleRate * 2;
+      const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const output = noiseBuffer.getChannelData(0);
+      let lastOut = 0.0;
+      for (let i = 0; i < bufferSize; i++) {
+        const white = Math.random() * 2 - 1;
+        output[i] = (lastOut + (0.02 * white)) / 1.02;
+        lastOut = output[i];
+        output[i] *= 3.5;
+      }
+      const noiseSrc = audioCtx.createBufferSource();
+      noiseSrc.buffer = noiseBuffer;
+      noiseSrc.loop = true;
+      channels.brown.gain = audioCtx.createGain();
+      channels.brown.gain.gain.value = 0;
+      noiseSrc.connect(channels.brown.gain);
+      channels.brown.gain.connect(analyser);
+      noiseSrc.start();
+
+      // Setup Rain Filtered Sound
+      const rainBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const rainData = rainBuffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        rainData[i] = (Math.random() * 2 - 1) * 0.4;
+      }
+      const rainSrc = audioCtx.createBufferSource();
+      rainSrc.buffer = rainBuffer;
+      rainSrc.loop = true;
+      const rainFilter = audioCtx.createBiquadFilter();
+      rainFilter.type = 'lowpass';
+      rainFilter.frequency.value = 850;
+      channels.rain.gain = audioCtx.createGain();
+      channels.rain.gain.gain.value = 0;
+      rainSrc.connect(rainFilter);
+      rainFilter.connect(channels.rain.gain);
+      channels.rain.gain.connect(analyser);
+      rainSrc.start();
+
+      // Setup Ambient Pad (432Hz Drone)
+      const padOsc = audioCtx.createOscillator();
+      padOsc.type = 'triangle';
+      padOsc.frequency.value = 216; // A 432 octave
+      channels.pad.gain = audioCtx.createGain();
+      channels.pad.gain.gain.value = 0;
+      padOsc.connect(channels.pad.gain);
+      channels.pad.gain.connect(analyser);
+      padOsc.start();
+
+      analyser.connect(audioCtx.destination);
+      drawVisualizer();
+    }
+
+    function drawVisualizer() {
+      requestAnimationFrame(drawVisualizer);
+      const rect = canvas.getBoundingClientRect();
+      if (canvas.width !== rect.width || canvas.height !== rect.height) {
+        canvas.width = rect.width;
+        canvas.height = rect.height;
+      }
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      if (!analyser) return;
+
+      const bufferLength = analyser.frequencyBinCount;
+      const dataArray = new Uint8Array(bufferLength);
+      analyser.getByteFrequencyData(dataArray);
+
+      const barWidth = (canvas.width / bufferLength) * 2.2;
+      let x = 0;
+
+      for (let i = 0; i < bufferLength; i++) {
+        const barHeight = (dataArray[i] / 255) * canvas.height * 0.85;
+        const grad = ctx.createLinearGradient(0, canvas.height, 0, canvas.height - barHeight);
+        grad.addColorStop(0, 'rgba(56, 189, 248, 0.1)');
+        grad.addColorStop(1, 'rgba(129, 140, 248, 0.8)');
+        ctx.fillStyle = grad;
+        ctx.fillRect(x, canvas.height - barHeight, barWidth - 2, barHeight);
+        x += barWidth;
+      }
+    }
+
+    document.getElementById('play-all-btn').addEventListener('click', async () => {
+      if (!audioCtx) initAudio();
+      if (audioCtx.state === 'suspended') await audioCtx.resume();
+      isPlaying = !isPlaying;
+
+      const btn = document.getElementById('play-all-btn');
+      const label = document.getElementById('play-label');
+      if (isPlaying) {
+        label.innerText = 'Audio Online';
+        btn.classList.add('ring-2', 'ring-sky-400');
+        // Auto bring up brown noise to 40% if all zero
+        const brownSlider = document.querySelector(".channel-slider[data-channel='brown']");
+        if (parseFloat(brownSlider.value) === 0) {
+          brownSlider.value = '0.35';
+          brownSlider.dispatchEvent(new Event('input'));
+        }
+      } else {
+        label.innerText = 'Engage Master Audio';
+        btn.classList.remove('ring-2', 'ring-sky-400');
+        Object.keys(channels).forEach(key => {
+          if (channels[key].gain) channels[key].gain.gain.value = 0;
+        });
+      }
+    });
+
+    document.querySelectorAll('.channel-slider').forEach(slider => {
+      slider.addEventListener('input', (e) => {
+        if (!audioCtx) initAudio();
+        const ch = e.target.getAttribute('data-channel');
+        const val = parseFloat(e.target.value);
+        channels[ch].volume = val;
+        if (channels[ch].gain && isPlaying) {
+          channels[ch].gain.gain.setTargetAtTime(val, audioCtx.currentTime, 0.05);
+        }
+        const disp = e.target.parentElement.querySelector('.val-disp');
+        disp.innerText = `${Math.round(val * 100)}%`;
+
+        const toggleDot = document.querySelector(`.channel-toggle[data-channel='${ch}'] span`);
+        if (val > 0) {
+          toggleDot.classList.remove('bg-slate-600');
+          toggleDot.classList.add('bg-sky-400', 'shadow-sm', 'shadow-sky-400');
+        } else {
+          toggleDot.classList.add('bg-slate-600');
+          toggleDot.classList.remove('bg-sky-400', 'shadow-sm', 'shadow-sky-400');
+        }
+      });
+    });
+
+    document.getElementById('copy-upi-btn').addEventListener('click', () => {
+      navigator.clipboard.writeText('donation1@postbank').then(() => {
+        const btn = document.getElementById('copy-upi-btn');
+        const old = btn.innerText;
+        btn.innerText = 'Copied!';
+        btn.classList.replace('text-sky-300', 'text-emerald-300');
+        setTimeout(() => {
+          btn.innerText = old;
+          btn.classList.replace('text-emerald-300', 'text-sky-300');
+        }, 2000);
+      });
+    });
+  </script>
+</body>
+</html>
