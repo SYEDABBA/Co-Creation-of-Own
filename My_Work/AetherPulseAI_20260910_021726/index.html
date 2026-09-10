@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AetherPulse AI - Prompt Engineering Studio</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @keyframes pulseGlow {
+            0%, 100% { opacity: 0.4; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.05); }
+        }
+        .animate-glow {
+            animation: pulseGlow 6s ease-in-out infinite;
+        }
+        .glass-panel {
+            background: rgba(18, 24, 38, 0.7);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col selection:bg-cyan-500 selection:text-black relative overflow-x-hidden">
+
+    <!-- Background decorative glow -->
+    <div class="absolute top-0 left-1/4 w-96 h-96 bg-cyan-600/20 rounded-full blur-3xl pointer-events-none animate-glow"></div>
+    <div class="absolute top-1/3 right-1/4 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl pointer-events-none animate-glow" style="animation-delay: 3s;"></div>
+
+    <!-- Header -->
+    <header class="border-b border-slate-800/80 bg-slate-900/50 backdrop-blur-md sticky top-0 z-50 px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-cyan-500/30">
+                <i class="fa-solid fa-wand-magic-sparkles text-white text-lg"></i>
+            </div>
+            <div>
+                <h1 class="font-bold text-lg tracking-wider bg-gradient-to-r from-cyan-400 to-indigo-400 bg-clip-text text-transparent">AETHERPULSE</h1>
+                <p class="text-xs text-slate-400">Neural Prompt Studio v2.4</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-4">
+            <button onclick="clearCanvas()" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 transition flex items-center gap-2">
+                <i class="fa-solid fa-rotate-right"></i> Reset
+            </button>
+            <button onclick="exportPrompt()" class="px-4 py-1.5 rounded-lg text-xs font-semibold bg-cyan-500 hover:bg-cyan-400 text-slate-950 transition flex items-center gap-2 shadow-lg shadow-cyan-500/20">
+                <i class="fa-solid fa-download"></i> Export Prompt
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Left & Center: Prompt Builder -->
+        <div class="lg:col-span-2 space-y-6">
+            
+            <!-- Mode selector -->
+            <div class="flex gap-2 p-1.5 rounded-xl glass-panel w-fit">
+                <button onclick="setMode('system')" id="btn-system" class="px-4 py-2 rounded-lg text-xs font-semibold transition bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">System Persona</button>
+                <button onclick="setMode('context')" id="btn-context" class="px-4 py-2 rounded-lg text-xs font-semibold transition text-slate-400 hover:text-white">Context & Data</button>
+                <button onclick="setMode('task')" id="btn-task" class="px-4 py-2 rounded-lg text-xs font-semibold transition text-slate-400 hover:text-white">Core Task</button>
+                <button onclick="setMode('output')" id="btn-output" class="px-4 py-2 rounded-lg text-xs font-semibold transition text-slate-400 hover:text-white">Output Schema</button>
+            </div>
+
+            <!-- Editor Card -->
+            <div class="glass-panel rounded-2xl p-6 relative shadow-2xl">
+                <div class="flex justify-between items-center mb-4">
+                    <label id="editor-label" class="text-sm font-semibold text-slate-300 flex items-center gap-2">
+                        <i class="fa-solid fa-terminal text-cyan-400"></i> System Instructions
+                    </label>
+                    <div class="text-xs text-slate-400 flex items-center gap-3">
+                        <span id="char-count">0 chars</span>
+                        <span>•</span>
+                        <span id="token-count">~0 tokens</span>
+                    </div>
+                </div>
+                <textarea id="prompt-editor" oninput="updateMetrics()" rows="7" class="w-full bg-slate-950/60 border border-slate-800 rounded-xl p-4 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-cyan-500 transition resize-none font-mono" placeholder="Define the AI's core behavior, constraints, and operational persona..."></textarea>
+                
+                <!-- Quick Variable Injector -->
+                <div class="mt-4 flex flex-wrap items-center gap-2">
+                    <span class="text-xs text-slate-500 font-medium mr-1">Insert Variable:</span>
+                    <button onclick="injectVar('{{user_input}}')" class="px-2.5 py-1 rounded-md text-xs bg-slate-800 hover:bg-slate-700 text-cyan-300 font-mono">{{user_input}}</button>
+                    <button onclick="injectVar('{{format}}')" class="px-2.5 py-1 rounded-md text-xs bg-slate-800 hover:bg-slate-700 text-cyan-300 font-mono">{{format}}</button>
+                    <button onclick="injectVar('{{constraints}}')" class="px-2.5 py-1 rounded-md text-xs bg-slate-800 hover:bg-slate-700 text-cyan-300 font-mono">{{constraints}}</button>
+                    <button onclick="injectVar('{{examples}}')" class="px-2.5 py-1 rounded-md text-xs bg-slate-800 hover:bg-slate-700 text-cyan-300 font-mono">{{examples}}</button>
+                </div>
+            </div>
+
+            <!-- Compiled Result Preview -->
+            <div class="glass-panel rounded-2xl p-6 space-y-4">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-sm font-semibold text-slate-300 flex items-center gap-2">
+                        <i class="fa-solid fa-code text-indigo-400"></i> Compiled Master Prompt
+                    </h3>
+                    <button onclick="copyMasterPrompt()" class="text-xs text-cyan-400 hover:text-cyan-300 font-medium flex items-center gap-1.5">
+                        <i class="fa-regular fa-copy"></i> Copy Full String
+                    </button>
+                </div>
+                <pre id="master-preview" class="p-4 rounded-xl bg-slate-950 border border-slate-800/80 text-xs text-slate-300 font-mono overflow-x-auto max-h-48 whitespace-pre-wrap"></pre>
+            </div>
+        </div>
+
+        <!-- Right Sidebar: Analytics & Presets -->
+        <div class="space-y-6">
+            <!-- Optimization Scorecard -->
+            <div class="glass-panel rounded-2xl p-6 space-y-5">
+                <h3 class="text-sm font-semibold text-slate-300 flex items-center gap-2">
+                    <i class="fa-solid fa-chart-line text-emerald-400"></i> Quality Metrics
+                </h3>
+                
+                <div class="space-y-4">
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-slate-400">Clarity Index</span>
+                            <span id="score-clarity" class="text-emerald-400 font-bold">85%</span>
+                        </div>
+                        <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                            <div id="bar-clarity" class="h-full bg-emerald-500 transition-all duration-500" style="width: 85%"></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-slate-400">Constraint Rigidity</span>
+                            <span id="score-rigidity" class="text-cyan-400 font-bold">70%</span>
+                        </div>
+                        <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                            <div id="bar-rigidity" class="h-full bg-cyan-500 transition-all duration-500" style="width: 70%"></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-slate-400">Token Efficiency</span>
+                            <span id="score-efficiency" class="text-purple-400 font-bold">92%</span>
+                        </div>
+                        <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                            <div id="bar-efficiency" class="h-full bg-purple-500 transition-all duration-500" style="width: 92%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-3 border-t border-slate-800/80">
+                    <button onclick="optimizePrompt()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-slate-950 font-semibold text-xs transition shadow-lg shadow-cyan-500/20">
+                        <i class="fa-solid fa-wand-magic mr-1.5"></i> Auto-Enhance Prompt
+                    </button>
+                </div>
+            </div>
+
+            <!-- Quick Presets -->
+            <div class="glass-panel rounded-2xl p-6 space-y-4">
+                <h3 class="text-sm font-semibold text-slate-300 flex items-center gap-2">
+                    <i class="fa-solid fa-layer-group text-amber-400"></i> Template Presets
+                </h3>
+                <div class="space-y-2">
+                    <button onclick="loadPreset('coder')" class="w-full text-left p-3 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-800/80 transition text-xs">
+                        <div class="font-semibold text-slate-200">Senior Software Architect</div>
+                        <div class="text-slate-500 text-[10px] mt-0.5">Strict clean code, modular mindset</div>
+                    </button>
+                    <button onclick="loadPreset('writer')" class="w-full text-left p-3 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-800/80 transition text-xs">
+                        <div class="font-semibold text-slate-200">Copywriting Master</div>
+                        <div class="text-slate-500 text-[10px] mt-0.5">High conversion, engaging hooks</div>
+                    </button>
+                    <button onclick="loadPreset('analyst')" class="w-full text-left p-3 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-800/80 transition text-xs">
+                        <div class="font-semibold text-slate-200">Data & Market Analyst</div>
+                        <div class="text-slate-500 text-[10px] mt-0.5">Structured tables, objective insights</div>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Cause-Driven Charity & Support Footer Section -->
+    <footer class="mt-12 border-t border-slate-800 bg-slate-900/80 backdrop-blur-lg py-8 px-6">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+            
+            <!-- Message & Receiver Info -->
+            <div class="space-y-2 text-center md:text-left">
+                <div class="flex items-center justify-center md:justify-start gap-2">
+                    <span class="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-400 text-[10px] font-bold border border-rose-500/30">CHARITY & IMPACT</span>
+                    <span class="text-xs text-slate-400">Receiver: <strong class="text-slate-200">ASKAR ALI</strong></span>
+                </div>
+                <p class="text-xs text-slate-400 max-w-xl leading-relaxed">
+                    95% of all contributions go directly towards Cancer Patient Support & School Education Initiatives (5% retained for server maintenance).
+                </p>
+                <div class="text-xs text-slate-500 font-mono">
+                    UPI ID: <span id="upi-id-text" class="text-cyan-400 font-bold">donation1@postbank</span>
+                </div>
+            </div>
+
+            <!-- Interactive UPI Actions & QR Code -->
+            <div class="flex items-center gap-4 bg-slate-950/60 p-4 rounded-2xl border border-slate-800">
+                <div class="space-y-2">
+                    <button onclick="copyUpiId()" class="w-full px-4 py-2 rounded-xl text-xs font-semibold bg-cyan-500 hover:bg-cyan-400 text-slate-950 transition flex items-center justify-center gap-2 shadow-md shadow-cyan-500/20">
+                        <i class="fa-solid fa-copy"></i> Copy UPI ID
+                    </button>
+                    <div id="copy-alert" class="text-[10px] text-emerald-400 text-center font-medium opacity-0 transition-opacity">UPI ID Copied!</div>
+                </div>
+                <div class="bg-white p-2 rounded-xl">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?data=upi://pay?pa=donation1@postbank&pn=YUGRAAL_Cause" alt="Donation UPI QR Code" class="w-20 h-20 object-contain">
+                </div>
+            </div>
+        </div>
+
+        <!-- Copyright -->
+        <div class="max-w-7xl mx-auto mt-8 pt-4 border-t border-slate-800/50 flex flex-col sm:flex-row items-center justify-between text-[11px] text-slate-500">
+            <p>&copy; 2025 AetherPulse AI &times; YUGRAAL Co-Creator Engine. All rights reserved.</p>
+            <p class="mt-2 sm:mt-0">Built with passion for global good.</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        let currentMode = 'system';
+        const promptData = {
+            system: "You are an elite, highly proficient AI assistant. Always prioritize correctness, elegance, and extreme precision.",
+            context: "Current operational domain: Software engineering and automated system architecture.",
+            task: "Analyze user requirements and output production-ready code with concise documentation.",
+            output: "JSON format with keys: 'status', 'data', 'summary'."
+        };
+
+        function setMode(mode) {
+            currentMode = mode;
+            ['system', 'context', 'task', 'output'].forEach(m => {
+                const btn = document.getElementById(`btn-${m}`);
+                if (m === mode) {
+                    btn.className = "px-4 py-2 rounded-lg text-xs font-semibold transition bg-cyan-500/20 text-cyan-300 border border-cyan-500/30";
+                } else {
+                    btn.className = "px-4 py-2 rounded-lg text-xs font-semibold transition text-slate-400 hover:text-white";
+                }
+            });
+
+            const labels = {
+                system: 'System Instructions',
+                context: 'Context & Domain Data',
+                task: 'Core Task Specification',
+                output: 'Desired Output Schema'
+            };
+            document.getElementById('editor-label').innerHTML = `<i class="fa-solid fa-terminal text-cyan-400"></i> ${labels[mode]}`;
+            document.getElementById('prompt-editor').value = promptData[mode];
+            updateMetrics();
+        }
+
+        function updateMetrics() {
+            const val = document.getElementById('prompt-editor').value;
+            promptData[currentMode] = val;
+            
+            const chars = val.length;
+            const tokens = Math.round(chars / 4);
+            
+            document.getElementById('char-count').innerText = `${chars} chars`;
+            document.getElementById('token-count').innerText = `~${tokens} tokens`;
+
+            updateMasterPreview();
+            calculateScores(val);
+        }
+
+        function updateMasterPreview() {
+            const masterString = `[SYSTEM]:\n${promptData.system}\n\n[CONTEXT]:\n${promptData.context}\n\n[TASK]:\n${promptData.task}\n\n[OUTPUT SCHEMA]:\n${promptData.output}`;
+            document.getElementById('master-preview').innerText = masterString;
+        }
+
+        function injectVar(variable) {
+            const editor = document.getElementById('prompt-editor');
+            const start = editor.selectionStart;
+            const end = editor.selectionEnd;
+            const text = editor.value;
+            editor.value = text.substring(0, start) + variable + text.substring(end);
+            editor.focus();
+            editor.setSelectionRange(start + variable.length, start + variable.length);
+            updateMetrics();
+        }
+
+        function calculateScores(text) {
+            // Simulated intelligent scoring based on keywords and length
+            let clarity = Math.min(100, Math.max(40, text.length / 2 + (text.includes('JSON') || text.includes('Always') ? 20 : 0)));
+            let rigidity = Math.min(100, Math.max(30, (text.match(/must|never|always|strictly/gi) || []).length * 15 + 40));
+            let efficiency = Math.min(100, Math.max(50, 100 - Math.round(text.length / 15)));
+
+            document.getElementById('score-clarity').innerText = `${Math.round(clarity)}%`;
+            document.getElementById('bar-clarity').style.width = `${clarity}%`;
+
+            document.getElementById('score-rigidity').innerText = `${Math.round(rigidity)}%`;
+            document.getElementById('bar-rigidity').style.width = `${rigidity}%`;
+
+            document.getElementById('score-efficiency').innerText = `${Math.round(efficiency)}%`;
+            document.getElementById('bar-efficiency').style.width = `${efficiency}%`;
+        }
+
+        function optimizePrompt() {
+            const current = promptData[currentMode];
+            promptData[currentMode] = current + "\n[Constraint]: Maintain absolute structural integrity and absolute clarity.";
+            document.getElementById('prompt-editor').value = promptData[currentMode];
+            updateMetrics();
+        }
+
+        function loadPreset(type) {
+            if (type === 'coder') {
+                promptData.system = "You are an elite Senior Software Architect specializing in robust, scalable, clean code systems.";
+                promptData.context = "Tech stack: Node.js, TypeScript, Tailwind CSS, PostgreSQL.";
+                promptData.task = "Write clean, modular code with detailed error handling and type safety.";
+                promptData.output = "Fully functional code block + concise implementation steps.";
+            } else if (type === 'writer') {
+                promptData.system = "You are a world-class Copywriter and Content Strategist specializing in magnetic hooks and high-conversion storytelling.";
+                promptData.context = "Target audience: Tech-savvy professionals and digital creators.";
+                promptData.task = "Draft an engaging landing page hero section with 3 headline options.";
+                promptData.output = "Markdown structured copy with emotional resonance metrics.";
+            } else if (type === 'analyst') {
+                promptData.system = "You are a rigorous Data and Market Analyst with expertise in quantitative modeling.";
+                promptData.context = "Input data stream: Raw market trends and customer feedback logs.";
+                promptData.task = "Extract top 3 actionable insights and categorize sentiment trends.";
+                promptData.output = "Structured Markdown tables with objective executive summary.";
+            }
+            setMode(currentMode);
+        }
+
+        function clearCanvas() {
+            promptData.system = '';
+            promptData.context = '';
+            promptData.task = '';
+            promptData.output = '';
+            setMode('system');
+        }
+
+        function copyMasterPreview() {
+            const masterString = document.getElementById('master-preview').innerText;
+            navigator.clipboard.writeText(masterString);
+            alert('Master prompt copied to clipboard!');
+        }
+
+        function exportPrompt() {
+            const masterString = document.getElementById('master-preview').innerText;
+            const blob = new Blob([masterString], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'AetherPulse_MasterPrompt.txt';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function copyUpiId() {
+            navigator.clipboard.writeText('donation1@postbank');
+            const alertBox = document.getElementById('copy-alert');
+            alertBox.style.opacity = '1';
+            setTimeout(() => {
+                alertBox.style.opacity = '0';
+            }, 2000);
+        }
+
+        // Initialize on load
+        window.onload = () => {
+            setMode('system');
+        };
+    </script>
+</body>
+</html>
