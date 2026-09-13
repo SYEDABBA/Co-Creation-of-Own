@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ChronoFlow // Neural Focus Engine</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            cyber: {
+              900: '#07090e',
+              800: '#0f141c',
+              700: '#1b2230',
+              accent: '#38bdf8',
+              glow: '#818cf8'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .glass {
+      background: rgba(15, 20, 28, 0.75);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .glass-glow {
+      box-shadow: 0 0 25px -5px rgba(56, 189, 248, 0.15);
+    }
+  </style>
+</head>
+<body class="bg-cyber-900 text-slate-200 min-h-screen font-sans flex flex-col justify-between selection:bg-cyber-accent selection:text-black">
+  <header class="border-b border-white/5 bg-cyber-800/40 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="h-3 w-3 rounded-full bg-cyber-accent animate-ping"></div>
+        <span class="font-black tracking-widest text-lg text-white">CHRONO<span class="text-cyber-accent">FLOW</span></span>
+      </div>
+      <div class="text-xs tracking-wider uppercase text-slate-400 bg-white/5 px-3 py-1.5 rounded-full border border-white/10">
+        v2.4 Cognitive Terminal
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-6 py-10 w-full grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <section class="glass glass-glow rounded-3xl p-8 flex flex-col items-center justify-center relative overflow-hidden">
+      <div class="absolute -top-12 -right-12 w-44 h-44 bg-cyber-glow/10 rounded-full blur-3xl"></div>
+      <div class="text-xs font-semibold tracking-widest text-cyber-accent uppercase mb-3">Deep Focus Timer</div>
+      <div class="text-7xl font-mono font-bold tracking-tight text-white mb-6" id="timerDisplay">25:00</div>
+      <div class="flex items-center space-x-3 w-full max-w-xs">
+        <button id="timerToggleBtn" class="flex-1 bg-cyber-accent hover:bg-sky-400 text-slate-950 font-bold py-3 rounded-xl transition duration-200 shadow-lg shadow-sky-500/20 active:scale-95">START</button>
+        <button id="timerResetBtn" class="px-5 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 font-semibold transition active:scale-95 border border-white/10">RESET</button>
+      </div>
+      <div class="flex space-x-2 mt-6">
+        <button onclick="setMode(25)" class="px-3 py-1 rounded-lg text-xs font-medium bg-white/5 hover:bg-white/10 text-slate-300 border border-white/5">Focus (25m)</button>
+        <button onclick="setMode(5)" class="px-3 py-1 rounded-lg text-xs font-medium bg-white/5 hover:bg-white/10 text-slate-300 border border-white/5">Short (5m)</button>
+        <button onclick="setMode(15)" class="px-3 py-1 rounded-lg text-xs font-medium bg-white/5 hover:bg-white/10 text-slate-300 border border-white/5">Long (15m)</button>
+      </div>
+    </section>
+
+    <section class="lg:col-span-2 glass rounded-3xl p-8 flex flex-col justify-between">
+      <div>
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-lg font-bold text-white tracking-wide">Target Mission Objectives</h2>
+          <span class="text-xs text-slate-400" id="taskCounter">0 completed</span>
+        </div>
+        <form id="taskForm" class="flex gap-3 mb-6">
+          <input type="text" id="taskInput" placeholder="Deploy high-priority focus task..." required class="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-cyber-accent text-white placeholder-slate-500 transition">
+          <button type="submit" class="bg-white/10 hover:bg-white/20 text-white font-semibold px-5 py-3 rounded-xl text-sm border border-white/10 transition">Add Objective</button>
+        </form>
+        <ul id="taskList" class="space-y-3 max-h-64 overflow-y-auto pr-2"></ul>
+      </div>
+      <div class="pt-4 mt-6 border-t border-white/5 flex items-center justify-between text-xs text-slate-400">
+        <span>Status: <strong class="text-emerald-400">Nominal</strong></span>
+        <span>System State: Synchronized</span>
+      </div>
+    </section>
+  </main>
+
+  <footer class="max-w-6xl mx-auto px-6 pb-12 w-full mt-10">
+    <div class="glass rounded-3xl p-8 border border-white/10 relative overflow-hidden bg-gradient-to-br from-cyber-800/80 to-slate-900/90 shadow-2xl">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+        <div class="md:col-span-2 space-y-3">
+          <div class="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-3 py-1 rounded-full text-xs font-semibold tracking-wide uppercase">
+            Cause-Driven Initiative
+          </div>
+          <h3 class="text-xl font-bold text-white">Empower Lives Through Technology</h3>
+          <p class="text-sm text-slate-300 leading-relaxed">
+            95% of all contributions go directly towards Cancer Patient Support & School Education Initiatives (5% retained for server maintenance).
+          </p>
+          <div class="flex flex-wrap items-center gap-4 text-xs text-slate-400 pt-2">
+            <div>Recipient: <span class="text-white font-semibold">ASKAR ALI</span></div>
+            <div class="h-3 w-px bg-white/10"></div>
+            <div>UPI ID: <span class="font-mono text-cyber-accent select-all" id="upiIdText">donation1@postbank</span></div>
+            <button id="copyBtn" class="bg-white/10 hover:bg-white/20 text-slate-200 px-3 py-1.5 rounded-lg border border-white/10 font-medium transition active:scale-95">Copy UPI ID</button>
+          </div>
+        </div>
+        <div class="flex flex-col items-center justify-center p-4 bg-white/5 rounded-2xl border border-white/10 text-center">
+          <img src="https://api.qrserver.com/v1/create-qr-code/?data=upi://pay?pa=donation1@postbank&pn=YUGRAAL_Cause" alt="Donation QR" class="w-32 h-32 rounded-lg bg-white p-1 shadow-md mb-2">
+          <span class="text-[11px] uppercase tracking-wider text-slate-400 font-mono">Scan to Support Direct</span>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    let timerDuration = 25 * 60;
+    let remainingTime = timerDuration;
+    let timerInterval = null;
+    let isRunning = false;
+
+    const display = document.getElementById('timerDisplay');
+    const toggleBtn = document.getElementById('timerToggleBtn');
+    const resetBtn = document.getElementById('timerResetBtn');
+    const taskForm = document.getElementById('taskForm');
+    const taskInput = document.getElementById('taskInput');
+    const taskList = document.getElementById('taskList');
+    const taskCounter = document.getElementById('taskCounter');
+    const copyBtn = document.getElementById('copyBtn');
+
+    function updateDisplay() {
+      const m = Math.floor(remainingTime / 60).toString().padStart(2, '0');
+      const s = (remainingTime % 60).toString().padStart(2, '0');
+      display.textContent = `${m}:${s}`;
+    }
+
+    function toggleTimer() {
+      if (!isRunning) {
+        isRunning = true;
+        toggleBtn.textContent = 'PAUSE';
+        toggleBtn.classList.replace('bg-cyber-accent', 'bg-amber-400');
+        timerInterval = setInterval(() => {
+          if (remainingTime > 0) {
+            remainingTime--;
+            updateDisplay();
+          } else {
+            clearInterval(timerInterval);
+            isRunning = false;
+            toggleBtn.textContent = 'START';
+            toggleBtn.classList.replace('bg-amber-400', 'bg-cyber-accent');
+            alert('Focus Interval Completed.');
+          }
+        }, 1000);
+      } else {
+        clearInterval(timerInterval);
+        isRunning = false;
+        toggleBtn.textContent = 'START';
+        toggleBtn.classList.replace('bg-amber-400', 'bg-cyber-accent');
+      }
+    }
+
+    function resetTimer() {
+      clearInterval(timerInterval);
+      isRunning = false;
+      remainingTime = timerDuration;
+      toggleBtn.textContent = 'START';
+      toggleBtn.classList.replace('bg-amber-400', 'bg-cyber-accent');
+      updateDisplay();
+    }
+
+    function setMode(mins) {
+      timerDuration = mins * 60;
+      resetTimer();
+    }
+
+    toggleBtn.addEventListener('click', toggleTimer);
+    resetBtn.addEventListener('click', resetTimer);
+
+    let tasks = [];
+    function renderTasks() {
+      taskList.innerHTML = '';
+      let completedCount = 0;
+      tasks.forEach((task, index) => {
+        if (task.completed) completedCount++;
+        const li = document.createElement('li');
+        li.className = 'flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/5 transition';
+        li.innerHTML = `
+          <div class="flex items-center space-x-3">
+            <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="toggleTask(${index})" class="h-4 w-4 rounded bg-white/10 border-white/20 text-cyber-accent focus:ring-0 cursor-pointer">
+            <span class="text-sm ${task.completed ? 'line-through text-slate-500' : 'text-slate-200'}">${task.title}</span>
+          </div>
+          <button onclick="removeTask(${index})" class="text-slate-500 hover:text-rose-400 text-xs transition">&times;</button>
+        `;
+        taskList.appendChild(li);
+      });
+      taskCounter.textContent = `${completedCount} of ${tasks.length} completed`;
+    }
+
+    function toggleTask(index) {
+      tasks[index].completed = !tasks[index].completed;
+      renderTasks();
+    }
+
+    function removeTask(index) {
+      tasks.splice(index, 1);
+      renderTasks();
+    }
+
+    taskForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const val = taskInput.value.trim();
+      if (val) {
+        tasks.push({ title: val, completed: false });
+        taskInput.value = '';
+        renderTasks();
+      }
+    });
+
+    copyBtn.addEventListener('click', () => {
+      navigator.clipboard.writeText('donation1@postbank').then(() => {
+        copyBtn.textContent = 'Copied!';
+        setTimeout(() => { copyBtn.textContent = 'Copy UPI ID'; }, 2000);
+      });
+    });
+
+    updateDisplay();
+  </script>
+</body>
+</html>
