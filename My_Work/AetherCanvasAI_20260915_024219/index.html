@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AetherCanvas AI | Generative Studio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darkbase: '#090a0f',
+                        glass: 'rgba(255, 255, 255, 0.03)',
+                        glassborder: 'rgba(255, 255, 255, 0.08)',
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glass-input {
+            background: rgba(2, 6, 23, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .glass-input:focus {
+            border-color: rgba(99, 102, 241, 0.5);
+            outline: none;
+        }
+        @keyframes pulseGlow {
+            0%, 100% { opacity: 0.4; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.03); }
+        }
+        .animate-glow {
+            animation: pulseGlow 6s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="bg-darkbase text-slate-100 min-h-screen flex flex-col selection:bg-indigo-500 selection:text-white">
+
+    <!-- Background Ambient Glows -->
+    <div class="fixed top-0 left-1/4 w-96 h-96 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none animate-glow"></div>
+    <div class="fixed bottom-1/4 right-1/4 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl pointer-events-none animate-glow" style="animation-delay: 3s;"></div>
+
+    <!-- Header -->
+    <header class="w-full border-b border-white/5 glass-panel sticky top-0 z-50 px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                <i class="fa-solid fa-wand-magic-sparkles text-white text-lg"></i>
+            </div>
+            <div>
+                <h1 class="font-bold text-lg tracking-tight bg-gradient-to-r from-white via-slate-200 to-indigo-300 bg-clip-text text-transparent">AetherCanvas AI</h1>
+                <p class="text-xs text-slate-400">Generative Design & Audio Synthesis Suite</p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-4">
+            <button onclick="exportCanvas()" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium transition shadow-lg shadow-indigo-600/30 flex items-center space-x-2">
+                <i class="fa-solid fa-download"></i>
+                <span>Export Asset</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
+        
+        <!-- Controls Panel -->
+        <div class="lg:col-span-1 glass-panel rounded-2xl p-5 flex flex-col space-y-6 h-fit">
+            <div>
+                <h2 class="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-4 flex items-center space-x-2">
+                    <i class="fa-solid fa-sliders text-indigo-400"></i>
+                    <span>Generative Parameters</span>
+                </h2>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="text-xs text-slate-400 font-medium">Pattern Algorithm</label>
+                        <select id="algorithmSelect" onchange="generateArt()" class="w-full mt-1.5 px-3 py-2.5 rounded-xl glass-input text-sm text-slate-200">
+                            <option value="voronoi">Aether Voronoi Mesh</option>
+                            <option value="nebula">Nebula Particle Flow</option>
+                            <option value="geometric">Sacred Geometry Matrix</option>
+                            <option value="waves">Harmonic Waveforms</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="text-xs text-slate-400 font-medium">Color Harmonic Palette</label>
+                        <select id="paletteSelect" onchange="generateArt()" class="w-full mt-1.5 px-3 py-2.5 rounded-xl glass-input text-sm text-slate-200">
+                            <option value="cyberpunk">Neon Cyberpunk</option>
+                            <option value="aurora">Nordic Aurora</option>
+                            <option value="supernova">Deep Supernova</option>
+                            <option value="monochrome">Obsidian Monochrome</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between text-xs text-slate-400 font-medium mb-1">
+                            <span>Complexity Density</span>
+                            <span id="densityVal">50</span>
+                        </div>
+                        <input type="range" id="densityRange" min="10" max="150" value="50" oninput="document.getElementById('densityVal').innerText=this.value; generateArt();" class="w-full accent-indigo-500 bg-slate-800 rounded-lg h-2 cursor-pointer">
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between text-xs text-slate-400 font-medium mb-1">
+                            <span>Rotation Angle</span>
+                            <span id="rotationVal">0°</span>
+                        </div>
+                        <input type="range" id="rotationRange" min="0" max="360" value="0" oninput="document.getElementById('rotationVal').innerText=this.value+'°'; generateArt();" class="w-full accent-indigo-500 bg-slate-800 rounded-lg h-2 cursor-pointer">
+                    </div>
+                </div>
+            </div>
+
+            <div class="pt-4 border-t border-white/5">
+                <button onclick="generateArt()" class="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold text-sm transition shadow-lg shadow-indigo-600/20 flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-rotate"></i>
+                    <span>Regenerate Canvas</span>
+                </button>
+            </div>
+
+            <!-- Audio Ambient Generator -->
+            <div class="pt-4 border-t border-white/5">
+                <h3 class="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-3 flex items-center space-x-2">
+                    <i class="fa-solid fa-volume-high text-indigo-400"></i>
+                    <span>Focus Soundscape</span>
+                </h3>
+                <button id="audioBtn" onclick="toggleAmbientAudio()" class="w-full py-2.5 rounded-xl glass-input hover:bg-slate-800 text-slate-200 text-sm font-medium transition flex items-center justify-center space-x-2">
+                    <i id="audioIcon" class="fa-solid fa-play text-indigo-400"></i>
+                    <span id="audioText">Start Ambient Flow</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Canvas Display Area -->
+        <div class="lg:col-span-3 glass-panel rounded-2xl p-4 flex flex-col items-center justify-center relative overflow-hidden min-h-[500px]">
+            <div class="absolute top-4 left-4 z-10 flex items-center space-x-2 bg-slate-950/60 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/10 text-xs text-slate-300">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span id="statusText">Ready • Generative Engine Active</span>
+            </div>
+            
+            <div class="w-full h-full flex items-center justify-center rounded-xl overflow-hidden shadow-2xl bg-slate-950 border border-white/5">
+                <canvas id="artCanvas" class="w-full h-full max-w-[800px] max-h-[600px] object-contain"></canvas>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Cause-Driven Charity Section (Mandatory & Aesthetic) -->
+    <footer class="w-full border-t border-white/5 bg-slate-950/80 backdrop-blur-xl mt-12 py-8 px-6">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+            <div class="flex items-center space-x-4">
+                <div class="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 text-xl">
+                    <i class="fa-solid fa-heart-pulse"></i>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-slate-200 text-sm">Charity & Social Impact Initiative</h4>
+                    <p class="text-xs text-slate-400 max-w-xl mt-0.5">
+                        95% of all contributions go directly towards Cancer Patient Support & School Education Initiatives (5% retained for server maintenance).
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row items-center gap-4 bg-slate-900/80 p-4 rounded-2xl border border-white/5">
+                <div class="text-left">
+                    <div class="text-xs text-slate-400 font-medium">Receiver: <span class="text-slate-200 font-bold">ASKAR ALI</span></div>
+                    <div class="text-xs text-slate-400 font-medium mt-0.5">UPI ID: <span id="upiId" class="text-indigo-400 font-mono font-bold">donation1@postbank</span></div>
+                </div>
+                
+                <div class="flex items-center space-x-3">
+                    <button onclick="copyUpi()" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium transition flex items-center space-x-1.5">
+                        <i class="fa-regular fa-copy text-indigo-400"></i>
+                        <span id="copyText">Copy UPI</span>
+                    </button>
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?data=upi://pay?pa=donation1@postbank&pn=YUGRAAL_Cause" alt="UPI QR Code" class="w-14 h-14 rounded-lg bg-white p-1 shadow-md">
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript Engine -->
+    <script>
+        const canvas = document.getElementById('artCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = 1000;
+            canvas.height = 750;
+            generateArt();
+        }
+
+        window.addEventListener('load', resizeCanvas);
+
+        function getPalette(name) {
+            switch(name) {
+                case 'cyberpunk': return ['#ff0055', '#00f0ff', '#7000ff', '#ffe600', '#0a0a12'];
+                case 'aurora': return ['#00ffcc', '#0099ff', '#7928ca', '#111827', '#ffffff'];
+                case 'supernova': return ['#ff4500', '#ff8c00', '#ff1493', '#4b0082', '#0f051d'];
+                case 'monochrome': default: return ['#ffffff', '#a1a1aa', '#52525b', '#27272a', '#090a0f'];
+            }
+        }
+
+        function generateArt() {
+            const algo = document.getElementById('algorithmSelect').value;
+            const paletteName = document.getElementById('paletteSelect').value;
+            const density = parseInt(document.getElementById('densityRange').value);
+            const rotation = parseInt(document.getElementById('rotationRange').value) * (Math.PI / 180);
+            const colors = getPalette(paletteName);
+
+            ctx.save();
+            ctx.fillStyle = colors[colors.length - 1];
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.translate(canvas.width / 2, canvas.height / 2);
+            ctx.rotate(rotation);
+            ctx.translate(-canvas.width / 2, -canvas.height / 2);
+
+            if (algo === 'voronoi') {
+                drawVoronoi(density, colors);
+            } else if (algo === 'nebula') {
+                drawNebula(density, colors);
+            } else if (algo === 'geometric') {
+                drawGeometric(density, colors);
+            } else if (algo === 'waves') {
+                drawWaves(density, colors);
+            }
+
+            ctx.restore();
+        }
+
+        function drawVoronoi(density, colors) {
+            const points = [];
+            for (let i = 0; i < density; i++) {
+                points.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    color: colors[Math.floor(Math.random() * (colors.length - 1))]
+                });
+            }
+
+            points.forEach(p => {
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, Math.random() * 40 + 10, 0, Math.PI * 2);
+                ctx.fillStyle = p.color;
+                ctx.globalAlpha = 0.35;
+                ctx.fill();
+                ctx.filter = 'blur(20px)';
+            });
+            ctx.filter = 'none';
+            ctx.globalAlpha = 1.0;
+        }
+
+        function drawNebula(density, colors) {
+            for (let i = 0; i < density * 3; i++) {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height;
+                const radius = Math.random() * 120 + 20;
+                const color = colors[Math.floor(Math.random() * (colors.length - 1))];
+
+                const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius);
+                gradient.addColorStop(0, color);
+                gradient.addColorStop(1, 'transparent');
+
+                ctx.fillStyle = gradient;
+                ctx.globalAlpha = 0.15;
+                ctx.beginPath();
+                ctx.arc(x, y, radius, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.globalAlpha = 1.0;
+        }
+
+        function drawGeometric(density, colors) {
+            const count = density;
+            const size = Math.min(canvas.width, canvas.height) * 0.4;
+            for (let i = 0; i < count; i++) {
+                ctx.beginPath();
+                let sides = (i % 4) + 3;
+                let radius = (i / count) * size + 20;
+                let angleStep = (Math.PI * 2) / sides;
+
+                let cx = canvas.width / 2 + (Math.sin(i) * 50);
+                let cy = canvas.height / 2 + (Math.cos(i) * 50);
+
+                for (let s = 0; s < sides; s++) {
+                    let a = s * angleStep + (i * 0.1);
+                    let x = cx + Math.cos(a) * radius;
+                    let y = cy + Math.sin(a) * radius;
+                    if (s === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                }
+                ctx.closePath();
+                ctx.strokeStyle = colors[i % (colors.length - 1)];
+                ctx.lineWidth = 1.5;
+                ctx.globalAlpha = 0.4;
+                ctx.stroke();
+            }
+            ctx.globalAlpha = 1.0;
+        }
+
+        function drawWaves(density, colors) {
+            const lines = density / 2;
+            for (let i = 0; i < lines; i++) {
+                ctx.beginPath();
+                ctx.strokeStyle = colors[i % (colors.length - 1)];
+                ctx.lineWidth = 2;
+                ctx.globalAlpha = 0.5;
+
+                let step = 15;
+                for (let x = 0; x <= canvas.width; x += step) {
+                    let y = (canvas.height / 2) + 
+                            Math.sin(x * 0.01 + i * 0.2) * 80 + 
+                            Math.cos(x * 0.005 - i * 0.1) * (i * 3);
+                    if (x === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                }
+                ctx.stroke();
+            }
+            ctx.globalAlpha = 1.0;
+        }
+
+        function exportCanvas() {
+            const link = document.createElement('a');
+            link.download = 'AetherCanvas-Art.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        // Web Audio API Ambient Sound Synthesizer
+        let audioCtx = null;
+        let isPlaying = false;
+        let osc1, osc2, gainNode;
+
+        function toggleAmbientAudio() {
+            const btnText = document.getElementById('audioText');
+            const btnIcon = document.getElementById('audioIcon');
+
+            if (!isPlaying) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                
+                osc1 = audioCtx.createOscillator();
+                osc2 = audioCtx.createOscillator();
+                gainNode = audioCtx.createGain();
+
+                osc1.type = 'sine';
+                osc2.type = 'triangle';
+
+                // Ambient chord frequencies (F# minor pad)
+                osc1.frequency.setValueAtTime(185.00, audioCtx.currentTime); // F#3
+                osc2.frequency.setValueAtTime(277.18, audioCtx.currentTime); // C#4
+
+                gainNode.gain.setValueAtTime(0.02, audioCtx.currentTime);
+
+                osc1.connect(gainNode);
+                osc2.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+
+                osc1.start();
+                osc2.start();
+
+                isPlaying = true;
+                btnText.innerText = 'Stop Ambient Flow';
+                btnIcon.className = 'fa-solid fa-stop text-rose-400';
+            } else {
+                if (osc1) osc1.stop();
+                if (osc2) osc2.stop();
+                if (audioCtx) audioCtx.close();
+
+                isPlaying = false;
+                btnText.innerText = 'Start Ambient Flow';
+                btnIcon.className = 'fa-solid fa-play text-indigo-400';
+            }
+        }
+
+        function copyUpi() {
+            const upi = document.getElementById('upiId').innerText;
+            navigator.clipboard.writeText(upi);
+            const copyText = document.getElementById('copyText');
+            copyText.innerText = 'Copied!';
+            setTimeout(() => { copyText.innerText = 'Copy UPI'; }, 2000);
+        }
+    </script>
+</body>
+</html>
