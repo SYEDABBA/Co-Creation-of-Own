@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AetherCanvas Synthesizer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        glass: 'rgba(255, 255, 255, 0.05)',
+                        glassBorder: 'rgba(255, 255, 255, 0.1)',
+                        darkBg: '#08090d'
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background-color: #08090d; color: #f3f4f6; font-family: system-ui, -apple-system, sans-serif; overflow-x: hidden; }
+        .glass-panel {
+            background: rgba(17, 24, 39, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .slider-thumb::-webkit-slider-thumb {
+            background: #6366f1;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between">
+
+    <!-- Top Navigation -->
+    <header class="w-full glass-panel border-b border-glassBorder py-4 px-6 flex justify-between items-center z-50 sticky top-0">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+                <i class="fa-solid fa-wave-square text-white text-lg"></i>
+            </div>
+            <div>
+                <h1 class="text-lg font-bold tracking-wider bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">AETHERCANVAS</h1>
+                <p class="text-xs text-gray-400">Generative Audio-Visual Studio</p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-4">
+            <button id="toggleAudio" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm transition shadow-lg shadow-indigo-600/30 flex items-center space-x-2">
+                <i class="fa-solid fa-volume-high" id="audioIcon"></i>
+                <span id="audioText">Enable Audio</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="flex-grow flex flex-col lg:flex-row p-6 gap-6 max-w-[1600px] mx-auto w-full">
+        <!-- Canvas Area -->
+        <div class="flex-grow glass-panel rounded-2xl relative overflow-hidden flex items-center justify-center min-h-[500px] shadow-2xl">
+            <canvas id="mainCanvas" class="absolute inset-0 w-full h-full cursor-crosshair"></canvas>
+            <div class="absolute bottom-6 left-6 pointer-events-none glass-panel px-4 py-2 rounded-xl text-xs text-gray-300 flex items-center space-x-3">
+                <span class="flex h-2 w-2 relative">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
+                </span>
+                <span>Click & drag on canvas to paint generative elements</span>
+            </div>
+        </div>
+
+        <!-- Control Sidebar -->
+        <div class="w-full lg:w-80 glass-panel rounded-2xl p-6 flex flex-col space-y-6">
+            <h2 class="text-sm font-semibold tracking-wider text-gray-400 uppercase">Synthesis Parameters</h2>
+            
+            <!-- Mode Selector -->
+            <div class="space-y-2">
+                <label class="text-xs text-gray-300 font-medium">Visual Mode</label>
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="setMode('nebula')" id="btnNebula" class="py-2 px-3 rounded-xl bg-indigo-600 text-white text-xs font-medium transition">Nebula</button>
+                    <button onclick="setMode('matrix')" id="btnMatrix" class="py-2 px-3 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 text-xs font-medium transition">Matrix</button>
+                </div>
+            </div>
+
+            <!-- Particle Count -->
+            <div class="space-y-2">
+                <div class="flex justify-between text-xs">
+                    <span class="text-gray-300 font-medium">Particle Density</span>
+                    <span id="densityVal" class="text-indigo-400 font-mono">150</span>
+                </div>
+                <input type="range" id="densityRange" min="50" max="400" value="150" class="w-full h-1.5 bg-gray-700 rounded-lg appearance-none cursor-pointer slider-thumb">
+            </div>
+
+            <!-- Oscillation Frequency -->
+            <div class="space-y-2">
+                <div class="flex justify-between text-xs">
+                    <span class="text-gray-300 font-medium">Base Frequency</span>
+                    <span id="freqVal" class="text-indigo-400 font-mono">220 Hz</span>
+                </div>
+                <input type="range" id="freqRange" min="110" max="880" value="220" class="w-full h-1.5 bg-gray-700 rounded-lg appearance-none cursor-pointer slider-thumb">
+            </div>
+
+            <!-- Resonance / Reverb -->
+            <div class="space-y-2">
+                <div class="flex justify-between text-xs">
+                    <span class="text-gray-300 font-medium">Harmonic Spread</span>
+                    <span id="spreadVal" class="text-indigo-400 font-mono">1.5x</span>
+                </div>
+                <input type="range" id="spreadRange" min="1" max="3" step="0.1" value="1.5" class="w-full h-1.5 bg-gray-700 rounded-lg appearance-none cursor-pointer slider-thumb">
+            </div>
+
+            <hr class="border-glassBorder">
+
+            <!-- Actions -->
+            <div class="flex flex-col space-y-3">
+                <button onclick="clearCanvas()" class="w-full py-2.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 font-medium text-xs transition flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-rotate-right"></i>
+                    <span>Reset Canvas</span>
+                </button>
+                <button onclick="captureSnapshot()" class="w-full py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white font-medium text-xs transition flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-camera"></i>
+                    <span>Export Snapshot</span>
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Charity & Support Banner -->
+    <footer class="w-full bg-[#050608] border-t border-glassBorder py-8 px-6 mt-12">
+        <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+            <div class="flex items-start space-x-4 max-w-xl">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-pink-500 to-rose-500 flex-shrink-0 flex items-center justify-center shadow-lg shadow-rose-500/30">
+                    <i class="fa-solid fa-heart text-white text-xl"></i>
+                </div>
+                <div>
+                    <h3 class="text-sm font-bold text-white tracking-wide">Cause-Driven Support & Charity Initiative</h3>
+                    <p class="text-xs text-gray-400 mt-1 leading-relaxed">
+                        95% of all contributions go directly towards Cancer Patient Support & School Education Initiatives (5% retained for server maintenance).
+                    </p>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-6 glass-panel p-4 rounded-2xl">
+                <div class="text-right">
+                    <p class="text-xs text-gray-400">Receiver: <span class="text-white font-semibold">ASKAR ALI</span></p>
+                    <p class="text-xs text-indigo-400 font-mono mt-1" id="upiIdText">donation1@postbank</p>
+                    <button onclick="copyUpi()" class="mt-2 px-3 py-1 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 text-xs transition">
+                        <i class="fa-regular fa-copy mr-1"></i> Copy UPI ID
+                    </button>
+                </div>
+                <div class="bg-white p-2 rounded-xl">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?data=upi://pay?pa=donation1@postbank&pn=YUGRAAL_Cause&size=100x100" alt="UPI QR Code" class="w-20 h-20">
+                </div>
+            </div>
+        </div>
+        <div class="text-center text-xs text-gray-600 mt-8">
+            &copy; YUGRAAL Co-Creator Web Engine. Built with absolute precision.
+        </div>
+    </footer>
+
+    <!-- Core Script Logic -->
+    <script>
+        // Canvas Setup
+        const canvas = document.getElementById('mainCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        function resizeCanvas() {
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // State Variables
+        let currentMode = 'nebula';
+        let particleDensity = 150;
+        let baseFreq = 220;
+        let harmonicSpread = 1.5;
+        let audioCtx = null;
+        let oscillator = null;
+        let gainNode = null;
+        let isAudioActive = false;
+
+        let particles = [];
+
+        class Particle {
+            constructor(x, y) {
+                this.x = x || Math.random() * canvas.width;
+                this.y = y || Math.random() * canvas.height;
+                this.vx = (Math.random() - 0.5) * 2;
+                this.vy = (Math.random() - 0.5) * 2;
+                this.size = Math.random() * 3 + 1;
+                this.color = `hsl(${Math.random() * 60 + 220}, 80%, 60%)`;
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+                if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+            }
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function initParticles() {
+            particles = [];
+            for (let i = 0; i < particleDensity; i++) {
+                particles.push(new Particle());
+            }
+        }
+        initParticles();
+
+        // Animation Loop
+        function animate() {
+            ctx.fillStyle = 'rgba(8, 9, 13, 0.2)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            particles.forEach((p, index) => {
+                p.update();
+                p.draw();
+                for (let j = index + 1; j < particles.length; j++) {
+                    let p2 = particles[j];
+                    let dist = Math.hypot(p.x - p2.x, p.y - p2.y);
+                    if (dist < 100) {
+                        ctx.strokeStyle = `rgba(99, 102, 241, ${1 - dist / 100})`;
+                        ctx.lineWidth = 0.5;
+                        ctx.beginPath();
+                        ctx.moveTo(p.x, p.y);
+                        ctx.lineTo(p2.x, p2.y);
+                        ctx.stroke();
+                    }
+                }
+            });
+            requestAnimationFrame(animate);
+        }
+        animate();
+
+        // Mouse Interaction
+        let isDrawing = false;
+        canvas.addEventListener('mousedown', (e) => {
+            isDrawing = true;
+            spawnAt(e.offsetX, e.offsetY);
+        });
+        canvas.addEventListener('mousemove', (e) => {
+            if (isDrawing) spawnAt(e.offsetX, e.offsetY);
+        });
+        window.addEventListener('mouseup', () => isDrawing = false);
+
+        function spawnAt(x, y) {
+            for (let i = 0; i < 5; i++) {
+                let p = new Particle(x, y);
+                particles.push(p);
+                if (particles.length > 500) particles.shift();
+            }
+            if (isAudioActive && oscillator) {
+                let freq = baseFreq + (x / canvas.width) * 400;
+                oscillator.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            }
+        }
+
+        // Audio Engine
+        document.getElementById('toggleAudio').addEventListener('click', () => {
+            if (!isAudioActive) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                oscillator = audioCtx.createOscillator();
+                gainNode = audioCtx.createGain();
+                
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(baseFreq, audioCtx.currentTime);
+                
+                gainNode.gain.setValueAtTime(0.05, audioCtx.currentTime);
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                oscillator.start();
+
+                isAudioActive = true;
+                document.getElementById('audioIcon').className = 'fa-solid fa-volume-xmark';
+                document.getElementById('audioText').innerText = 'Disable Audio';
+            } else {
+                if (oscillator) oscillator.stop();
+                if (audioCtx) audioCtx.close();
+                isAudioActive = false;
+                document.getElementById('audioIcon').className = 'fa-solid fa-volume-high';
+                document.getElementById('audioText').innerText = 'Enable Audio';
+            }
+        });
+
+        // Controls Logic
+        function setMode(mode) {
+            currentMode = mode;
+            document.getElementById('btnNebula').className = mode === 'nebula' ? 'py-2 px-3 rounded-xl bg-indigo-600 text-white text-xs font-medium transition' : 'py-2 px-3 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 text-xs font-medium transition';
+            document.getElementById('btnMatrix').className = mode === 'matrix' ? 'py-2 px-3 rounded-xl bg-indigo-600 text-white text-xs font-medium transition' : 'py-2 px-3 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 text-xs font-medium transition';
+        }
+
+        const densityRange = document.getElementById('densityRange');
+        densityRange.addEventListener('input', (e) => {
+            particleDensity = parseInt(e.target.value);
+            document.getElementById('densityVal').innerText = particleDensity;
+            initParticles();
+        });
+
+        const freqRange = document.getElementById('freqRange');
+        freqRange.addEventListener('input', (e) => {
+            baseFreq = parseInt(e.target.value);
+            document.getElementById('freqVal').innerText = baseFreq + ' Hz';
+            if (isAudioActive && oscillator) {
+                oscillator.frequency.setValueAtTime(baseFreq, audioCtx.currentTime);
+            }
+        });
+
+        const spreadRange = document.getElementById('spreadRange');
+        spreadRange.addEventListener('input', (e) => {
+            harmonicSpread = parseFloat(e.target.value);
+            document.getElementById('spreadVal').innerText = harmonicSpread + 'x';
+        });
+
+        function clearCanvas() {
+            initParticles();
+        }
+
+        function captureSnapshot() {
+            const link = document.createElement('a');
+            link.download = 'aether-canvas.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+
+        function copyUpi() {
+            navigator.clipboard.writeText('donation1@postbank');
+            alert('UPI ID copied to clipboard: donation1@postbank');
+        }
+    </script>
+</body>
+</html>
