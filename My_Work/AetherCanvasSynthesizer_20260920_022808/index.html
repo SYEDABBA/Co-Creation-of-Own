@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AetherCanvas Synthesizer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darkbase: '#0a0d14',
+                        glass: 'rgba(255, 255, 255, 0.05)',
+                        glassborder: 'rgba(255, 255, 255, 0.1)'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .glass-panel {
+            background: rgba(18, 24, 38, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .slider-thumb::-webkit-slider-thumb {
+            background: #6366f1;
+        }
+    </style>
+</head>
+<body class="bg-darkbase text-slate-100 min-h-screen flex flex-col font-sans select-none overflow-x-hidden">
+
+    <!-- Header -->
+    <header class="w-full border-b border-white/10 glass-panel sticky top-0 z-50 px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path>
+                </svg>
+            </div>
+            <div>
+                <h1 class="text-lg font-bold tracking-wider bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">AETHER CANVAS</h1>
+                <p class="text-xs text-slate-400">Generative Visual & Audio Synthesizer</p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-3">
+            <button id="btn-fullscreen" class="px-4 py-2 text-xs font-semibold rounded-lg glass-panel hover:bg-white/10 transition flex items-center space-x-2">
+                <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
+                <span>Fullscreen</span>
+            </button>
+            <button id="btn-export" class="px-4 py-2 text-xs font-semibold rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/30 transition flex items-center space-x-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                <span>Save HD Image</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="flex-1 grid grid-cols-1 lg:grid-cols-4 gap-6 p-6 max-w-[1600px] w-full mx-auto">
+        
+        <!-- Canvas Area -->
+        <div class="lg:col-span-3 glass-panel rounded-2xl relative flex items-center justify-center overflow-hidden min-h-[500px] shadow-2xl">
+            <canvas id="artCanvas" class="w-full h-full absolute inset-0 cursor-crosshair"></canvas>
+            <div class="absolute bottom-4 left-4 glass-panel px-3 py-1.5 rounded-lg text-xs text-slate-300 flex items-center space-x-2 pointer-events-none">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span id="fpsCounter">60 FPS</span>
+                <span>•</span>
+                <span id="particleCount">0 Particles</span>
+            </div>
+        </div>
+
+        <!-- Control Deck -->
+        <div class="glass-panel rounded-2xl p-6 flex flex-col space-y-6">
+            <div class="border-b border-white/10 pb-4">
+                <h2 class="text-sm font-bold tracking-wider text-indigo-400 uppercase">Synthesizer Controls</h2>
+            </div>
+
+            <!-- Presets -->
+            <div class="space-y-2">
+                <label class="text-xs text-slate-400 font-medium">Presets</label>
+                <div class="grid grid-cols-3 gap-2">
+                    <button onclick="setPreset('nebula')" class="py-1.5 text-xs rounded bg-white/5 hover:bg-indigo-600/30 border border-white/10 transition">Nebula</button>
+                    <button onclick="setPreset('matrix')" class="py-1.5 text-xs rounded bg-white/5 hover:bg-indigo-600/30 border border-white/10 transition">Matrix</button>
+                    <button onclick="setPreset('solar')" class="py-1.5 text-xs rounded bg-white/5 hover:bg-indigo-600/30 border border-white/10 transition">Solar</button>
+                </div>
+            </div>
+
+            <!-- Sliders -->
+            <div class="space-y-4">
+                <div class="space-y-1">
+                    <div class="flex justify-between text-xs">
+                        <span class="text-slate-400">Particle Density</span>
+                        <span id="val-density" class="text-indigo-400 font-mono">150</span>
+                    </div>
+                    <input type="range" id="slider-density" min="50" max="400" value="150" class="w-full accent-indigo-500 bg-white/10 h-1.5 rounded-lg appearance-none cursor-pointer">
+                </div>
+
+                <div class="space-y-1">
+                    <div class="flex justify-between text-xs">
+                        <span class="text-slate-400">Rotation Speed</span>
+                        <span id="val-speed" class="text-indigo-400 font-mono">1.0x</span>
+                    </div>
+                    <input type="range" id="slider-speed" min="0.1" max="3.0" step="0.1" value="1.0" class="w-full accent-indigo-500 bg-white/10 h-1.5 rounded-lg appearance-none cursor-pointer">
+                </div>
+
+                <div class="space-y-1">
+                    <div class="flex justify-between text-xs">
+                        <span class="text-slate-400">Connection Radius</span>
+                        <span id="val-radius" class="text-indigo-400 font-mono">100px</span>
+                    </div>
+                    <input type="range" id="slider-radius" min="50" max="200" value="100" class="w-full accent-indigo-500 bg-white/10 h-1.5 rounded-lg appearance-none cursor-pointer">
+                </div>
+            </div>
+
+            <!-- Color Theme -->
+            <div class="space-y-2">
+                <label class="text-xs text-slate-400 font-medium">Harmonic Palette</label>
+                <div class="grid grid-cols-4 gap-2">
+                    <button onclick="setPalette('indigo')" class="h-8 rounded-lg bg-gradient-to-tr from-indigo-500 to-purple-500 border-2 border-white/20 hover:scale-105 transition"></button>
+                    <button onclick="setPalette('emerald')" class="h-8 rounded-lg bg-gradient-to-tr from-emerald-400 to-cyan-500 border-2 border-transparent hover:scale-105 transition"></button>
+                    <button onclick="setPalette('sunset')" class="h-8 rounded-lg bg-gradient-to-tr from-orange-500 to-rose-500 border-2 border-transparent hover:scale-105 transition"></button>
+                    <button onclick="setPalette('monochrome')" class="h-8 rounded-lg bg-gradient-to-tr from-slate-200 to-slate-500 border-2 border-transparent hover:scale-105 transition"></button>
+                </div>
+            </div>
+
+            <!-- Audio Drone Generator -->
+            <div class="pt-4 border-t border-white/10 space-y-3">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs text-slate-400 font-medium">Ambient Tone Generator</span>
+                    <button id="btn-audio" class="px-3 py-1 rounded bg-indigo-600/30 hover:bg-indigo-600 border border-indigo-500/50 text-xs font-semibold text-indigo-300 hover:text-white transition">Start Audio</button>
+                </div>
+                <p class="text-[11px] text-slate-500">Generative binaural harmonic drone matching visual frequencies.</p>
+            </div>
+
+            <div class="flex-1"></div>
+            <button onclick="resetCanvas()" class="w-full py-2.5 rounded-xl border border-white/10 hover:bg-white/5 text-xs font-semibold transition text-slate-300">Re-Initialize Matrix</button>
+        </div>
+
+    </main>
+
+    <!-- Cause-Driven Charity & Support Banner -->
+    <footer class="w-full border-t border-white/10 bg-darkbase/90 py-8 px-6 mt-12">
+        <div class="max-w-6xl mx-auto glass-panel rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 border border-indigo-500/20 shadow-2xl relative overflow-hidden">
+            <div class="absolute -right-20 -bottom-20 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+            
+            <div class="flex items-center space-x-4">
+                <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shrink-0 shadow-lg shadow-emerald-500/30">
+                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="text-sm font-bold text-emerald-400 uppercase tracking-wider mb-1">Cause-Driven Support & Charity Initiative</h3>
+                    <p class="text-xs text-slate-300 max-w-xl leading-relaxed">
+                        95% of all contributions go directly towards Cancer Patient Support & School Education Initiatives (5% retained for server maintenance).
+                    </p>
+                    <div class="flex items-center space-x-4 mt-2 text-xs text-slate-400">
+                        <span>Receiver: <strong class="text-white">ASKAR ALI</strong></span>
+                        <span>•</span>
+                        <span>UPI ID: <code id="upiText" class="text-indigo-400 font-mono">donation1@postbank</code></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-4 shrink-0">
+                <img src="https://api.qrserver.com/v1/create-qr-code/?data=upi://pay?pa=donation1@postbank&pn=YUGRAAL_Cause" alt="Donation QR" class="w-20 h-20 rounded-xl bg-white p-1 border border-white/20 shadow-md">
+                <button onclick="copyUpi()" id="copyBtn" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-lg shadow-emerald-600/30 transition flex items-center space-x-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
+                    <span id="copyText">Copy UPI ID</span>
+                </button>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        const canvas = document.getElementById('artCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        let width, height;
+        let particles = [];
+        let config = {
+            density: 150,
+            speed: 1.0,
+            radius: 100,
+            palette: 'indigo'
+        };
+
+        const palettes = {
+            indigo: ['#6366f1', '#a855f7', '#3b82f6', '#ec4899'],
+            emerald: ['#34d399', '#06b6d4', '#3b82f6', '#10b981'],
+            sunset: ['#f97316', '#ef4444', '#db2777', '#f59e0b'],
+            monochrome: ['#ffffff', '#cbd5e1', '#64748b', '#334155']
+        };
+
+        function resize() {
+            width = canvas.parentElement.clientWidth;
+            height = canvas.parentElement.clientHeight;
+            canvas.width = width * window.devicePixelRatio;
+            canvas.height = height * window.devicePixelRatio;
+            ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+        }
+
+        class Particle {
+            constructor() {
+                this.reset();
+            }
+            reset() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.vx = (Math.random() - 0.5) * 2 * config.speed;
+                this.vy = (Math.random() - 0.5) * 2 * config.speed;
+                this.size = Math.random() * 2.5 + 1;
+                this.color = palettes[config.palette][Math.floor(Math.random() * palettes[config.palette].length)];
+            }
+            update() {
+                this.x += this.vx * config.speed;
+                this.y += this.vy * config.speed;
+
+                if (this.x < 0 || this.x > width) this.vx *= -1;
+                if (this.y < 0 || this.y > height) this.vy *= -1;
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+            }
+        }
+
+        function initParticles() {
+            particles = [];
+            for (let i = 0; i < config.density; i++) {
+                particles.push(new Particle());
+            }
+        }
+
+        let lastTime = performance.now();
+        let frameCount = 0;
+        let fps = 60;
+
+        function animate(time) {
+            frameCount++;
+            if (time - lastTime >= 1000) {
+                fps = frameCount;
+                frameCount = 0;
+                lastTime = time;
+                document.getElementById('fpsCounter').innerText = `${fps} FPS`;
+            }
+
+            ctx.fillStyle = 'rgba(10, 13, 20, 0.2)';
+            ctx.fillRect(0, 0, width, height);
+
+            for (let i = 0; i < particles.length; i++) {
+                particles[i].update();
+                particles[i].draw();
+
+                for (let j = i + 1; j < particles.length; j++) {
+                    let dx = particles[i].x - particles[j].x;
+                    let dy = particles[i].y - particles[j].y;
+                    let dist = Math.sqrt(dx * dx + dy * dy);
+
+                    if (dist < config.radius) {
+                        ctx.beginPath();
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.strokeStyle = particles[i].color;
+                        ctx.globalAlpha = (1 - (dist / config.radius)) * 0.25;
+                        ctx.stroke();
+                        ctx.globalAlpha = 1.0;
+                    }
+                }
+            }
+
+            document.getElementById('particleCount').innerText = `${particles.length} Particles`;
+            requestAnimationFrame(animate);
+        }
+
+        // UI Controls wiring
+        document.getElementById('slider-density').addEventListener('input', (e) => {
+            config.density = parseInt(e.target.value);
+            document.getElementById('val-density').innerText = config.density;
+            initParticles();
+        });
+
+        document.getElementById('slider-speed').addEventListener('input', (e) => {
+            config.speed = parseFloat(e.target.value);
+            document.getElementById('val-speed').innerText = config.speed.toFixed(1) + 'x';
+        });
+
+        document.getElementById('slider-radius').addEventListener('input', (e) => {
+            config.radius = parseInt(e.target.value);
+            document.getElementById('val-radius').innerText = config.radius + 'px';
+        });
+
+        function setPalette(name) {
+            config.palette = name;
+            particles.forEach(p => p.color = palettes[config.palette][Math.floor(Math.random() * palettes[config.palette].length)]);
+        }
+
+        function setPreset(type) {
+            if (type === 'nebula') {
+                config.density = 250;
+                config.speed = 0.8;
+                config.radius = 120;
+                setPalette('indigo');
+            } else if (type === 'matrix') {
+                config.density = 180;
+                config.speed = 1.8;
+                config.radius = 70;
+                setPalette('emerald');
+            } else if (type === 'solar') {
+                config.density = 200;
+                config.speed = 1.2;
+                config.radius = 100;
+                setPalette('sunset');
+            }
+            document.getElementById('slider-density').value = config.density;
+            document.getElementById('val-density').innerText = config.density;
+            document.getElementById('slider-speed').value = config.speed;
+            document.getElementById('val-speed').innerText = config.speed.toFixed(1) + 'x';
+            document.getElementById('slider-radius').value = config.radius;
+            document.getElementById('val-radius').innerText = config.radius + 'px';
+            initParticles();
+        }
+
+        function resetCanvas() {
+            initParticles();
+        }
+
+        document.getElementById('btn-export').addEventListener('click', () => {
+            const link = document.createElement('a');
+            link.download = 'aether-canvas.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        });
+
+        document.getElementById('btn-fullscreen').addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                canvas.parentElement.requestFullscreen();
+            } else {
+                document.exitFullscreen();
+            }
+        });
+
+        // Web Audio Synthesizer
+        let audioCtx = null;
+        let oscillator = null;
+        let gainNode = null;
+        let isAudioPlaying = false;
+
+        document.getElementById('btn-audio').addEventListener('click', () => {
+            if (!isAudioPlaying) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                oscillator = audioCtx.createOscillator();
+                gainNode = audioCtx.createGain();
+                
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(130.81, audioCtx.currentTime); // C3
+                
+                gainNode.gain.setValueAtTime(0.05, audioCtx.currentTime);
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                oscillator.start();
+                
+                isAudioPlaying = true;
+                const btn = document.getElementById('btn-audio');
+                btn.innerText = 'Stop Audio';
+                btn.classList.add('bg-indigo-600', 'text-white');
+            } else {
+                if (oscillator) oscillator.stop();
+                if (audioCtx) audioCtx.close();
+                isAudioPlaying = false;
+                const btn = document.getElementById('btn-audio');
+                btn.innerText = 'Start Audio';
+                btn.classList.remove('bg-indigo-600', 'text-white');
+            }
+        });
+
+        // Copy UPI function
+        function copyUpi() {
+            navigator.clipboard.writeText('donation1@postbank');
+            const textEl = document.getElementById('copyText');
+            textEl.innerText = 'Copied!';
+            setTimeout(() => textEl.innerText = 'Copy UPI ID', 2000);
+        }
+
+        window.addEventListener('resize', () => {
+            resize();
+        });
+
+        // Init
+        resize();
+        initParticles();
+        requestAnimationFrame(animate);
+    </script>
+</body>
+</html>
