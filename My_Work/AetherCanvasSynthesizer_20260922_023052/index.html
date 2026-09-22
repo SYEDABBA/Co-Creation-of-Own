@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AetherCanvas Synthesizer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        glass: 'rgba(18, 18, 26, 0.7)',
+                        glassBorder: 'rgba(255, 255, 255, 0.08)'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .glass-panel {
+            background: rgba(18, 18, 26, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .slider-thumb::-webkit-slider-thumb {
+            background: #6366f1;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-indigo-500 selection:text-white overflow-x-hidden">
+
+    <!-- Header -->
+    <header class="w-full glass-panel border-b border-glassBorder py-4 px-6 sticky top-0 z-50 flex justify-between items-center">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z"/>
+                </svg>
+            </div>
+            <div>
+                <h1 class="text-lg font-bold tracking-tight bg-gradient-to-r from-indigo-400 via-purple-300 to-pink-400 bg-clip-text text-transparent">AetherCanvas</h1>
+                <p class="text-xs text-slate-400">Generative Visuals & Ambient Synthesizer</p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-4">
+            <button id="toggleAudio" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-sm font-medium transition shadow-lg shadow-indigo-600/20 flex items-center space-x-2">
+                <svg id="audioIcon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"/></svg>
+                <span id="audioText">Start Audio</span>
+            </button>
+            <button id="captureBtn" class="px-4 py-2 rounded-xl glass-panel hover:bg-slate-800 text-sm font-medium transition flex items-center space-x-2">
+                <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                <span>Snapshot</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Studio Layout -->
+    <main class="flex-1 grid grid-cols-1 lg:grid-cols-4 gap-6 p-6 max-w-7xl mx-auto w-full">
+        <!-- Canvas Display Area -->
+        <div class="lg:col-span-3 glass-panel rounded-2xl overflow-hidden relative flex items-center justify-center shadow-2xl min-h-[500px]">
+            <canvas id="artCanvas" class="absolute inset-0 w-full h-full cursor-crosshair"></canvas>
+            <div class="absolute bottom-4 left-4 pointer-events-none glass-panel px-3 py-1.5 rounded-lg text-xs text-slate-300 flex items-center space-x-2">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span id="fpsCounter">60 FPS</span>
+                <span class="text-slate-500">|</span>
+                <span id="particleCount">0 Particles</span>
+            </div>
+        </div>
+
+        <!-- Control Panel -->
+        <div class="glass-panel rounded-2xl p-6 flex flex-col space-y-6">
+            <h2 class="text-sm font-semibold tracking-wider text-slate-300 uppercase">Synthesizer Controls</h2>
+            
+            <!-- Mode Selection -->
+            <div class="space-y-2">
+                <label class="text-xs text-slate-400 font-medium">Pattern Preset</label>
+                <div class="grid grid-cols-3 gap-2">
+                    <button onclick="setMode('nebula')" id="btn-nebula" class="py-2 px-3 rounded-lg bg-indigo-600 text-xs font-medium transition">Nebula</button>
+                    <button onclick="setMode('matrix')" id="btn-matrix" class="py-2 px-3 rounded-lg bg-slate-800 text-slate-300 text-xs font-medium transition">Matrix</button>
+                    <button onclick="setMode('pulse')" id="btn-pulse" class="py-2 px-3 rounded-lg bg-slate-800 text-slate-300 text-xs font-medium transition">Pulse</button>
+                </div>
+            </div>
+
+            <!-- Particle Density -->
+            <div class="space-y-2">
+                <div class="flex justify-between text-xs text-slate-400">
+                    <span>Particle Density</span>
+                    <span id="val-density">150</span>
+                </div>
+                <input type="range" id="density" min="50" max="400" value="150" class="w-full accent-indigo-500 bg-slate-800 rounded-lg appearance-none h-1.5">
+            </div>
+
+            <!-- Speed / Flow -->
+            <div class="space-y-2">
+                <div class="flex justify-between text-xs text-slate-400">
+                    <span>Flow Speed</span>
+                    <span id="val-speed">1.0x</span>
+                </div>
+                <input type="range" id="speed" min="0.2" max="3.0" step="0.1" value="1.0" class="w-full accent-indigo-500 bg-slate-800 rounded-lg appearance-none h-1.5">
+            </div>
+
+            <!-- Color Palette -->
+            <div class="space-y-2">
+                <label class="text-xs text-slate-400 font-medium">Harmonic Palette</label>
+                <select id="palette" class="w-full bg-slate-900 border border-glassBorder rounded-xl p-2.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                    <option value="cosmic">Cosmic Purple & Cyan</option>
+                    <option value="sunset">Solar Flare & Magenta</option>
+                    <option value="emerald">Emerald Forest & Gold</option>
+                    <option value="mono">Monochrome Silver</option>
+                </select>
+            </div>
+
+            <!-- Ambient Frequency -->
+            <div class="space-y-2">
+                <div class="flex justify-between text-xs text-slate-400">
+                    <span>Ambient Drone Pitch</span>
+                    <span id="val-pitch">220 Hz</span>
+                </div>
+                <input type="range" id="pitch" min="110" max="440" step="5" value="220" class="w-full accent-indigo-500 bg-slate-800 rounded-lg appearance-none h-1.5">
+            </div>
+
+            <button onclick="resetCanvas()" class="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 transition">
+                Reset Canvas
+            </button>
+        </div>
+    </main>
+
+    <!-- Cause-Driven Charity & Support Section -->
+    <footer class="w-full glass-panel border-t border-glassBorder mt-auto py-8 px-6">
+        <div class="max-w-4xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+            <div class="flex items-center space-x-4">
+                <div class="w-12 h-12 rounded-full bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center shrink-0 shadow-lg shadow-rose-500/20">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+                </div>
+                <div>
+                    <h3 class="text-sm font-bold text-slate-200">Cause-Driven Initiative</h3>
+                    <p class="text-xs text-slate-400 mt-0.5 leading-relaxed max-w-xl">
+                        95% of all contributions go directly towards Cancer Patient Support & School Education Initiatives (5% retained for server maintenance).
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-4 bg-slate-900/60 p-3 rounded-xl border border-glassBorder shrink-0">
+                <img src="https://api.qrserver.com/v1/create-qr-code/?data=upi://pay?pa=donation1@postbank&pn=YUGRAAL_Cause&size=80x80" alt="UPI QR Code" class="w-16 h-16 rounded-lg bg-white p-1">
+                <div class="flex flex-col space-y-1.5">
+                    <div class="text-xs text-slate-300 font-medium">Receiver: <span class="text-indigo-400 font-bold">ASKAR ALI</span></div>
+                    <div class="text-[11px] text-slate-400">UPI ID: <code class="bg-slate-800 px-1.5 py-0.5 rounded text-slate-200 select-all">donation1@postbank</code></div>
+                    <button onclick="copyUpi()" id="copyBtn" class="px-3 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs text-white font-medium transition text-center">
+                        Copy UPI ID
+                    </button>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Application Logic -->
+    <script>
+        const canvas = document.getElementById('artCanvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        let currentMode = 'nebula';
+        let isAudioPlaying = false;
+        let audioCtx, osc, gainNode;
+
+        function resizeCanvas() {
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // Particle Class
+        class Particle {
+            constructor() {
+                this.reset();
+            }
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.vx = (Math.random() - 0.5) * 2;
+                this.vy = (Math.random() - 0.5) * 2;
+                this.size = Math.random() * 2.5 + 0.5;
+                this.alpha = Math.random() * 0.7 + 0.3;
+            }
+            update(speedVal, mode) {
+                this.x += this.vx * speedVal;
+                this.y += this.vy * speedVal;
+
+                if (mode === 'matrix') {
+                    this.y += 2 * speedVal;
+                    this.x += Math.sin(this.y * 0.02) * 0.5;
+                } else if (mode === 'pulse') {
+                    const dx = canvas.width / 2 - this.x;
+                    const dy = canvas.height / 2 - this.y;
+                    this.x += dx * 0.01 * speedVal;
+                    this.y += dy * 0.01 * speedVal;
+                }
+
+                if (this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height) {
+                    this.reset();
+                }
+            }
+            draw(palette) {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                
+                let color = 'rgba(99, 102, 241, ' + this.alpha + ')';
+                if (palette === 'sunset') color = 'rgba(244, 63, 94, ' + this.alpha + ')';
+                if (palette === 'emerald') color = 'rgba(16, 185, 129, ' + this.alpha + ')';
+                if (palette === 'mono') color = 'rgba(226, 232, 240, ' + this.alpha + ')';
+
+                ctx.fillStyle = color;
+                ctx.fill();
+            }
+        }
+
+        function initParticles() {
+            particles = [];
+            const count = parseInt(document.getElementById('density').value);
+            for (let i = 0; i < count; i++) {
+                particles.push(new Particle());
+            }
+            document.getElementById('particleCount').innerText = count + ' Particles';
+        }
+        initParticles();
+
+        function setMode(mode) {
+            currentMode = mode;
+            ['nebula', 'matrix', 'pulse'].forEach(m => {
+                const btn = document.getElementById('btn-' + m);
+                if (m === mode) {
+                    btn.className = 'py-2 px-3 rounded-lg bg-indigo-600 text-xs font-medium transition';
+                } else {
+                    btn.className = 'py-2 px-3 rounded-lg bg-slate-800 text-slate-300 text-xs font-medium transition';
+                }
+            });
+        }
+
+        function resetCanvas() {
+            initParticles();
+        }
+
+        // Animation Loop
+        let lastTime = performance.now();
+        let frameCount = 0;
+        let fps = 60;
+
+        function animate(now) {
+            frameCount++;
+            if (now - lastTime >= 1000) {
+                fps = frameCount;
+                frameCount = 0;
+                lastTime = now;
+                document.getElementById('fpsCounter').innerText = fps + ' FPS';
+            }
+
+            const speedVal = parseFloat(document.getElementById('speed').value);
+            const palette = document.getElementById('palette').value;
+
+            ctx.fillStyle = 'rgba(10, 10, 15, 0.2)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            particles.forEach(p => {
+                p.update(speedVal, currentMode);
+                p.draw(palette);
+            });
+
+            requestAnimationFrame(animate);
+        }
+        requestAnimationFrame(animate);
+
+        // UI Controls listeners
+        document.getElementById('density').addEventListener('input', (e) => {
+            document.getElementById('val-density').innerText = e.target.value;
+            initParticles();
+        });
+        document.getElementById('speed').addEventListener('input', (e) => {
+            document.getElementById('val-speed').innerText = e.target.value + 'x';
+        });
+        document.getElementById('pitch').addEventListener('input', (e) => {
+            const val = e.target.value;
+            document.getElementById('val-pitch').innerText = val + ' Hz';
+            if (osc) osc.frequency.setValueAtTime(val, audioCtx.currentTime);
+        });
+
+        // Audio Synthesizer Toggle
+        document.getElementById('toggleAudio').addEventListener('click', () => {
+            if (!isAudioPlaying) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                osc = audioCtx.createOscillator();
+                gainNode = audioCtx.createGain();
+                
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(parseFloat(document.getElementById('pitch').value), audioCtx.currentTime);
+                
+                gainNode.gain.setValueAtTime(0.05, audioCtx.currentTime);
+                
+                osc.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                osc.start();
+
+                isAudioPlaying = true;
+                document.getElementById('audioText').innerText = 'Stop Audio';
+                document.getElementById('toggleAudio').classList.replace('bg-indigo-600', 'bg-rose-600');
+            } else {
+                if (osc) osc.stop();
+                if (audioCtx) audioCtx.close();
+                isAudioPlaying = false;
+                document.getElementById('audioText').innerText = 'Start Audio';
+                document.getElementById('toggleAudio').classList.replace('bg-rose-600', 'bg-indigo-600');
+            }
+        });
+
+        // Snapshot downloader
+        document.getElementById('captureBtn').addEventListener('click', () => {
+            const link = document.createElement('a');
+            link.download = 'aether-canvas.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        });
+
+        // Copy UPI function
+        function copyUpi() {
+            navigator.clipboard.writeText('donation1@postbank');
+            const btn = document.getElementById('copyBtn');
+            btn.innerText = 'Copied!';
+            setTimeout(() => btn.innerText = 'Copy UPI ID', 2000);
+        }
+    </script>
+</body>
+</html>
