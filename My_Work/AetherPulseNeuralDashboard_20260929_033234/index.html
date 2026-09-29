@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AetherPulse Neural Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glow-cyan {
+            box-shadow: 0 0 25px rgba(6, 182, 212, 0.25);
+        }
+        .glow-purple {
+            box-shadow: 0 0 25px rgba(168, 85, 247, 0.25);
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between selection:bg-cyan-500 selection:text-white">
+
+    <!-- Top Header -->
+    <header class="w-full border-b border-slate-800/80 glass-panel sticky top-0 z-50 px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-purple-600 flex items-center justify-center glow-cyan">
+                <i class="fa-solid fa-brain text-white text-lg"></i>
+            </div>
+            <div>
+                <h1 class="font-bold text-lg tracking-wide bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">AETHERPULSE</h1>
+                <p class="text-xs text-slate-400">Neural Telemetry & Cognitive Engine v4.8</p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-4">
+            <div class="hidden md:flex items-center space-x-2 px-3 py-1.5 rounded-full bg-slate-900 border border-slate-800 text-xs text-slate-300">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span>Quantum Sync: <strong id="sync-rate" class="text-emerald-400">98.4%</strong></span>
+            </div>
+            <button onclick="triggerCalibration()" class="px-4 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-semibold text-xs tracking-wider transition-all shadow-lg glow-cyan">
+                <i class="fa-solid fa-sliders mr-1.5"></i> Calibrate Core
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Dashboard Container -->
+    <main class="flex-grow max-w-7xl w-full mx-auto p-4 md:p-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Left & Center: Visualizer & Controls -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- Visualizer Card -->
+            <div class="glass-panel rounded-3xl p-6 relative overflow-hidden">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="font-semibold text-sm tracking-wider text-slate-300 uppercase flex items-center">
+                        <i class="fa-solid fa-wave-square text-cyan-400 mr-2"></i> Neural Waveform Spectrum
+                    </h2>
+                    <div class="text-xs text-slate-400">
+                        Frequency: <span id="freq-val" class="text-cyan-400 font-mono">432</span> Hz
+                    </div>
+                </div>
+                <div class="w-full h-64 bg-slate-900/80 rounded-2xl border border-slate-800/60 relative overflow-hidden flex items-center justify-center">
+                    <canvas id="waveCanvas" class="w-full h-full absolute inset-0"></canvas>
+                    <div id="calibration-overlay" class="absolute inset-0 bg-cyan-950/40 backdrop-blur-sm flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-500">
+                        <span class="text-cyan-300 font-mono text-sm tracking-widest uppercase animate-pulse">Calibrating Neural Pathways...</span>
+                    </div>
+                </div>
+                <div class="mt-4 flex flex-wrap gap-4 items-center justify-between">
+                    <div class="flex items-center space-x-3 w-full sm:w-auto">
+                        <label class="text-xs text-slate-400">Modulation:</label>
+                        <input type="range" id="freqSlider" min="100" max="900" value="432" class="w-48 accent-cyan-400 cursor-pointer" oninput="updateFrequency(this.value)">
+                    </div>
+                    <div class="flex space-x-2">
+                        <button onclick="setMode('alpha')" id="btn-alpha" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 border border-slate-700 transition">Alpha</button>
+                        <button onclick="setMode('beta')" id="btn-beta" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 border border-slate-700 transition">Beta</button>
+                        <button onclick="setMode('gamma')" id="btn-gamma" class="px-3 py-1.5 rounded-lg bg-cyan-500/20 text-cyan-300 text-xs border border-cyan-500/40 transition">Gamma</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Telemetry Metrics Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="glass-panel rounded-2xl p-4">
+                    <div class="text-slate-400 text-xs mb-1 flex items-center justify-between">
+                        <span>Cognitive Load</span>
+                        <i class="fa-solid fa-microchip text-cyan-400"></i>
+                    </div>
+                    <div class="text-2xl font-bold font-mono text-slate-100" id="metric-load">42.8%</div>
+                    <div class="w-full bg-slate-800 h-1.5 rounded-full mt-3 overflow-hidden">
+                        <div id="load-bar" class="bg-cyan-400 h-full w-[42.8%] transition-all duration-300"></div>
+                    </div>
+                </div>
+                <div class="glass-panel rounded-2xl p-4">
+                    <div class="text-slate-400 text-xs mb-1 flex items-center justify-between">
+                        <span>Synaptic Velocity</span>
+                        <i class="fa-solid fa-bolt text-purple-400"></i>
+                    </div>
+                    <div class="text-2xl font-bold font-mono text-slate-100" id="metric-velocity">124.2</div>
+                    <div class="w-full bg-slate-800 h-1.5 rounded-full mt-3 overflow-hidden">
+                        <div id="velocity-bar" class="bg-purple-400 h-full w-[65%] transition-all duration-300"></div>
+                    </div>
+                </div>
+                <div class="glass-panel rounded-2xl p-4">
+                    <div class="text-slate-400 text-xs mb-1 flex items-center justify-between">
+                        <span>Coherence Index</span>
+                        <i class="fa-solid fa-heart-pulse text-emerald-400"></i>
+                    </div>
+                    <div class="text-2xl font-bold font-mono text-slate-100" id="metric-coherence">9.94</div>
+                    <div class="w-full bg-slate-800 h-1.5 rounded-full mt-3 overflow-hidden">
+                        <div id="coherence-bar" class="bg-emerald-400 h-full w-[94%] transition-all duration-300"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Interactive Diagnostic & Logs -->
+        <div class="space-y-6">
+            <div class="glass-panel rounded-3xl p-6">
+                <h3 class="font-semibold text-sm tracking-wider text-slate-300 uppercase mb-4 flex items-center">
+                    <i class="fa-solid fa-terminal text-purple-400 mr-2"></i> Diagnostic Stream
+                </h3>
+                <div id="console-log" class="bg-slate-950/80 rounded-2xl p-4 h-64 overflow-y-auto font-mono text-xs text-slate-400 space-y-2 border border-slate-900">
+                    <p class="text-cyan-400">[SYSTEM] Initialized secure neural link...</p>
+                    <p>[TELEMETRY] Sensor array stable on node #7.</p>
+                    <p class="text-emerald-400">[READY] Awaiting cognitive input sequence.</p>
+                </div>
+                <button onclick="runDiagnostic()" class="w-full mt-4 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-slate-950 font-bold text-xs tracking-wider uppercase transition shadow-lg glow-purple">
+                    <i class="fa-solid fa-stethoscope mr-1.5"></i> Run Full Diagnostic
+                </button>
+            </div>
+
+            <!-- Quick Settings Panel -->
+            <div class="glass-panel rounded-3xl p-6">
+                <h3 class="font-semibold text-sm tracking-wider text-slate-300 uppercase mb-4 flex items-center">
+                    <i class="fa-solid fa-shield-halved text-cyan-400 mr-2"></i> Neural Firewall
+                </h3>
+                <div class="space-y-4 text-xs">
+                    <div class="flex items-center justify-between">
+                        <span class="text-slate-300">Deep-State Encryption</span>
+                        <input type="checkbox" checked class="accent-cyan-400 w-4 h-4">
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-slate-300">Biometric Noise Filter</span>
+                        <input type="checkbox" checked class="accent-cyan-400 w-4 h-4">
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-slate-300">Auto-Sync Quantum Clock</span>
+                        <input type="checkbox" class="accent-cyan-400 w-4 h-4">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Cause-Driven Charity Section (Mandatory Footer Integration) -->
+    <footer class="w-full border-t border-slate-800/80 glass-panel mt-12 py-8 px-6">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+            
+            <!-- Charity Message & Receiver Details -->
+            <div class="flex items-start space-x-4 max-w-2xl">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/30 flex items-center justify-center flex-shrink-0">
+                    <i class="fa-solid fa-hand-holding-heart text-pink-400 text-xl"></i>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-sm text-slate-200 mb-1">Community Impact & Charity Initiative</h4>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        95% of all contributions go directly towards Cancer Patient Support & School Education Initiatives (5% retained for server maintenance).
+                    </p>
+                    <div class="mt-3 flex flex-wrap items-center gap-3 text-xs">
+                        <span class="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-slate-300">
+                            Receiver: <strong class="text-slate-100">ASKAR ALI</strong>
+                        </span>
+                        <span class="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-slate-300 flex items-center">
+                            UPI ID: <strong id="upi-text" class="text-cyan-400 ml-1">donation1@postbank</strong>
+                            <button onclick="copyUPI()" class="ml-2 text-slate-400 hover:text-white transition" title="Copy UPI">
+                                <i class="fa-regular fa-copy"></i>
+                            </button>
+                        </span>
+                        <span id="copy-feedback" class="text-emerald-400 font-medium opacity-0 transition-opacity duration-300">Copied!</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- QR Code Container -->
+            <div class="flex items-center space-x-4 bg-slate-900/90 p-3 rounded-2xl border border-slate-800">
+                <div class="text-right hidden sm:block">
+                    <span class="text-xs font-semibold text-slate-300 block">Scan to Donate</span>
+                    <span class="text-[10px] text-slate-500 block">Secure UPI Gateway</span>
+                </div>
+                <img src="https://api.qrserver.com/v1/create-qr-code/?data=upi://pay?pa=donation1@postbank&pn=YUGRAAL_Cause" alt="Donation QR Code" class="w-16 h-16 rounded-xl bg-white p-1">
+            </div>
+
+        </div>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // Canvas Waveform Animation
+        const canvas = document.getElementById('waveCanvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        let phase = 0;
+        let currentFreq = 432;
+
+        function resizeCanvas() {
+            width = canvas.parentElement.clientWidth;
+            height = canvas.parentElement.clientHeight;
+            canvas.width = width;
+            canvas.height = height;
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        function drawWave() {
+            ctx.clearRect(0, 0, width, height);
+            
+            // Draw Grid Lines
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
+            ctx.lineWidth = 1;
+            for (let x = 0; x < width; x += 40) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, height);
+                ctx.stroke();
+            }
+            for (let y = 0; y < height; y += 40) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(width, y);
+                ctx.stroke();
+            }
+
+            // Draw Primary Wave
+            ctx.beginPath();
+            ctx.strokeStyle = '#06b6d4';
+            ctx.lineWidth = 2.5;
+            
+            const frequencyFactor = currentFreq / 500;
+            for (let x = 0; x < width; x++) {
+                let y = height / 2 + Math.sin(x * 0.015 * frequencyFactor + phase) * (height / 4) * Math.sin(x * 0.005);
+                if (x === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+
+            // Secondary Harmonic Wave
+            ctx.beginPath();
+            ctx.strokeStyle = 'rgba(168, 85, 247, 0.6)';
+            ctx.lineWidth = 1.5;
+            for (let x = 0; x < width; x++) {
+                let y = height / 2 + Math.cos(x * 0.02 * frequencyFactor - phase * 1.5) * (height / 6);
+                if (x === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+
+            phase += 0.03;
+            requestAnimationFrame(drawWave);
+        }
+        requestAnimationFrame(drawWave);
+
+        // Interactive Controls
+        function updateFrequency(val) {
+            currentFreq = val;
+            document.getElementById('freq-val').innerText = val;
+        }
+
+        function setMode(mode) {
+            ['alpha', 'beta', 'gamma'].forEach(m => {
+                const btn = document.getElementById(`btn-${m}`);
+                if (m === mode) {
+                    btn.className = 'px-3 py-1.5 rounded-lg bg-cyan-500/20 text-cyan-300 text-xs border border-cyan-500/40 transition';
+                    if (m === 'alpha') updateFrequency(200);
+                    if (m === 'beta') updateFrequency(550);
+                    if (m === 'gamma') updateFrequency(800);
+                    document.getElementById('freqSlider').value = currentFreq;
+                } else {
+                    btn.className = 'px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 border border-slate-700 transition';
+                }
+            });
+        }
+
+        function triggerCalibration() {
+            const overlay = document.getElementById('calibration-overlay');
+            overlay.style.opacity = '1';
+            setTimeout(() => {
+                overlay.style.opacity = '0';
+                const sync = (97 + Math.random() * 2.9).toFixed(1);
+                document.getElementById('sync-rate').innerText = sync + '%';
+                appendLog('SUCCESS: Quantum sync recalibrated to ' + sync + '%');
+            }, 1200);
+        }
+
+        function runDiagnostic() {
+            appendLog('INFO: Initiating deep neural diagnostic...');
+            setTimeout(() => {
+                const load = (35 + Math.random() * 25).toFixed(1);
+                const velocity = (110 + Math.random() * 30).toFixed(1);
+                const coherence = (9.2 + Math.random() * 0.7).toFixed(2);
+
+                document.getElementById('metric-load').innerText = load + '%';
+                document.getElementById('load-bar').style.width = load + '%';
+                
+                document.getElementById('metric-velocity').innerText = velocity;
+                document.getElementById('velocity-bar').style.width = (velocity / 2) + '%';
+                
+                document.getElementById('metric-coherence').innerText = coherence;
+                document.getElementById('coherence-bar').style.width = (coherence * 10) + '%';
+
+                appendLog(`DIAGNOSTIC COMPLETE: Load ${load}%, Velocity ${velocity}, Coherence ${coherence}`);
+            }, 1000);
+        }
+
+        function appendLog(text) {
+            const consoleLog = document.getElementById('console-log');
+            const p = document.createElement('p');
+            p.innerText = text;
+            if (text.includes('SUCCESS')) p.className = 'text-emerald-400';
+            else if (text.includes('DIAGNOSTIC')) p.className = 'text-cyan-400';
+            consoleLog.appendChild(p);
+            consoleLog.scrollTop = consoleLog.scrollHeight;
+        }
+
+        function copyUPI() {
+            navigator.clipboard.writeText('donation1@postbank');
+            const fb = document.getElementById('copy-feedback');
+            fb.style.opacity = '1';
+            setTimeout(() => {
+                fb.style.opacity = '0';
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
