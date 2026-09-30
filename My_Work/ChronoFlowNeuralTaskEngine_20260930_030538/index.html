@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChronoFlow Neural Task Engine</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        neural: {
+                            950: '#030712',
+                            900: '#0b0f19',
+                            800: '#111827',
+                            700: '#1f2937',
+                            600: '#374151',
+                            500: '#6b7280',
+                            400: '#9ca3af',
+                            300: '#d1d5db',
+                            100: '#f3f4f6'
+                        },
+                        accent: {
+                            cyan: '#06b6d4',
+                            purple: '#8b5cf6',
+                            emerald: '#10b981'
+                        }
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-8px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .glass-panel {
+            background: rgba(17, 24, 39, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glass-input {
+            background: rgba(3, 7, 18, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .glass-input:focus {
+            border-color: rgba(6, 182, 212, 0.5);
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.15);
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #030712;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1f2937;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #374151;
+        }
+    </style>
+</head>
+<body class="bg-neural-950 text-neural-100 min-h-screen flex flex-col font-sans selection:bg-accent-cyan selection:text-neural-950">
+
+    <!-- Header / Navbar -->
+    <header class="border-b border-neural-800/60 sticky top-0 z-50 glass-panel">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-accent-cyan to-accent-purple flex items-center justify-center shadow-lg shadow-accent-cyan/20">
+                    <i class="fa-solid fa-brain text-neural-950 text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg tracking-wider bg-gradient-to-r from-white via-neural-300 to-accent-cyan bg-clip-text text-transparent">CHRONOFLOW</h1>
+                    <p class="text-xs text-neural-400 font-mono">Neural Task & Energy Matrix v2.4</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <div class="hidden md:flex items-center space-x-6 text-sm text-neural-400 font-mono">
+                    <div class="flex items-center space-x-2">
+                        <span class="w-2 h-2 rounded-full bg-accent-emerald animate-ping"></span>
+                        <span id="live-clock">00:00:00</span>
+                    </div>
+                    <div class="bg-neural-900 px-3 py-1.5 rounded-lg border border-neural-800">
+                        Energy Wave: <span id="energy-status" class="text-accent-cyan font-bold">Peak Alpha</span>
+                    </div>
+                </div>
+                <button onclick="resetAllData()" class="px-3 py-1.5 text-xs font-mono rounded-lg glass-input text-neural-400 hover:text-red-400 hover:border-red-500/30 transition-all">
+                    <i class="fa-solid fa-rotate mr-1"></i> Reset Matrix
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Application Container -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <!-- Left Sidebar: Task Generator & Ambient Timer (Cols 1-5) -->
+        <div class="lg:col-span-5 space-y-6">
+            
+            <!-- Neural Timer Card -->
+            <div class="glass-panel rounded-2xl p-6 relative overflow-hidden shadow-2xl">
+                <div class="absolute -right-10 -top-10 w-40 h-40 bg-accent-purple/10 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="font-semibold text-sm uppercase tracking-wider text-neural-300 flex items-center">
+                        <i class="fa-solid fa-stopwatch text-accent-cyan mr-2"></i> Deep Focus Wave
+                    </h2>
+                    <div class="flex space-x-1 bg-neural-900 p-1 rounded-lg border border-neural-800 text-xs">
+                        <button onclick="setTimerMode(25)" id="mode-25" class="px-2.5 py-1 rounded-md bg-accent-cyan text-neural-950 font-bold transition-all">25m</button>
+                        <button onclick="setTimerMode(50)" id="mode-50" class="px-2.5 py-1 rounded-md text-neural-400 hover:text-white transition-all">50m</button>
+                        <button onclick="setTimerMode(90)" id="mode-90" class="px-2.5 py-1 rounded-md text-neural-400 hover:text-white transition-all">90m</button>
+                    </div>
+                </div>
+                
+                <!-- Timer Display -->
+                <div class="text-center py-6">
+                    <div id="timer-display" class="text-6xl font-extrabold tracking-tight font-mono text-white mb-2 drop-shadow-[0_0_25px_rgba(6,182,212,0.3)]">25:00</div>
+                    <p id="timer-active-task" class="text-xs text-accent-cyan font-mono truncate px-4">No active session selected</p>
+                </div>
+
+                <!-- Timer Controls -->
+                <div class="flex space-x-3">
+                    <button onclick="toggleTimer()" id="timer-toggle-btn" class="flex-1 bg-gradient-to-r from-accent-cyan to-accent-purple text-neural-950 font-bold py-3 rounded-xl shadow-lg shadow-accent-cyan/20 hover:opacity-95 transition-all flex items-center justify-center">
+                        <i class="fa-solid fa-play mr-2" id="timer-icon"></i> <span id="timer-btn-text">Initiate Flow</span>
+                    </button>
+                    <button onclick="resetTimer()" class="px-4 py-3 glass-input rounded-xl text-neural-300 hover:text-white transition-all">
+                        <i class="fa-solid fa-arrow-rotate-left"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Task Creator Card -->
+            <div class="glass-panel rounded-2xl p-6 shadow-xl">
+                <h2 class="font-semibold text-sm uppercase tracking-wider text-neural-300 mb-4 flex items-center">
+                    <i class="fa-solid fa-plus-circle text-accent-purple mr-2"></i> Inject Neural Task
+                </h2>
+                <form id="task-form" onsubmit="handleAddTask(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-mono text-neural-400 mb-1">Task Objective</label>
+                        <input type="text" id="task-input" required placeholder="e.g., Architect Microservices API..." class="w-full glass-input rounded-xl px-4 py-3 text-sm text-neural-100 placeholder-neural-600 focus:outline-none">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-mono text-neural-400 mb-1">Cognitive Load</label>
+                            <select id="task-priority" class="w-full glass-input rounded-xl px-3 py-3 text-sm text-neural-100 focus:outline-none">
+                                <option value="high" class="bg-neural-900">High Priority (Alpha)</option>
+                                <option value="medium" class="bg-neural-900" selected>Medium Priority (Beta)</option>
+                                <option value="low" class="bg-neural-900">Low Priority (Theta)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-mono text-neural-400 mb-1">Estimated Blocks</label>
+                            <select id="task-blocks" class="w-full glass-input rounded-xl px-3 py-3 text-sm text-neural-100 focus:outline-none">
+                                <option value="1" class="bg-neural-900">1 Block (25m)</option>
+                                <option value="2" class="bg-neural-900">2 Blocks (50m)</option>
+                                <option value="4" class="bg-neural-900">4 Blocks (100m)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full bg-neural-800 hover:bg-neural-700 border border-neural-700 text-neural-200 font-medium py-3 rounded-xl transition-all text-sm">
+                        Enqueue to Matrix
+                    </button>
+                </form>
+            </div>
+
+        </div>
+
+        <!-- Right Main: Task Matrix & Analytics (Cols 6-12) -->
+        <div class="lg:col-span-7 space-y-6">
+            
+            <!-- Matrix Analytics Bar -->
+            <div class="grid grid-cols-3 gap-4">
+                <div class="glass-panel rounded-xl p-4 text-center">
+                    <div class="text-2xl font-bold font-mono text-accent-cyan" id="stat-total">0</div>
+                    <div class="text-xs text-neural-400 mt-1 uppercase font-mono">Total Queue</div>
+                </div>
+                <div class="glass-panel rounded-xl p-4 text-center">
+                    <div class="text-2xl font-bold font-mono text-accent-purple" id="stat-in-progress">0</div>
+                    <div class="text-xs text-neural-400 mt-1 uppercase font-mono">Active Waves</div>
+                </div>
+                <div class="glass-panel rounded-xl p-4 text-center">
+                    <div class="text-2xl font-bold font-mono text-accent-emerald" id="stat-completed">0</div>
+                    <div class="text-xs text-neural-400 mt-1 uppercase font-mono">Completed</div>
+                </div>
+            </div>
+
+            <!-- Task List Container -->
+            <div class="glass-panel rounded-2xl p-6 shadow-xl min-h-[420px] flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="font-semibold text-sm uppercase tracking-wider text-neural-300 flex items-center">
+                            <i class="fa-solid fa-layer-group text-accent-cyan mr-2"></i> Neural Pipeline
+                        </h2>
+                        <div class="flex space-x-2">
+                            <button onclick="filterTasks('all')" id="filter-all" class="text-xs font-mono px-3 py-1 rounded-lg bg-neural-800 text-white">All</button>
+                            <button onclick="filterTasks('active')" id="filter-active" class="text-xs font-mono px-3 py-1 rounded-lg text-neural-400 hover:text-white">Active</button>
+                            <button onclick="filterTasks('completed')" id="filter-completed" class="text-xs font-mono px-3 py-1 rounded-lg text-neural-400 hover:text-white">Done</button>
+                        </div>
+                    </div>
+
+                    <!-- Tasks Display Area -->
+                    <div id="task-container" class="space-y-3 max-h-[380px] overflow-y-auto pr-1">
+                        <!-- Dynamic Tasks Injected Here -->
+                    </div>
+                </div>
+
+                <!-- Empty State -->
+                <div id="empty-state" class="hidden text-center py-12">
+                    <i class="fa-solid fa-atom text-4xl text-neural-700 mb-3 animate-spin"></i>
+                    <p class="text-sm text-neural-400 font-mono">Matrix is fully optimized. Inject a task to begin.</p>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Cause-Driven Charity & Support Section -->
+    <footer class="w-full border-t border-neural-800 bg-neural-900/80 backdrop-blur-lg mt-auto py-8 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto">
+            <div class="glass-panel rounded-2xl p-6 md:p-8 flex flex-col lg:flex-row items-center justify-between gap-8 border-accent-cyan/20 shadow-2xl">
+                
+                <!-- Left: Cause Information -->
+                <div class="space-y-3 text-center lg:text-left max-w-xl">
+                    <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-accent-cyan/10 border border-accent-cyan/20 text-accent-cyan text-xs font-mono">
+                        <i class="fa-solid fa-heart-pulse"></i>
+                        <span>Humanitarian Impact Initiative</span>
+                    </div>
+                    <h3 class="text-lg font-bold text-white tracking-wide">Empowering Cancer Patients & Education</h3>
+                    <p class="text-xs text-neural-300 leading-relaxed">
+                        95% of all contributions go directly towards Cancer Patient Support & School Education Initiatives (5% retained for server maintenance).
+                    </p>
+                    <div class="pt-2 flex flex-wrap justify-center lg:justify-start gap-4 text-xs font-mono text-neural-400">
+                        <div><strong class="text-white">Beneficiary:</strong> ASKAR ALI</div>
+                        <div><strong class="text-white">UPI ID:</strong> <span id="upi-id-text" class="text-accent-cyan">donation1@postbank</span></div>
+                    </div>
+                </div>
+
+                <!-- Right: QR Code & Interactive Copy Button -->
+                <div class="flex flex-col sm:flex-row items-center gap-6">
+                    <div class="bg-white p-3 rounded-2xl shadow-xl flex items-center justify-center">
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?data=upi://pay?pa=donation1@postbank&pn=YUGRAAL_Cause" alt="Donation UPI QR" class="w-28 h-28 object-contain">
+                    </div>
+                    <div class="flex flex-col space-y-3 w-full sm:w-auto">
+                        <button onclick="copyUpiId()" class="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-accent-cyan to-accent-purple text-neural-950 font-bold text-xs uppercase tracking-wider hover:opacity-95 transition-all shadow-lg shadow-accent-cyan/20 flex items-center justify-center space-x-2">
+                            <i class="fa-solid fa-copy"></i>
+                            <span id="copy-btn-text">Copy UPI ID</span>
+                        </button>
+                        <div class="text-center text-[10px] text-neural-500 font-mono">
+                            Secure Direct UPI Transfer
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="mt-6 text-center text-xs text-neural-500 font-mono">
+                &copy; <span id="current-year"></span> ChronoFlow Neural Engine &bull; Co-Created by YUGRAAL Co-Creator Web Engine
+            </div>
+        </div>
+    </footer>
+
+    <!-- Application Logic -->
+    <script>
+        // State Management
+        let tasks = JSON.parse(localStorage.getItem('chronoflow_tasks')) || [
+            { id: 1, text: 'Initialize quantum neural memory banks', priority: 'high', blocks: 2, completed: false },
+            { id: 2, text: 'Synthesize decentralized architecture specs', priority: 'medium', blocks: 1, completed: false }
+        ];
+        
+        let currentFilter = 'all';
+        let timerInterval = null;
+        let timerSeconds = 25 * 60;
+        let selectedTimerMode = 25;
+        let isTimerRunning = false;
+        let activeTimerTaskId = null;
+
+        // Initialize App
+        document.getElementById('current-year').textContent = new Date().getFullYear();
+        updateLiveClock();
+        setInterval(updateLiveClock, 1000);
+        renderTasks();
+        updateStats();
+
+        // Live Clock
+        function updateLiveClock() {
+            const now = new Date();
+            document.getElementById('live-clock').textContent = now.toTimeString().split(' ')[0];
+        }
+
+        // Task Handlers
+        function handleAddTask(e) {
+            e.preventDefault();
+            const textInput = document.getElementById('task-input');
+            const priorityInput = document.getElementById('task-priority');
+            const blocksInput = document.getElementById('task-blocks');
+
+            const newTask = {
+                id: Date.now(),
+                text: textInput.value.trim(),
+                priority: priorityInput.value,
+                blocks: parseInt(blocksInput.value),
+                completed: false
+            };
+
+            tasks.unshift(newTask);
+            saveAndRender();
+            textInput.value = '';
+        }
+
+        function toggleTaskCompletion(id) {
+            tasks = tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t);
+            saveAndRender();
+        } 
+
+        function deleteTask(id) {
+            tasks = tasks.filter(t => t.id !== id);
+            if (activeTimerTaskId === id) {
+                resetTimer();
+                document.getElementById('timer-active-task').textContent = 'No active session selected';
+            }
+            saveAndRender();
+        }
+
+        function selectTaskForTimer(id) {
+            const task = tasks.find(t => t.id === id);
+            if (task) {
+                activeTimerTaskId = id;
+                document.getElementById('timer-active-task').textContent = `Active: ${task.text}`;
+            }
+        }
+
+        function filterTasks(filter) {
+            currentFilter = filter;
+            ['all', 'active', 'completed'].forEach(f => {
+                const btn = document.getElementById(`filter-${f}`);
+                if (f === filter) {
+                    btn.className = 'text-xs font-mono px-3 py-1 rounded-lg bg-neural-800 text-white';
+                } else {
+                    btn.className = 'text-xs font-mono px-3 py-1 rounded-lg text-neural-400 hover:text-white';
+                }
+            });
+            renderTasks();
+        }
+
+        function saveAndRender() {
+            localStorage.setItem('chronoflow_tasks', JSON.stringify(tasks));
+            renderTasks();
+            updateStats();
+        }
+
+        function renderTasks() {
+            const container = document.getElementById('task-container');
+            const emptyState = document.getElementById('empty-state');
+            
+            let filtered = tasks;
+            if (currentFilter === 'active') filtered = tasks.filter(t => !t.completed);
+            if (currentFilter === 'completed') filtered = tasks.filter(t => t.completed);
+
+            if (filtered.length === 0) {
+                container.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            container.innerHTML = filtered.map(t => {
+                const priorityColor = t.priority === 'high' ? 'bg-red-500/10 text-red-400 border-red-500/20' : 
+                                    t.priority === 'medium' ? 'bg-accent-cyan/10 text-accent-cyan border-accent-cyan/20' : 
+                                    'bg-neural-800 text-neural-400 border-neural-700';
+                
+                return `
+                    <div class="glass-input rounded-xl p-4 flex items-center justify-between transition-all hover:border-accent-cyan/30 group">
+                        <div class="flex items-center space-x-3 overflow-hidden">
+                            <button onclick="toggleTaskCompletion(${t.id})" class="w-5 h-5 rounded-lg border ${t.completed ? 'bg-accent-emerald border-accent-emerald text-neural-950 flex items-center justify-center' : 'border-neural-600 hover:border-accent-cyan'} transition-all">
+                                ${t.completed ? '<i class="fa-solid fa-check text-xs font-bold"></i>' : ''}
+                            </button>
+                            <div class="truncate">
+                                <p class="text-sm font-medium ${t.completed ? 'line-through text-neural-500' : 'text-neural-100'} truncate">${t.text}</p>
+                                <div class="flex items-center space-x-2 mt-1">
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-mono border uppercase ${priorityColor}">${t.priority}</span>
+                                    <span class="text-[10px] font-mono text-neural-400"><i class="fa-solid fa-clock mr-1"></i>${t.blocks} block(s)</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2 opacity-80 group-hover:opacity-100 transition-opacity">
+                            <button onclick="selectTaskForTimer(${t.id})" title="Send to Timer" class="p-2 text-neural-400 hover:text-accent-cyan transition-all">
+                                <i class="fa-solid fa-play text-xs"></i>
+                            </button>
+                            <button onclick="deleteTask(${t.id})" title="Delete Task" class="p-2 text-neural-400 hover:text-red-400 transition-all">
+                                <i class="fa-solid fa-trash text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateStats() {
+            document.getElementById('stat-total').textContent = tasks.length;
+            document.getElementById('stat-in-progress').textContent = tasks.filter(t => !t.completed).length;
+            document.getElementById('stat-completed').textContent = tasks.filter(t => t.completed).length;
+        }
+
+        // Timer Logic
+        function setTimerMode(mins) {
+            if (isTimerRunning) return;
+            selectedTimerMode = mins;
+            timerSeconds = mins * 60;
+            updateTimerDisplay();
+            [25, 50, 90].forEach(m => {
+                const btn = document.getElementById(`mode-${m}`);
+                if (m === mins) {
+                    btn.className = 'px-2.5 py-1 rounded-md bg-accent-cyan text-neural-950 font-bold transition-all';
+                } else {
+                    btn.className = 'px-2.5 py-1 rounded-md text-neural-400 hover:text-white transition-all';
+                }
+            });
+        }
+
+        function toggleTimer() {
+            const btnText = document.getElementById('timer-btn-text');
+            const timerIcon = document.getElementById('timer-icon');
+            
+            if (isTimerRunning) {
+                clearInterval(timerInterval);
+                isTimerRunning = false;
+                btnText.textContent = 'Resume Flow';
+                timerIcon.className = 'fa-solid fa-play mr-2';
+            } else {
+                isTimerRunning = true;
+                btnText.textContent = 'Pause Flow';
+                timerIcon.className = 'fa-solid fa-pause mr-2';
+                
+                timerInterval = setInterval(() => {
+                    if (timerSeconds > 0) {
+                        timerSeconds--;
+                        updateTimerDisplay();
+                    } else {
+                        clearInterval(timerInterval);
+                        isTimerRunning = false;
+                        alert('Deep focus cycle complete! Take a neural rest.');
+                        resetTimer();
+                    }
+                }, 1000);
+            }
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            isTimerRunning = false;
+            timerSeconds = selectedTimerMode * 60;
+            updateTimerDisplay();
+            document.getElementById('timer-btn-text').textContent = 'Initiate Flow';
+            document.getElementById('timer-icon').className = 'fa-solid fa-play mr-2';
+        }
+
+        function updateTimerDisplay() {
+            const mins = Math.floor(timerSeconds / 60);
+            const secs = timerSeconds % 60;
+            document.getElementById('timer-display').textContent = 
+                `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function resetAllData() {
+            if (confirm('Are you sure you want to reset all tasks and timers?')) {
+                localStorage.removeItem('chronoflow_tasks');
+                tasks = [];
+                resetTimer();
+                saveAndRender();
+            }
+        }
+
+        // Copy UPI ID Utility
+        function copyUpiId() {
+            const upiText = 'donation1@postbank';
+            navigator.clipboard.writeText(upiText).then(() => {
+                const btnText = document.getElementById('copy-btn-text');
+                btnText.textContent = 'Copied Successfully!';
+                setTimeout(() => {
+                    btnText.textContent = 'Copy UPI ID';
+                }, 2500);
+            }).catch(err => {
+                console.error('Failed to copy UPI: ', err);
+            });
+        }
+    </script>
+</body>
+</html>
