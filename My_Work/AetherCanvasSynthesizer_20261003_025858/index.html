@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AetherCanvas Synthesizer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darkbg: '#0a0d14',
+                        glass: 'rgba(255, 255, 255, 0.05)',
+                        glassBorder: 'rgba(255, 255, 255, 0.1)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glow-effect { box-shadow: 0 0 40px -10px rgba(99, 102, 241, 0.3); }
+    </style>
+</head>
+<body class="bg-darkbg text-slate-100 min-h-screen flex flex-col justify-between overflow-x-hidden">
+
+    <!-- Header -->
+    <header class="w-full py-4 px-6 border-b border-white/10 glass-panel sticky top-0 z-50 flex justify-between items-center">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-teal-400 flex items-center justify-center glow-effect">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
+                </svg>
+            </div>
+            <div>
+                <h1 class="font-bold text-lg tracking-wide bg-gradient-to-r from-white via-indigo-200 to-teal-200 bg-clip-text text-transparent">AetherCanvas</h1>
+                <p class="text-xs text-slate-400">Generative Audio-Visual Synthesizer</p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-4">
+            <button id="audioToggle" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm transition-all shadow-lg shadow-indigo-500/20 flex items-center space-x-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
+                <span id="audioBtnText">Enable Audio</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-4 gap-6 items-center">
+        
+        <!-- Controls Panel -->
+        <div class="glass-panel rounded-2xl p-6 space-y-6 lg:col-span-1">
+            <h2 class="text-sm font-semibold text-slate-300 uppercase tracking-wider">Synthesizer Controls</h2>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="text-xs text-slate-400 block mb-1">Visual Mode</label>
+                    <select id="visualMode" class="w-full bg-slate-900/80 border border-white/10 rounded-xl p-2.5 text-sm text-slate-200 focus:outline-none focus:border-indigo-500">
+                        <option value="nebula">Nebula Particles</option>
+                        <option value="matrix">Cyber Matrix</option>
+                        <option value="aurora">Aurora Waves</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="text-xs text-slate-400 block mb-1">Harmonic Scale</label>
+                    <select id="audioScale" class="w-full bg-slate-900/80 border border-white/10 rounded-xl p-2.5 text-sm text-slate-200 focus:outline-none focus:border-indigo-500">
+                        <option value="pentatonic">Ambient Pentatonic</option>
+                        <option value="dorian">Deep Dorian</option>
+                        <option value="solfeggio">432Hz Solfeggio</option>
+                    </select>
+                </div>
+
+                <div>
+                    <div class="flex justify-between text-xs text-slate-400 mb-1">
+                        <span>Particle Density</span>
+                        <span id="densityVal">50</span>
+                    </div>
+                    <input type="range" id="densityRange" min="10" max="100" value="50" class="w-full accent-indigo-500">
+                </div>
+
+                <div>
+                    <div class="flex justify-between text-xs text-slate-400 mb-1">
+                        <span>Reverb Decay</span>
+                        <span id="reverbVal">0.7</span>
+                    </div>
+                    <input type="range" id="reverbRange" min="0.1" max="0.95" step="0.05" value="0.7" class="w-full accent-indigo-500">
+                </div>
+
+                <button id="clearCanvas" class="w-full py-2.5 rounded-xl border border-white/10 hover:bg-white/5 text-sm font-medium transition-all text-slate-300">
+                    Clear Canvas
+                </button>
+            </div>
+        </div>
+
+        <!-- Interactive Canvas Area -->
+        <div class="glass-panel rounded-2xl p-2 lg:col-span-3 relative h-[550px] flex items-center justify-center overflow-hidden glow-effect">
+            <canvas id="synthCanvas" class="w-full h-full rounded-xl cursor-crosshair bg-slate-950/60"></canvas>
+            <div class="absolute bottom-6 left-6 pointer-events-none bg-slate-900/80 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10 text-xs text-slate-400 flex items-center space-x-2">
+                <span class="w-2 h-2 rounded-full bg-teal-400 animate-pulse"></span>
+                <span>Click & drag across canvas to generate ambient soundscapes</span>
+            </div>
+        </div>
+    </main>
+
+    <!-- Cause-Driven Charity & Support Footer -->
+    <footer class="w-full py-8 px-4 mt-8 border-t border-white/10 glass-panel">
+        <div class="max-w-4xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+            <div class="flex items-center space-x-4">
+                <img src="https://api.qrserver.com/v1/create-qr-code/?data=upi://pay?pa=donation1@postbank&pn=YUGRAAL_Cause" alt="Donation QR Code" class="w-24 h-24 rounded-xl border border-white/20 bg-white p-1">
+                <div class="space-y-1">
+                    <h3 class="text-sm font-bold text-teal-300 uppercase tracking-wider">Cause & Support Initiative</h3>
+                    <p class="text-xs text-slate-300 max-w-md leading-relaxed">
+                        95% of all contributions go directly towards Cancer Patient Support & School Education Initiatives (5% retained for server maintenance).
+                    </p>
+                    <div class="text-xs text-slate-400 font-medium">
+                        Receiver: <span class="text-white font-semibold">ASKAR ALI</span> | UPI ID: <span id="upiId" class="text-indigo-300 font-mono">donation1@postbank</span>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <button onclick="copyUpi()" id="copyBtn" class="px-5 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-xs font-semibold tracking-wide transition-all shadow-lg shadow-teal-500/20 flex items-center space-x-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
+                    <span id="copyText">Copy UPI ID</span>
+                </button>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Application Logic Script -->
+    <script>
+        // Copy UPI function
+        function copyUpi() {
+            navigator.clipboard.writeText('donation1@postbank');
+            const btnText = document.getElementById('copyText');
+            btnText.innerText = 'Copied!';
+            setTimeout(() => btnText.innerText = 'Copy UPI ID', 2000);
+        }
+
+        // Audio & Visual Engine Setup
+        const canvas = document.getElementById('synthCanvas');
+        const ctx = canvas.getContext('2d');
+        let isDrawing = false;
+        let particles = [];
+        let audioCtx = null;
+        let isAudioEnabled = false;
+
+        function resizeCanvas() {
+            canvas.width = canvas.clientWidth;
+            canvas.height = canvas.clientHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // Particle Class
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.size = Math.random() * 4 + 2;
+                this.speedX = (Math.random() - 0.5) * 3;
+                this.speedY = (Math.random() - 0.5) * 3;
+                this.color = color;
+                this.life = 1;
+                this.decay = Math.random() * 0.02 + 0.01;
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                this.life -= this.decay;
+            }
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = this.life;
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        // Audio Synthesizer Engine using Web Audio API
+        const scales = {
+            pentatonic: [220, 246.94, 277.18, 329.63, 369.99, 440],
+            dorian: [220, 246.94, 261.63, 293.66, 329.63, 369.99, 392],
+            solfeggio: [174, 285, 396, 417, 528, 639]
+        };
+
+        function playTone(freq) {
+            if (!isAudioEnabled || !audioCtx) return;
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                
+                gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 1.5);
+                
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                
+                osc.start();
+                osc.stop(audioCtx.currentTime + 1.5);
+            } catch(e) {
+                console.error(e);
+            }
+        }
+
+        // Interaction Listeners
+        canvas.addEventListener('mousedown', (e) => {
+            isDrawing = true;
+            interact(e);
+        });
+        window.addEventListener('mouseup', () => isDrawing = false);
+        canvas.addEventListener('mousemove', (e) => {
+            if (isDrawing) interact(e);
+        });
+
+        function interact(e) {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            const mode = document.getElementById('visualMode').value;
+            const scaleName = document.getElementById('audioScale').value;
+            const currentScale = scales[scaleName];
+            
+            const color = mode === 'matrix' ? '#10b981' : mode === 'aurora' ? '#2dd4bf' : '#818cf8';
+            
+            const density = parseInt(document.getElementById('densityRange').value);
+            for (let i = 0; i < density / 10; i++) {
+                particles.push(new Particle(x, y, color));
+            }
+
+            // Play note based on X position
+            const noteIndex = Math.floor((x / canvas.width) * currentScale.length);
+            playTone(currentScale[Math.min(noteIndex, currentScale.length - 1)]);
+        }
+
+        // Audio Toggle
+        document.getElementById('audioToggle').addEventListener('click', () => {
+            if (!isAudioEnabled) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                isAudioEnabled = true;
+                document.getElementById('audioBtnText').innerText = 'Audio Active';
+                document.getElementById('audioToggle').classList.replace('bg-indigo-600', 'bg-teal-600');
+            } else {
+                audioCtx.close();
+                isAudioEnabled = false;
+                document.getElementById('audioBtnText').innerText = 'Enable Audio';
+                document.getElementById('audioToggle').classList.replace('bg-teal-600', 'bg-indigo-600');
+            }
+        });
+
+        // UI Controls update
+        document.getElementById('densityRange').addEventListener('input', (e) => {
+            document.getElementById('densityVal').innerText = e.target.value;
+        });
+        document.getElementById('reverbRange').addEventListener('input', (e) => {
+            document.getElementById('reverbVal').innerText = e.target.value;
+        });
+        document.getElementById('clearCanvas').addEventListener('click', () => {
+            particles = [];
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        });
+
+        // Animation Loop
+        function animate() {
+            const decayVal = 1 - parseFloat(document.getElementById('reverbRange').value);
+            ctx.fillStyle = `rgba(10, 13, 20, ${decayVal})`;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            for (let i = particles.length - 1; i >= 0; i--) {
+                particles[i].update();
+                particles[i].draw();
+                if (particles[i].life <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
+            requestAnimationFrame(animate);
+        }
+        animate();
+    </script>
+</body>
+</html>
