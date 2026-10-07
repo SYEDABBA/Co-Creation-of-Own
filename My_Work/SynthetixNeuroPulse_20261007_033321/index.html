@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Synthetix NeuroPulse | Cognitive Flow Engine</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: {
+                            900: '#0a0d14',
+                            800: '#111827',
+                            700: '#1f2937',
+                        },
+                        accent: {
+                            cyan: '#06b6d4',
+                            purple: '#8b5cf6',
+                            emerald: '#10b981'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .glass {
+            background: rgba(17, 24, 39, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glass-card {
+            background: rgba(31, 41, 55, 0.4);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 20px rgba(6, 182, 212, 0.2); }
+            50% { box-shadow: 0 0 40px rgba(139, 92, 246, 0.4); }
+        }
+        .pulse-glow {
+            animation: pulseGlow 4s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-dark-900 text-slate-100 font-sans min-h-screen flex flex-col justify-between selection:bg-cyan-500 selection:text-white">
+
+    <!-- Header -->
+    <header class="w-full glass border-b border-white/10 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-purple-600 flex items-center justify-center pulse-glow">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold tracking-wider bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">SYNTHETIX NEUROPULSE</h1>
+                    <p class="text-xs text-slate-400">Cognitive Frequency & Task Synthesizer</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <span id="system-status" class="px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span> Engine Standby
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Application Container -->
+    <main class="max-w-7xl w-full mx-auto px-6 py-10 grid grid-cols-1 lg:grid-cols-3 gap-8 my-auto">
+        
+        <!-- Left Panel: Frequency Controller -->
+        <div class="glass p-6 rounded-3xl flex flex-col justify-between space-y-6">
+            <div>
+                <h2 class="text-xl font-semibold mb-2 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path></svg>
+                    Neural State Presets
+                </h2>
+                <p class="text-sm text-slate-400 mb-6">Select frequency template to tune brainwave oscillations.</p>
+                
+                <div class="space-y-3">
+                    <button onclick="setPreset('alpha', 10, 'Alpha Flow (10Hz) - Relaxed Focus')" class="preset-btn w-full text-left p-4 rounded-xl glass-card hover:bg-cyan-500/10 hover:border-cyan-500/30 transition-all border border-white/5">
+                        <div class="font-semibold text-cyan-400">Alpha Wave (10 Hz)</div>
+                        <div class="text-xs text-slate-400">Ideal for calm focus, learning, and creative flow.</div>
+                    </button>
+                    <button onclick="setPreset('beta', 18, 'Beta Active (18Hz) - Deep Work')" class="preset-btn w-full text-left p-4 rounded-xl glass-card hover:bg-purple-500/10 hover:border-purple-500/30 transition-all border border-white/5">
+                        <div class="font-semibold text-purple-400">Beta Wave (18 Hz)</div>
+                        <div class="text-xs text-slate-400">High-alert problem solving and analytical coding.</div>
+                    </button>
+                    <button onclick="setPreset('theta', 6, 'Theta Deep (6Hz) - Meditation')" class="preset-btn w-full text-left p-4 rounded-xl glass-card hover:bg-emerald-500/10 hover:border-emerald-500/30 transition-all border border-white/5">
+                        <div class="font-semibold text-emerald-400">Theta Wave (6 Hz)</div>
+                        <div class="text-xs text-slate-400">Deep relaxation, memory consolidation, intuition.</div>
+                    </button>
+                </div>
+            </div>
+
+            <div class="pt-6 border-t border-white/10">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-sm font-medium text-slate-300">Base Frequency</span>
+                    <span id="freq-val" class="text-sm font-bold text-cyan-400">10 Hz</span>
+                </div>
+                <input type="range" id="freq-slider" min="4" max="30" value="10" oninput="updateFrequency(this.value)" class="w-full accent-cyan-500 cursor-pointer">
+            </div>
+        </div>
+
+        <!-- Center Panel: Active Timer & Waveform Visualizer -->
+        <div class="glass p-8 rounded-3xl flex flex-col items-center justify-between space-y-6 text-center">
+            <div>
+                <h2 id="active-preset-title" class="text-lg font-semibold text-cyan-400">Alpha Flow (10Hz)</h2>
+                <p class="text-xs text-slate-400">Synthesizing Neural Environment</p>
+            </div>
+
+            <!-- Circular Timer Display -->
+            <div class="relative w-56 h-56 flex items-center justify-center rounded-full glass-card pulse-glow">
+                <div class="absolute inset-0 rounded-full border-4 border-cyan-500/20"></div>
+                <div id="timer-display" class="text-5xl font-extrabold tracking-tight text-white">25:00</div>
+                <div class="absolute bottom-8 text-xs uppercase tracking-widest text-slate-400">Session Duration</div>
+            </div>
+
+            <!-- Audio / Visual Controls -->
+            <div class="flex items-center space-x-4 w-full">
+                <button id="toggle-btn" onclick="toggleEngine()" class="flex-1 py-4 px-6 rounded-2xl bg-gradient-to-r from-cyan-500 to-purple-600 font-bold text-white shadow-lg hover:opacity-90 transition-all">
+                    INITIALIZE SESSION
+                </button>
+                <button onclick="resetEngine()" class="p-4 rounded-2xl glass-card hover:bg-white/10 transition-all text-slate-300">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Right Panel: Productivity Task Matrix -->
+        <div class="glass p-6 rounded-3xl flex flex-col justify-between space-y-6">
+            <div>
+                <h2 class="text-xl font-semibold mb-2 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012-2m-6 9l2 2 4-4"></path></svg>
+                    Session Objectives
+                </h2>
+                <p class="text-sm text-slate-400 mb-4">Add milestones for your focus block.</p>
+                
+                <div class="flex gap-2 mb-4">
+                    <input type="text" id="task-input" placeholder="Enter milestone..." class="flex-1 bg-dark-800/80 border border-white/10 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-cyan-500">
+                    <button onclick="addTask()" class="bg-cyan-500 hover:bg-cyan-600 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-all">Add</button>
+                </div>
+
+                <div id="task-list" class="space-y-2 max-h-56 overflow-y-auto pr-1">
+                    <!-- Tasks populated by JS -->
+                </div>
+            </div>
+
+            <div class="p-4 rounded-xl glass-card text-xs text-slate-400">
+                <span class="font-semibold text-cyan-400">Neural Tip:</span> For maximum neuro-plasticity results, maintain steady respiration synchronized with the audio oscillator. Zero distractions required.
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Cause-Driven Charity Section (Mandatory Footer Requirement) -->
+    <footer class="w-full border-t border-white/10 glass mt-12 py-8 px-6">
+        <div class="max-w-7xl mx-auto flex flex-col lg:flex-row items-center justify-between gap-6">
+            
+            <!-- Message & Receiver -->
+            <div class="flex flex-col space-y-2 max-w-xl text-center lg:text-left">
+                <div class="flex items-center justify-center lg:justify-start gap-2">
+                    <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">Humanitarian Impact Initiative</span>
+                    <span class="text-xs text-slate-400">Verified Receiver: <strong class="text-white">ASKAR ALI</strong></span>
+                </div>
+                <p class="text-xs text-slate-300 leading-relaxed">
+                    95% of all contributions go directly towards Cancer Patient Support & School Education Initiatives (5% retained for server maintenance).
+                </p>
+            </div>
+
+            <!-- UPI Interaction & QR Code -->
+            <div class="flex flex-col sm:flex-row items-center gap-4 bg-dark-800/60 p-4 rounded-2xl border border-white/10">
+                <div class="flex flex-col items-center sm:items-start">
+                    <span class="text-xs text-slate-400">Unified Payments Interface (UPI)</span>
+                    <div class="flex items-center gap-2 mt-1">
+                        <code id="upi-id" class="bg-dark-900 px-3 py-1.5 rounded-lg text-sm text-cyan-400 font-mono border border-white/5">donation1@postbank</code>
+                        <button onclick="copyUpi()" id="copy-btn" class="bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-all">
+                            Copy UPI
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="bg-white p-2 rounded-xl flex items-center justify-center shadow-md">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?data=upi://pay?pa=donation1@postbank&pn=YUGRAAL_Cause" alt="Donation UPI QR Code" class="w-16 h-16">
+                </div>
+            </div>
+
+        </div>
+    </footer>
+
+    <!-- Modular JavaScript Engine -->
+    <script>
+        let isRunning = false;
+        let timerInterval = null;
+        let timeLeft = 25 * 60;
+        let currentFreq = 10;
+        let tasks = [
+            { text: 'Review architecture layout', completed: true },
+            { text: 'Optimize state synchronization', completed: false }
+        ];
+
+        // Web Audio API context for binaural synthesis
+        let audioCtx = null;
+        let oscLeft = null;
+        let oscRight = null;
+        let merger = null;
+
+        function renderTasks() {
+            const taskList = document.getElementById('task-list');
+            taskList.innerHTML = '';
+            tasks.forEach((task, index) => {
+                taskList.innerHTML += `
+                    <div class="flex items-center justify-between p-3 rounded-xl glass-card border border-white/5">
+                        <label class="flex items-center gap-3 cursor-pointer">
+                            <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="toggleTask(${index})" class="w-4 h-4 rounded accent-cyan-500">
+                            <span class="text-sm ${task.completed ? 'line-through text-slate-500' : 'text-slate-200'}">${task.text}</span>
+                        </label>
+                        <button onclick="deleteTask(${index})" class="text-slate-500 hover:text-red-400 text-xs">
+                            ✕
+                        </button>
+                    </div>
+                `;
+            });
+        }
+
+        function addTask() {
+            const input = document.getElementById('task-input');
+            if (input.value.trim() !== '') {
+                tasks.push({ text: input.value.trim(), completed: false });
+                input.value = '';
+                renderTasks();
+            }
+        }
+
+        function toggleTask(index) {
+            tasks[index].completed = !tasks[index].completed;
+            renderTasks();
+        }
+
+        function deleteTask(index) {
+            tasks.splice(index, 1);
+            renderTasks();
+        }
+
+        function setPreset(type, freq, title) {
+            currentFreq = freq;
+            document.getElementById('freq-slider').value = freq;
+            document.getElementById('freq-val').innerText = freq + ' Hz';
+            document.getElementById('active-preset-title').innerText = title;
+            if (isRunning && audioCtx) {
+                updateAudioFrequencies();
+            }
+        }
+
+        function updateFrequency(val) {
+            currentFreq = parseInt(val);
+            document.getElementById('freq-val').innerText = currentFreq + ' Hz';
+            if (isRunning && audioCtx) {
+                updateAudioFrequencies();
+            }
+        }
+
+        function toggleEngine() {
+            const btn = document.getElementById('toggle-btn');
+            const status = document.getElementById('system-status');
+            
+            if (!isRunning) {
+                // Start Engine
+                isRunning = true;
+                btn.innerText = 'PAUSE SESSION';
+                btn.classList.from = 'from-cyan-500';
+                btn.classList.to = 'to-purple-600';
+                status.innerHTML = '<span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span> Engine Active';
+                status.className = 'px-3 py-1 rounded-full text-xs font-medium bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 flex items-center gap-2';
+
+                startAudio();
+                
+                timerInterval = setInterval(() => {
+                    if (timeLeft > 0) {
+                        timeLeft--;
+                        updateTimerDisplay();
+                    } else {
+                        clearInterval(timerInterval);
+                        toggleEngine();
+                    }
+                }, 1000);
+            } else {
+                // Pause Engine
+                isRunning = false;
+                btn.innerText = 'RESUME SESSION';
+                status.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-400"></span> Engine Paused';
+                status.className = 'px-3 py-1 rounded-full text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center gap-2';
+
+                stopAudio();
+                clearInterval(timerInterval);
+            }
+        }
+
+        function resetEngine() {
+            isRunning = false;
+            clearInterval(timerInterval);
+            timeLeft = 25 * 60;
+            updateTimerDisplay();
+            stopAudio();
+            document.getElementById('toggle-btn').innerText = 'INITIALIZE SESSION';
+            document.getElementById('system-status').innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-400"></span> Engine Standby';
+            document.getElementById('system-status').className = 'px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-2';
+        }
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            document.getElementById('timer-display').innerText = 
+                String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
+        }
+
+        function startAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            const baseCarrier = 200;
+            
+            oscLeft = audioCtx.createOscillator();
+            oscRight = audioCtx.createOscillator();
+
+            oscLeft.frequency.setValueAtTime(baseCarrier, audioCtx.currentTime);
+            oscRight.frequency.setValueAtTime(baseCarrier + currentFreq, audioCtx.currentTime);
+
+            const mergerNode = audioCtx.createChannelMerger(2);
+            const gainNode = audioCtx.createGain();
+            gainNode.gain.setValueAtTime(0.05, audioCtx.currentTime);
+
+            oscLeft.connect(mergerNode, 0, 0);
+            oscRight.connect(mergerNode, 0, 1);
+            mergerNode.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            oscLeft.start();
+            oscRight.start();
+        }
+
+        function updateAudioFrequencies() {
+            if (oscLeft && oscRight && audioCtx) {
+                const baseCarrier = 200;
+                oscLeft.frequency.setValueAtTime(baseCarrier, audioCtx.currentTime);
+                oscRight.frequency.setValueAtTime(baseCarrier + currentFreq, audioCtx.currentTime);
+            }
+        }
+
+        function stopAudio() {
+            if (oscLeft && oscRight) {
+                try {
+                    oscLeft.stop();
+                    oscRight.stop();
+                    oscLeft.disconnect();
+                    oscRight.disconnect();
+                } catch (e) {}
+                oscLeft = null;
+                oscRight = null;
+            }
+        }
+
+        function copyUpi() {
+            const upiText = document.getElementById('upi-id').innerText;
+            navigator.clipboard.writeText(upiText);
+            const btn = document.getElementById('copy-btn');
+            btn.innerText = 'Copied!';
+            btn.classList.add('bg-emerald-500', 'text-white');
+            setTimeout(() => {
+                btn.innerText = 'Copy UPI';
+                btn.classList.remove('bg-emerald-500', 'text-white');
+            }, 2000);
+        }
+
+        // Initialize task matrix on load
+        renderTasks();
+    </script>
+
+</body>
+</html>
