@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AetherMindCanvas — Infinite Thought & Concept Suite</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darkbase: '#0b0f19',
+                        glassbg: 'rgba(17, 24, 39, 0.7)',
+                        glassborder: 'rgba(255, 255, 255, 0.08)'
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #0b0f19;
+            color: #f3f4f6;
+            font-family: system-ui, -apple-system, sans-serif;
+            overflow-x: hidden;
+        }
+        .glass-panel {
+            background: rgba(17, 24, 39, 0.75);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glass-input {
+            background: rgba(3, 7, 18, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .glass-input:focus {
+            border-color: rgba(99, 102, 241, 0.6);
+            outline: none;
+        }
+        .dot-grid {
+            background-image: radial-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+        @keyframes pulseGlow {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 0.8; }
+        }
+        .animate-pulse-glow {
+            animation: pulseGlow 4s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="dot-grid min-h-screen flex flex-col justify-between">
+
+    <!-- Header / Navbar -->
+    <header class="w-full glass-panel border-b border-white/10 sticky top-0 z-50 px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                <i class="fa-solid fa-brain text-white text-lg"></i>
+            </div>
+            <div>
+                <h1 class="font-bold text-lg tracking-wide bg-gradient-to-r from-white via-indigo-200 to-indigo-400 bg-clip-text text-transparent">AetherMind Canvas</h1>
+                <p class="text-xs text-indigo-300/60">Infinite Neural Workspace</p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-3">
+            <button onclick="app.clearCanvas()" class="px-3.5 py-2 rounded-lg text-xs font-medium glass-panel hover:bg-white/10 transition text-red-400 border border-red-500/20">
+                <i class="fa-solid fa-trash-can mr-1.5"></i> Clear Workspace
+            </button>
+            <button onclick="app.exportJSON()" class="px-4 py-2 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white transition shadow-lg shadow-indigo-600/30">
+                <i class="fa-solid fa-download mr-1.5"></i> Export Mindmap
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Workspace Area -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
+        
+        <!-- Left Control Panel -->
+        <div class="lg:col-span-1 space-y-6">
+            <div class="glass-panel p-5 rounded-2xl shadow-2xl">
+                <h2 class="text-sm font-semibold text-indigo-300 mb-4 flex items-center">
+                    <i class="fa-solid fa-plus-circle mr-2"></i> Create Neural Node
+                </h2>
+                <form id="nodeForm" onsubmit="app.addNode(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-400 mb-1.5">Concept Title</label>
+                        <input type="text" id="nodeTitle" required placeholder="e.g., Q3 Growth Strategy" class="w-full px-3.5 py-2.5 rounded-xl text-sm glass-input text-white placeholder-gray-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-400 mb-1.5">Details & Notes</label>
+                        <textarea id="nodeDesc" rows="3" placeholder="Detailed breakdown or AI prompt..." class="w-full px-3.5 py-2.5 rounded-xl text-sm glass-input text-white placeholder-gray-500 resize-none"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-400 mb-1.5">Category Tag</label>
+                        <select id="nodeCategory" class="w-full px-3.5 py-2.5 rounded-xl text-sm glass-input text-white">
+                            <option value="indigo" class="bg-gray-900">Strategy (Indigo)</option>
+                            <option value="purple" class="bg-gray-900">Innovation (Purple)</option>
+                            <option value="emerald" class="bg-gray-900">Execution (Emerald)</option>
+                            <option value="amber" class="bg-gray-900">Research (Amber)</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="w-full py-3 rounded-xl text-sm font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:opacity-90 transition shadow-lg shadow-indigo-600/20">
+                        Synthesize Node
+                    </button>
+                </form>
+            </div>
+
+            <!-- Workspace Stats -->
+            <div class="glass-panel p-5 rounded-2xl shadow-xl flex items-center justify-between">
+                <div>
+                    <p class="text-xs text-gray-400">Active Concepts</p>
+                    <h3 id="nodeCount" class="text-2xl font-bold text-white mt-0.5">0</h3>
+                </div>
+                <div class="w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+                    <i class="fa-solid fa-network-wired text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Infinite Canvas Grid -->
+        <div class="lg:col-span-3 glass-panel rounded-2xl p-6 min-h-[550px] flex flex-col justify-between relative overflow-hidden shadow-2xl">
+            <div class="absolute -top-24 -right-24 w-72 h-72 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none animate-pulse-glow"></div>
+            <div class="absolute -bottom-24 -left-24 w-72 h-72 bg-purple-600/10 rounded-full blur-3xl pointer-events-none animate-pulse-glow"></div>
+
+            <div>
+                <div class="flex items-center justify-between pb-4 border-b border-white/10 mb-6">
+                    <h3 class="text-sm font-semibold text-gray-300 flex items-center">
+                        <i class="fa-solid fa-chess-board mr-2 text-indigo-400"></i> Canvas Nodes
+                    </h3>
+                    <span class="text-xs text-gray-500">Click delete to remove any card</span>
+                </div>
+
+                <!-- Nodes Container -->
+                <div id="canvasGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[460px] overflow-y-auto pr-2">
+                    <!-- Dynamic nodes inserted here -->
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div id="emptyState" class="absolute inset-0 flex flex-col items-center justify-center text-center p-6 bg-darkbase/60 backdrop-blur-md transition-opacity duration-300">
+                <div class="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-indigo-400 mb-3 shadow-inner">
+                    <i class="fa-solid fa-feather text-2xl"></i>
+                </div>
+                <h4 class="text-base font-medium text-white">Your canvas is currently pristine</h4>
+                <p class="text-xs text-gray-400 max-w-xs mt-1">Add your first concept using the left control panel to begin mapping your thoughts.</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Cause-Driven Charity & Support Section -->
+    <footer class="w-full mt-12 border-t border-white/10 glass-panel py-8 px-6">
+        <div class="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+            <div class="flex items-start space-x-4">
+                <div class="w-12 h-12 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 shrink-0 mt-1">
+                    <i class="fa-solid fa-heart-pulse text-xl"></i>
+                </div>
+                <div>
+                    <h3 class="text-sm font-bold text-white tracking-wide">Humanitarian Cause & Community Support</h3>
+                    <p class="text-xs text-gray-300 mt-1 max-w-xl leading-relaxed">
+                        95% of all contributions go directly towards Cancer Patient Support & School Education Initiatives (5% retained for server maintenance).
+                    </p>
+                    <div class="flex items-center space-x-3 mt-3">
+                        <span class="text-xs font-semibold text-rose-400 bg-rose-500/10 px-2.5 py-1 rounded-md border border-rose-500/20">Receiver: ASKAR ALI</span>
+                        <span id="upiIdText" class="text-xs font-mono text-gray-300 bg-black/40 px-2.5 py-1 rounded-md border border-white/10">donation1@postbank</span>
+                        <button onclick="app.copyUPI()" class="text-xs bg-white/10 hover:bg-white/20 text-white px-2.5 py-1 rounded-md transition font-medium">
+                            <i class="fa-regular fa-copy mr-1"></i> Copy UPI ID
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dynamic UPI QR -->
+            <div class="flex flex-col items-center bg-black/40 p-3 rounded-xl border border-white/10">
+                <img src="https://api.qrserver.com/v1/create-qr-code/?data=upi://pay?pa=donation1@postbank&pn=YUGRAAL_Cause&size=100x100" alt="UPI QR Code" class="w-20 h-20 rounded-lg bg-white p-1">
+                <span class="text-[10px] text-gray-400 mt-1.5 font-medium">Scan to Support Cause</span>
+            </div>
+        </div>
+        <div class="max-w-5xl mx-auto mt-6 pt-4 border-t border-white/5 text-center text-xs text-gray-500">
+            &copy; 2025 AetherMind Canvas &bull; Powered by YUGRAAL Co-Creator Engine &bull; Zero Affiliate Ads
+        </div>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        class AetherMindApp {
+            constructor() {
+                this.nodes = JSON.parse(localStorage.getItem('aether_nodes')) || [];
+                this.render();
+            }
+
+            addNode(e) {
+                e.preventDefault();
+                const title = document.getElementById('nodeTitle').value.trim();
+                const desc = document.getElementById('nodeDesc').value.trim();
+                const category = document.getElementById('nodeCategory').value;
+
+                if (!title) return;
+
+                const newNode = {
+                    id: Date.now(),
+                    title,
+                    desc,
+                    category,
+                    timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                };
+
+                this.nodes.unshift(newNode);
+                this.saveAndRender();
+                document.getElementById('nodeForm').reset();
+            }
+
+            deleteNode(id) {
+                this.nodes = this.nodes.filter(n => n.id !== id);
+                this.saveAndRender();
+            }
+
+            clearCanvas() {
+                if (confirm('Are you sure you want to clear all nodes from the workspace?')) {
+                    this.nodes = [];
+                    this.saveAndRender();
+                }
+            }
+
+            saveAndRender() {
+                localStorage.setItem('aether_nodes', JSON.stringify(this.nodes));
+                this.render();
+            }
+
+            render() {
+                const grid = document.getElementById('canvasGrid');
+                const emptyState = document.getElementById('emptyState');
+                const nodeCount = document.getElementById('nodeCount');
+
+                nodeCount.textContent = this.nodes.length;
+
+                if (this.nodes.length === 0) {
+                    emptyState.classList.remove('opacity-0', 'pointer-events-none');
+                    emptyState.style.display = 'flex';
+                    grid.innerHTML = '';
+                    return;
+                }
+
+                emptyState.classList.add('opacity-0', 'pointer-events-none');
+                setTimeout(() => { emptyState.style.display = 'none'; }, 300);
+
+                const colorMap = {
+                    indigo: 'border-indigo-500/30 bg-indigo-500/5 text-indigo-300',
+                    purple: 'border-purple-500/30 bg-purple-500/5 text-purple-300',
+                    emerald: 'border-emerald-500/30 bg-emerald-500/5 text-emerald-300',
+                    amber: 'border-amber-500/30 bg-amber-500/5 text-amber-300'
+                };
+
+                grid.innerHTML = this.nodes.map(node => `
+                    <div class="glass-panel p-4 rounded-xl border ${colorMap[node.category] || colorMap.indigo} flex flex-col justify-between space-y-3 relative group transition hover:scale-[1.01]">
+                        <div>
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded bg-white/5 border border-white/10">${node.category}</span>
+                                <span class="text-[10px] text-gray-400">${node.timestamp}</span>
+                            </div>
+                            <h4 class="text-sm font-bold text-white mt-1">${this.escapeHTML(node.title)}</h4>
+                            ${node.desc ? `<p class="text-xs text-gray-300 mt-1 leading-relaxed">${this.escapeHTML(node.desc)}</p>` : ''}
+                        </div>
+                        <div class="flex items-center justify-end pt-2 border-t border-white/5">
+                            <button onclick="app.deleteNode(${node.id})" class="text-xs text-red-400 hover:text-red-300 transition flex items-center">
+                                <i class="fa-solid fa-trash mr-1"></i> Delete
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            exportJSON() {
+                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(this.nodes, null, 2));
+                const dlAnchorElem = document.createElement('a');
+                dlAnchorElem.setAttribute("href", dataStr);
+                dlAnchorElem.setAttribute("download", "AetherMindCanvas_Export.json");
+                dlAnchorElem.click();
+            }
+
+            copyUPI() {
+                const upiText = "donation1@postbank";
+                navigator.clipboard.writeText(upiText).then(() => {
+                    alert("UPI ID 'donation1@postbank' copied successfully! Thank you for your generous support.");
+                });
+            }
+
+            escapeHTML(str) {
+                return str.replace(/[&<>'"]/
+                , 
+                tag => ({
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    "'": '&#39;',
+                    '"': '&quot;'
+                }[tag] || tag));
+            }
+        }
+
+        const app = new AetherMindApp();
+    </script>
+</body>
+</html>
