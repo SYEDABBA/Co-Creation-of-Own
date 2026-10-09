@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AetherCanvas NeuralSynth</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .glass-panel {
+            background: rgba(18, 24, 38, 0.7);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glass-input {
+            background: rgba(10, 15, 25, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .glow-effect {
+            box-shadow: 0 0 40px -10px rgba(99, 102, 241, 0.3);
+        }
+    </style>
+</head>
+<body class="bg-[#07090e] text-slate-100 min-h-screen flex flex-col justify-between selection:bg-indigo-500 selection:text-white">
+
+    <!-- Top Navigation -->
+    <header class="w-full border-b border-white/5 glass-panel sticky top-0 z-50 px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-cyan-400 flex items-center justify-center glow-effect">
+                <i class="fa-solid fa-wave-square text-white text-lg"></i>
+            </div>
+            <div>
+                <h1 class="font-bold text-lg tracking-tight bg-gradient-to-r from-white via-indigo-200 to-cyan-400 bg-clip-text text-transparent">AetherCanvas</h1>
+                <p class="text-xs text-slate-400">NeuralSynth & Ambient Focus Engine</p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-4">
+            <button id="masterPlayBtn" onclick="toggleMasterEngine()" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm transition-all duration-300 flex items-center space-x-2 shadow-lg shadow-indigo-600/30 cursor-pointer">
+                <i id="playIcon" class="fa-solid fa-play"></i>
+                <span id="playText">Initialize Engine</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Application Grid -->
+    <main class="flex-grow max-w-7xl w-full mx-auto p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        
+        <!-- Left Control Rack -->
+        <div class="lg:col-span-4 space-y-6">
+            
+            <!-- Preset Controller -->
+            <div class="glass-panel rounded-2xl p-6 space-y-4">
+                <h2 class="text-sm font-semibold tracking-wider text-indigo-400 uppercase flex items-center justify-between">
+                    <span>Atmospheric Presets</span>
+                    <i class="fa-solid fa-sliders text-xs"></i>
+                </h2>
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="loadPreset('deepSpace')" class="p-3 rounded-xl glass-input hover:border-indigo-500/50 text-left transition text-xs font-medium cursor-pointer">
+                        <span class="block text-slate-200 font-semibold">Deep Space</span>
+                        <span class="text-[10px] text-slate-400">Binaural Theta</span>
+                    </button>
+                    <button onclick="loadPreset('forestRain')" class="p-3 rounded-xl glass-input hover:border-indigo-500/50 text-left transition text-xs font-medium cursor-pointer">
+                        <span class="block text-slate-200 font-semibold">Neural Forest</span>
+                        <span class="text-[10px] text-slate-400">Organic Alpha</span>
+                    </button>
+                    <button onclick="loadPreset('cyberNeon')" class="p-3 rounded-xl glass-input hover:border-indigo-500/50 text-left transition text-xs font-medium cursor-pointer">
+                        <span class="block text-slate-200 font-semibold">Cyber Neon</span>
+                        <span class="text-[10px] text-slate-400">Arp Synth</span>
+                    </button>
+                    <button onclick="loadPreset('zenGarden')" class="p-3 rounded-xl glass-input hover:border-indigo-500/50 text-left transition text-xs font-medium cursor-pointer">
+                        <span class="block text-slate-200 font-semibold">Zen Garden</span>
+                        <span class="text-[10px] text-slate-400">Harmonic Drone</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Synth Parameter Controls -->
+            <div class="glass-panel rounded-2xl p-6 space-y-5">
+                <h2 class="text-sm font-semibold tracking-wider text-indigo-400 uppercase">Synthesizer Parameters</h2>
+                
+                <div class="space-y-2">
+                    <div class="flex justify-between text-xs">
+                        <span class="text-slate-300">Base Frequency (Drone)</span>
+                        <span id="freqVal" class="text-indigo-400 font-mono">136.1 Hz</span>
+                    </div>
+                    <input type="range" id="freqSlider" min="50" max="400" value="136.1" step="0.5" oninput="updateFreq(this.value)" class="w-full accent-indigo-500 bg-slate-800 rounded-lg h-2 cursor-pointer">
+                </div>
+
+                <div class="space-y-2">
+                    <div class="flex justify-between text-xs">
+                        <span class="text-slate-300">Resonance Cutoff</span>
+                        <span id="cutoffVal" class="text-indigo-400 font-mono">1200 Hz</span>
+                    </div>
+                    <input type="range" id="cutoffSlider" min="200" max="5000" value="1200" step="10" oninput="updateCutoff(this.value)" class="w-full accent-indigo-500 bg-slate-800 rounded-lg h-2 cursor-pointer">
+                </div>
+
+                <div class="space-y-2">
+                    <div class="flex justify-between text-xs">
+                        <span class="text-slate-300">Reverb Decay</span>
+                        <span id="reverbVal" class="text-indigo-400 font-mono">0.75</span>
+                    </div>
+                    <input type="range" id="reverbSlider" min="0.1" max="1" value="0.75" step="0.05" oninput="updateReverb(this.value)" class="w-full accent-indigo-500 bg-slate-800 rounded-lg h-2 cursor-pointer">
+                </div>
+
+                <div class="pt-2 border-t border-white/5 flex items-center justify-between">
+                    <span class="text-xs text-slate-300">Generative Arpeggiator</span>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="arpToggle" onchange="toggleArp(this.checked)" class="sr-only peer">
+                        <div class="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                    </label>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Right Visualizer Canvas Area -->
+        <div class="lg:col-span-8 flex flex-col space-y-6">
+            <div class="glass-panel rounded-2xl p-4 relative overflow-hidden flex flex-col items-center justify-center glow-effect">
+                <div class="absolute top-4 left-4 z-10 flex items-center space-x-2 bg-slate-900/60 px-3 py-1.5 rounded-lg border border-white/5">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" id="canvasStatusDot"></span>
+                    <span class="text-xs text-slate-300 font-medium" id="canvasStatusText">Interactive Particle Matrix</span>
+                </div>
+                
+                <canvas id="matrixCanvas" class="w-full h-[450px] rounded-xl bg-slate-950/80 cursor-crosshair"></canvas>
+                
+                <div class="absolute bottom-4 right-4 z-10 text-[11px] text-slate-400 bg-slate-900/60 px-3 py-1 rounded-lg border border-white/5">
+                    Click & drag inside canvas to excite neural nodes
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Cause-Driven Charity Section (Mandatory & Respectful) -->
+    <footer class="w-full border-t border-white/10 bg-[#090d16] py-8 px-6 mt-12">
+        <div class="max-w-5xl mx-auto glass-panel rounded-2xl p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 border border-indigo-500/20">
+            <div class="space-y-3 max-w-xl">
+                <div class="inline-flex items-center space-x-2 bg-indigo-500/10 text-indigo-400 px-3 py-1 rounded-full text-xs font-semibold">
+                    <i class="fa-solid fa-heart-pulse"></i>
+                    <span>Community Philanthropy & Social Impact</span>
+                </div>
+                <h3 class="text-lg font-bold text-white">Support Cancer Patients & Education Initiatives</h3>
+                <p class="text-xs text-slate-300 leading-relaxed">
+                    95% of all contributions go directly towards Cancer Patient Support & School Education Initiatives (5% retained for server maintenance).
+                </p>
+                <div class="text-xs font-mono text-indigo-300 bg-indigo-950/40 p-2.5 rounded-xl border border-indigo-500/20 flex items-center justify-between">
+                    <span>Receiver: <strong class="text-white">ASKAR ALI</strong> | UPI ID: <strong id="upiIdText" class="text-white">donation1@postbank</strong></span>
+                    <button onclick="copyUpi()" class="px-3 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition text-[11px] font-sans font-medium cursor-pointer">
+                        <i class="fa-solid fa-copy mr-1"></i> Copy UPI
+                    </button>
+                </div>
+            </div>
+
+            <!-- Dynamic QR Code Container -->
+            <div class="flex flex-col items-center bg-white p-3 rounded-2xl shadow-xl">
+                <img src="https://api.qrserver.com/v1/create-qr-code/?data=upi://pay?pa=donation1@postbank&pn=YUGRAAL_Cause" alt="Donation QR Code" class="w-28 h-28 object-contain">
+                <span class="text-[10px] text-slate-700 font-semibold mt-2">Scan to Contribute</span>
+            </div>
+        </div>
+        <div class="text-center text-xs text-slate-500 mt-6">
+            &copy; 2025 AetherCanvas NeuralSynth. Engineered for focus, crafted with empathy.
+        </div>
+    </footer>
+
+    <!-- JavaScript Audio & Visual Engine Logic -->
+    <script>
+        let audioCtx = null;
+        let masterGain = null;
+        let droneOsc = null;
+        let filterNode = null;
+        let convolverNode = null;
+        let arpInterval = null;
+        let isRunning = false;
+
+        // Canvas Setup
+        const canvas = document.getElementById('matrixCanvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        let mousePos = { x: null, y: null, active: false };
+
+        function resizeCanvas() {
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Particle {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.size = Math.random() * 2.5 + 1;
+                this.speedX = (Math.random() - 0.5) * 0.8;
+                this.speedY = (Math.random() - 0.5) * 0.8;
+                this.color = Math.random() > 0.5 ? '#6366f1' : '#22d3ee';
+                this.alpha = Math.random() * 0.7 + 0.3;
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
+                if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+            }
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = this.alpha;
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        function initParticles() {
+            particles = [];
+            const count = Math.floor((canvas.width * canvas.height) / 8000);
+            for (let i = 0; i < count; i++) {
+                particles.push(new Particle(Math.random() * canvas.width, Math.random() * canvas.height));
+            }
+        }
+        initParticles();
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            if (mousePos.active && mousePos.x !== null) {
+                ctx.strokeStyle = 'rgba(99, 102, 241, 0.15)';
+                ctx.lineWidth = 1;
+                particles.forEach(p => {
+                    let dist = Math.hypot(p.x - mousePos.x, p.y - mousePos.y);
+                    if (dist < 120) {
+                        ctx.beginPath();
+                        ctx.moveTo(p.x, p.y);
+                        ctx.lineTo(mousePos.x, mousePos.y);
+                        ctx.stroke();
+                    }
+                });
+            }
+
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            requestAnimationFrame(animateParticles);
+        }
+        animateParticles();
+
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            mousePos.x = e.clientX - rect.left;
+            mousePos.y = e.clientY - rect.top;
+            mousePos.active = true;
+        });
+        canvas.addEventListener('mouseleave', () => { mousePos.active = false; });
+
+        // Web Audio Engine Initialization
+        function toggleMasterEngine() {
+            if (!isRunning) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                masterGain = audioCtx.createGain();
+                masterGain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+
+                filterNode = audioCtx.createBiquadFilter();
+                filterNode.type = 'lowpass';
+                filterNode.frequency.setValueAtTime(1200, audioCtx.currentTime);
+
+                droneOsc = audioCtx.createOscillator();
+                droneOsc.type = 'sine';
+                droneOsc.frequency.setValueAtTime(136.1, audioCtx.currentTime);
+
+                droneOsc.connect(filterNode);
+                filterNode.connect(masterGain);
+                masterGain.connect(audioCtx.destination);
+
+                droneOsc.start();
+
+                isRunning = true;
+                document.getElementById('playIcon').className = 'fa-solid fa-pause';
+                document.getElementById('playText').innerText = 'Engine Active';
+                document.getElementById('canvasStatusDot').className = 'w-2 h-2 rounded-full bg-indigo-500 animate-ping';
+                document.getElementById('canvasStatusText').innerText = 'Audio-Visual Sync Active';
+            } else {
+                if (audioCtx) audioCtx.close();
+                isRunning = false;
+                if (arpInterval) clearInterval(arpInterval);
+                document.getElementById('playIcon').className = 'fa-solid fa-play';
+                document.getElementById('playText').innerText = 'Initialize Engine';
+                document.getElementById('canvasStatusDot').className = 'w-2 h-2 rounded-full bg-emerald-400';
+                document.getElementById('canvasStatusText').innerText = 'Interactive Particle Matrix';
+            }
+        }
+
+        function updateFreq(val) {
+            document.getElementById('freqVal').innerText = val + ' Hz';
+            if (isRunning && droneOsc) {
+                droneOsc.frequency.setTargetAtTime(parseFloat(val), audioCtx.currentTime, 0.1);
+            }
+        }
+
+        function updateCutoff(val) {
+            document.getElementById('cutoffVal').innerText = val + ' Hz';
+            if (isRunning && filterNode) {
+                filterNode.frequency.setTargetAtTime(parseFloat(val), audioCtx.currentTime, 0.1);
+            }
+        }
+
+        function updateReverb(val) {
+            document.getElementById('reverbVal').innerText = val;
+        }
+
+        function toggleArp(enabled) {
+            if (!isRunning) return;
+            if (enabled) {
+                const notes = [261.63, 329.63, 392.00, 523.25, 659.25];
+                arpInterval = setInterval(() => {
+                    if (!isRunning) return;
+                    let osc = audioCtx.createOscillator();
+                    let g = audioCtx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.value = notes[Math.floor(Math.random() * notes.length)];
+                    g.gain.setValueAtTime(0.05, audioCtx.currentTime);
+                    g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 1.2);
+                    osc.connect(g);
+                    g.connect(masterGain);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 1.2);
+                }, 400);
+            } else {
+                if (arpInterval) clearInterval(arpInterval);
+            }
+        }
+
+        function loadPreset(type) {
+            if (type === 'deepSpace') {
+                document.getElementById('freqSlider').value = 108.0;
+                updateFreq(108.0);
+                document.getElementById('cutoffSlider').value = 800;
+                updateCutoff(800);
+            } else if (type === 'forestRain') {
+                document.getElementById('freqSlider').value = 216.0;
+                updateFreq(216.0);
+                document.getElementById('cutoffSlider').value = 2200;
+                updateCutoff(2200);
+            } else if (type === 'cyberNeon') {
+                document.getElementById('freqSlider').value = 146.83;
+                updateFreq(146.83);
+                document.getElementById('cutoffSlider').value = 3500;
+                updateCutoff(3500);
+                document.getElementById('arpToggle').checked = true;
+                toggleArp(true);
+            } else if (type === 'zenGarden') {
+                document.getElementById('freqSlider').value = 174.6;
+                updateFreq(174.6);
+                document.getElementById('cutoffSlider').value = 1000;
+                updateCutoff(1000);
+            }
+        }
+
+        function copyUpi() {
+            const upiText = document.getElementById('upiIdText').innerText;
+            navigator.clipboard.writeText(upiText);
+            alert('UPI ID copied to clipboard: ' + upiText);
+        }
+    </script>
+</body>
+</html>
