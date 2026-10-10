@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AetherSync // Deep Work Sanctuary</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              400: '#818cf8',
+              500: '#6366f1',
+              600: '#4f46e5',
+              900: '#1e1b4b'
+            }
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+    * { font-family: 'Plus Jakarta Sans', sans-serif; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+    .glass-panel {
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .glass-panel-glow {
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(99, 102, 241, 0.25);
+      box-shadow: 0 0 35px -5px rgba(99, 102, 241, 0.15);
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 5px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.5);
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: rgba(99, 102, 241, 0.3);
+      border-radius: 9999px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: rgba(99, 102, 241, 0.6);
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen relative overflow-x-hidden selection:bg-indigo-500 selection:text-white">
+  <canvas id="bg-canvas" class="fixed inset-0 pointer-events-none z-0"></canvas>
+
+  <div class="relative z-10 flex flex-col min-h-screen">
+    <header class="border-b border-white/10 glass-panel sticky top-0 z-30">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <div class="h-9 w-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-400 flex items-center justify-center shadow-lg shadow-indigo-500/25">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+          </div>
+          <div>
+            <div class="text-lg font-bold tracking-tight bg-gradient-to-r from-white via-indigo-200 to-indigo-400 bg-clip-text text-transparent">
+              AetherSync <span class="text-xs font-mono font-medium px-2 py-0.5 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 ml-1">OS v2.4</span>
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center space-x-4">
+          <div id="clock" class="font-mono text-sm text-slate-400 hidden sm:block">00:00:00 UTC</div>
+          <button id="audio-toggle-master" class="flex items-center space-x-2 text-xs font-medium px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 hover:border-indigo-400/40 text-slate-300 hover:text-white transition-all shadow-sm">
+            <span id="audio-indicator-dot" class="w-2 h-2 rounded-full bg-slate-500"></span>
+            <span id="audio-status-text">Sound Engine: Idle</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <section class="lg:col-span-5 glass-panel-glow rounded-3xl p-6 sm:p-8 flex flex-col justify-between relative overflow-hidden">
+          <div class="absolute -right-16 -top-16 w-56 h-56 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none"></div>
+          <div>
+            <div class="flex items-center justify-between mb-6">
+              <span class="text-xs font-semibold tracking-wider uppercase text-indigo-400 font-mono">Chronos Engine</span>
+              <div class="inline-flex p-1 bg-slate-900/80 rounded-xl border border-white/5">
+                <button class="timer-mode-btn active px-3 py-1 rounded-lg text-xs font-medium transition-all text-white bg-indigo-600" data-time="1500" data-mode="Focus">Focus</button>
+                <button class="timer-mode-btn px-3 py-1 rounded-lg text-xs font-medium transition-all text-slate-400 hover:text-white" data-time="3000" data-mode="Deep Dive">Deep</button>
+                <button class="timer-mode-btn px-3 py-1 rounded-lg text-xs font-medium transition-all text-slate-400 hover:text-white" data-time="300" data-mode="Recharge">Rest</button>
+              </div>
+            </div>
+
+            <div class="relative flex items-center justify-center py-6">
+              <svg class="w-64 h-64 sm:w-72 sm:h-72 transform -rotate-90" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="44" stroke="currentColor" stroke-width="4" class="text-slate-800/80" fill="transparent"></circle>
+                <circle id="timer-progress" cx="50" cy="50" r="44" stroke="currentColor" stroke-width="4.5" class="text-indigo-500 transition-all duration-300" stroke-dasharray="276.46" stroke-dashoffset="0" stroke-linecap="round" fill="transparent"></circle>
+              </svg>
+              <div class="absolute text-center flex flex-col items-center">
+                <span id="timer-display" class="text-5xl sm:text-6xl font-extrabold tracking-tighter font-mono text-white drop-shadow-md">25:00</span>
+                <span id="timer-label" class="text-xs font-mono uppercase tracking-widest text-indigo-300/80 mt-1.5">Focus Session</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-center space-x-3 pt-4 border-t border-white/5 mt-4">
+            <button id="timer-toggle-btn" class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3 px-4 rounded-2xl shadow-lg shadow-indigo-600/30 transition-all flex items-center justify-center space-x-2">
+              <svg id="timer-toggle-icon" class="w-5 h-5 fill-current" viewBox="0 0 20 20"><polygon points="5,3 17,10 5,17" /></svg>
+              <span id="timer-toggle-text">Initiate Session</span>
+            </button>
+            <button id="timer-reset-btn" class="p-3 rounded-2xl bg-slate-800/80 hover:bg-slate-700/80 border border-white/10 text-slate-300 hover:text-white transition-all" title="Reset Timer">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+            </button>
+          </div>
+        </section>
+
+        <div class="lg:col-span-7 space-y-6">
+          <section class="glass-panel rounded-3xl p-6 sm:p-7 relative overflow-hidden">
+            <div class="flex items-center justify-between mb-5">
+              <div class="flex items-center space-x-2">
+                <div class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></div>
+                <h2 class="text-sm font-semibold tracking-wide uppercase text-slate-300 font-mono">Acoustic Synthesizer</h2>
+              </div>
+              <span class="text-xs text-slate-400">Pure Client-Side Web Audio</span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div class="p-4 rounded-2xl bg-slate-900/70 border border-white/5 space-y-3">
+                <div class="flex items-center justify-between">
+                  <span class="text-sm font-medium text-slate-200 flex items-center gap-1.5">
+                    <svg class="w-4 h-4 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 00-9.78 2.096A4.001 4.001 0 003 15z" /></svg>
+                    Atmospheric Rain
+                  </span>
+                  <input type="checkbox" id="rain-toggle" class="sr-only peer" />
+                  <label for="rain-toggle" class="w-8 h-4.5 bg-slate-700 peer-checked:bg-indigo-600 rounded-full relative cursor-pointer transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:w-3.5 after:h-3.5 after:rounded-full after:transition-all peer-checked:after:translate-x-3.5"></label>
+                </div>
+                <input id="rain-vol" type="range" min="0" max="1" step="0.01" value="0.4" class="w-full accent-indigo-500 h-1.5 bg-slate-800 rounded-lg cursor-pointer" />
+                <div class="flex justify-between text-[11px] font-mono text-slate-400"><span>Pink-noise filtered</span><span id="rain-val-text">40%</span></div>
+              </div>
+
+              <div class="p-4 rounded-2xl bg-slate-900/70 border border-white/5 space-y-3">
+                <div class="flex items-center justify-between">
+                  <span class="text-sm font-medium text-slate-200 flex items-center gap-1.5">
+                    <svg class="w-4 h-4 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" /></svg>
+                    432Hz Drone
+                  </span>
+                  <input type="checkbox" id="drone-toggle" class="sr-only peer" />
+                  <label for="drone-toggle" class="w-8 h-4.5 bg-slate-700 peer-checked:bg-indigo-600 rounded-full relative cursor-pointer transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:w-3.5 after:h-3.5 after:rounded-full after:transition-all peer-checked:after:translate-x-3.5"></label>
+                </div>
+                <input id="drone-vol" type="range" min="0" max="1" step="0.01" value="0.3" class="w-full accent-indigo-500 h-1.5 bg-slate-800 rounded-lg cursor-pointer" />
+                <div class="flex justify-between text-[11px] font-mono text-slate-400"><span>Harmonic sine</span><span id="drone-val-text">30%</span></div>
+              </div>
+
+              <div class="p-4 rounded-2xl bg-slate-900/70 border border-white/5 space-y-3">
+                <div class="flex items-center justify-between">
+                  <span class="text-sm font-medium text-slate-200 flex items-center gap-1.5">
+                    <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
+                    Binaural Alpha (10Hz)
+                  </span>
+                  <input type="checkbox" id="binaural-toggle" class="sr-only peer" />
+                  <label for="binaural-toggle" class="w-8 h-4.5 bg-slate-700 peer-checked:bg-indigo-600 rounded-full relative cursor-pointer transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:w-3.5 after:h-3.5 after:rounded-full after:transition-all peer-checked:after:translate-x-3.5"></label>
+                </div>
+                <input id="binaural-vol" type="range" min="0" max="1" step="0.01" value="0.25" class="w-full accent-indigo-500 h-1.5 bg-slate-800 rounded-lg cursor-pointer" />
+                <div class="flex justify-between text-[11px] font-mono text-slate-400"><span>Dual ear pulse</span><span id="binaural-val-text">25%</span></div>
+              </div>
+            </div>
+          </section>
+
+          <section class="glass-panel rounded-3xl p-6 sm:p-7">
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center space-x-2">
+                <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+                <h2 class="text-sm font-semibold tracking-wide uppercase text-slate-300 font-mono">Deep Work Objective Matrix</h2>
+              </div>
+              <span id="task-counter" class="text-xs font-mono text-indigo-400 bg-indigo-500/10 px-2.5 py-1 rounded-full border border-indigo-500/20">0 Completed</span>
+            </div>
+
+            <form id="task-form" class="flex space-x-2 mb-4">
+              <input id="task-input" type="text" placeholder="Define next focal priority..." required class="flex-1 bg-slate-900/80 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors" />
+              <button type="submit" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-medium transition-all shadow-md shadow-indigo-600/20 flex items-center space-x-1">
+                <span>Queue</span>
+              </button>
+            </form>
+
+            <div id="task-list" class="space-y-2 max-h-56 overflow-y-auto custom-scrollbar pr-1">
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <section class="glass-panel rounded-3xl p-6 sm:p-7 border border-emerald-500/20 bg-gradient-to-br from-slate-900/90 via-slate-900/70 to-emerald-950/20 shadow-2xl relative overflow-hidden">
+        <div class="absolute -right-20 -bottom-20 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="flex flex-col lg:flex-row items-center justify-between gap-6 relative z-10">
+          <div class="space-y-2 text-center lg:text-left max-w-2xl">
+            <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-mono font-medium">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+              <span>YUGRAAL Verified Social Impact Initiative</span>
+            </div>
+            <h3 class="text-xl font-bold tracking-tight text-white">Empower Lives Through Purpose-Driven Action</h3>
+            <p class="text-sm text-slate-300 leading-relaxed">
+              95% of all contributions go directly towards Cancer Patient Support & School Education Initiatives (5% retained for server maintenance)
+            </p>
+            <div class="text-xs text-slate-400 flex flex-wrap gap-4 justify-center lg:justify-start pt-1 font-mono">
+              <div>Beneficiary: <span class="text-white font-medium">ASKAR ALI</span></div>
+              <div>UPI Target: <span class="text-emerald-400 font-medium select-all">donation1@postbank</span></div>
+            </div>
+          </div>
+
+          <div class="flex flex-col sm:flex-row items-center gap-4 bg-slate-950/70 p-4 rounded-2xl border border-white/10">
+            <div class="bg-white p-2 rounded-xl shadow-inner flex items-center justify-center shrink-0">
+              <img src="https://api.qrserver.com/v1/create-qr-code/?data=upi://pay?pa=donation1@postbank&pn=YUGRAAL_Cause" alt="Donation QR" class="w-24 h-24 rounded-lg block" loading="lazy" />
+            </div>
+            <div class="flex flex-col space-y-2 text-center sm:text-left">
+              <span class="text-xs font-mono text-slate-400">Instant UPI QR Transfer</span>
+              <button id="copy-upi-btn" class="inline-flex items-center justify-center space-x-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white text-xs font-semibold rounded-xl shadow-md shadow-emerald-700/30 transition-all">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                <span id="copy-btn-text">Copy UPI ID</span>
+              </button>
+              <span class="text-[10px] text-slate-500 font-mono text-center sm:text-left">Zero Intermediate Platforms</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="border-t border-white/5 py-4 text-center text-xs text-slate-500 font-mono">
+      AetherSync OS &bull; Pure Web Audio + Local Persistence Architecture &bull; Crafted for Focused Minds
+    </footer>
+  </div>
+
+  <script>
+    /* --- Realtime Clock --- */
+    function updateClock() {
+      const now = new Date();
+      const el = document.getElementById('clock');
+      if (el) el.textContent = now.toTimeString().split(' ')[0] + ' LOCAL';
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    /* --- Canvas Ambient Particle Visualizer --- */
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+    let width = (canvas.width = window.innerWidth);
+    let height = (canvas.height = window.innerHeight);
+
+    window.addEventListener('resize', () => {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+      initParticles();
+    });
+
+    class Particle {
+      constructor() {
+        this.x = Math.random() * width;
+        this.y = Math.random() * height;
+        this.vx = (Math.random() - 0.5) * 0.4;
+        this.vy = (Math.random() - 0.5) * 0.4;
+        this.radius = Math.random() * 1.6 + 0.8;
+        this.alpha = Math.random() * 0.4 + 0.2;
+      }
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        if (this.x < 0) this.x = width;
+        if (this.x > width) this.x = 0;
+        if (this.y < 0) this.y = height;
+        if (this.y > height) this.y = 0;
+      }
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(99, 102, 241, ${this.alpha})`;
+        ctx.fill();
+      }
+    }
+
+    function initParticles() {
+      particles = [];
+      const count = Math.floor((width * height) / 18000);
+      for (let i = 0; i < count; i++) {
+        particles.push(new Particle());
+      }
+    }
+    initParticles();
+
+    function renderParticles() {
+      ctx.clearRect(0, 0, width, height);
+      for (let i = 0; i < particles.length; i++) {
+        particles[i].update();
+        particles[i].draw();
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = particles[i].x - particles[j].x;
+          const dy = particles[i].y - particles[j].y;
+          const dist = Math.hypot(dx, dy);
+          if (dist < 100) {
+            ctx.beginPath();
+            ctx.strokeStyle = `rgba(99, 102, 241, ${0.12 * (1 - dist / 100)})`;
+            ctx.lineWidth = 0.6;
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            ctx.stroke();
+          }
+        }
+      }
+      requestAnimationFrame(renderParticles);
+    }
+    renderParticles();
+
+    /* --- Web Audio Procedural Sound Synthesizer --- */
+    let audioCtx = null;
+    let rainNode = null;
+    let rainGain = null;
+    let droneOsc = null;
+    let droneGain = null;
+    let binauralOscL = null;
+    let binauralOscR = null;
+    let binauralGain = null;
+
+    function initAudioContext() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    function createRainBuffer() {
+      const bufferSize = audioCtx.sampleRate * 2;
+      const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const data = buffer.getChannelData(0);
+      let b0 = 0, b1 = 0, b2 = 0;
+      for (let i = 0; i < bufferSize; i++) {
+        const white = Math.random() * 2 - 1;
+        b0 = 0.99886 * b0 + white * 0.0555179;
+        b1 = 0.99332 * b1 + white * 0.0750759;
+        b2 = 0.96900 * b2 + white * 0.1538520;
+        data[i] = (b0 + b1 + b2) * 0.11;
+      }
+      return buffer;
+    }
+
+    function toggleRain(enable) {
+      initAudioContext();
+      if (enable) {
+        if (!rainNode) {
+          const buffer = createRainBuffer();
+          rainNode = audioCtx.createBufferSource();
+          rainNode.buffer = buffer;
+          rainNode.loop = true;
+          const filter = audioCtx.createBiquadFilter();
+          filter.type = 'lowpass';
+          filter.frequency.value = 1400;
+          rainGain = audioCtx.createGain();
+          rainGain.gain.value = parseFloat(document.getElementById('rain-vol').value);
+          rainNode.connect(filter);
+          filter.connect(rainGain);
+          rainGain.connect(audioCtx.destination);
+          rainNode.start(0);
+        }
+      } else if (rainNode) {
+        rainNode.stop();
+        rainNode.disconnect();
+        rainNode = null;
+      }
+      updateMasterStatus();
+    }
+
+    function toggleDrone(enable) {
+      initAudioContext();
+      if (enable) {
+        if (!droneOsc) {
+          droneOsc = audioCtx.createOscillator();
+          droneOsc.type = 'triangle';
+          droneOsc.frequency.setValueAtTime(432, audioCtx.currentTime);
+          droneGain = audioCtx.createGain();
+          droneGain.gain.setValueAtTime(parseFloat(document.getElementById('drone-vol').value) * 0.18, audioCtx.currentTime);
+          droneOsc.connect(droneGain);
+          droneGain.connect(audioCtx.destination);
+          droneOsc.start();
+        }
+      } else if (droneOsc) {
+        droneOsc.stop();
+        droneOsc.disconnect();
+        droneOsc = null;
+      }
+      updateMasterStatus();
+    }
+
+    function toggleBinaural(enable) {
+      initAudioContext();
+      if (enable) {
+        if (!binauralOscL) {
+          const merger = audioCtx.createChannelMerger(2);
+          binauralGain = audioCtx.createGain();
+          binauralGain.gain.value = parseFloat(document.getElementById('binaural-vol').value) * 0.15;
+
+          binauralOscL = audioCtx.createOscillator();
+          binauralOscR = audioCtx.createOscillator();
+          binauralOscL.type = 'sine';
+          binauralOscR.type = 'sine';
+
+          binauralOscL.frequency.setValueAtTime(200, audioCtx.currentTime);
+          binauralOscR.frequency.setValueAtTime(210, audioCtx.currentTime);
+
+          binauralOscL.connect(merger, 0, 0);
+          binauralOscR.connect(merger, 0, 1);
+          merger.connect(binauralGain);
+          binauralGain.connect(audioCtx.destination);
+
+          binauralOscL.start();
+          binauralOscR.start();
+        }
+      } else if (binauralOscL) {
+        binauralOscL.stop();
+        binauralOscR.stop();
+        binauralOscL.disconnect();
+        binauralOscR.disconnect();
+        binauralOscL = null;
+        binauralOscR = null;
+      }
+      updateMasterStatus();
+    }
+
+    function updateMasterStatus() {
+      const active = rainNode || droneOsc || binauralOscL;
+      const dot = document.getElementById('audio-indicator-dot');
+      const text = document.getElementById('audio-status-text');
+      if (active) {
+        dot.className = 'w-2 h-2 rounded-full bg-emerald-400 animate-pulse';
+        text.textContent = 'Acoustics Active';
+      } else {
+        dot.className = 'w-2 h-2 rounded-full bg-slate-500';
+        text.textContent = 'Sound Engine: Idle';
+      }
+    }
+
+    document.getElementById('rain-toggle').addEventListener('change', (e) => toggleRain(e.target.checked));
+    document.getElementById('drone-toggle').addEventListener('change', (e) => toggleDrone(e.target.checked));
+    document.getElementById('binaural-toggle').addEventListener('change', (e) => toggleBinaural(e.target.checked));
+
+    document.getElementById('rain-vol').addEventListener('input', (e) => {
+      document.getElementById('rain-val-text').textContent = Math.round(e.target.value * 100) + '%';
+      if (rainGain) rainGain.gain.setValueAtTime(parseFloat(e.target.value), audioCtx.currentTime);
+    });
+    document.getElementById('drone-vol').addEventListener('input', (e) => {
+      document.getElementById('drone-val-text').textContent = Math.round(e.target.value * 100) + '%';
+      if (droneGain) droneGain.gain.setValueAtTime(parseFloat(e.target.value) * 0.18, audioCtx.currentTime);
+    });
+    document.getElementById('binaural-vol').addEventListener('input', (e) => {
+      document.getElementById('binaural-val-text').textContent = Math.round(e.target.value * 100) + '%';
+      if (binauralGain) binauralGain.gain.setValueAtTime(parseFloat(e.target.value) * 0.15, audioCtx.currentTime);
+    });
+
+    document.getElementById('audio-toggle-master').addEventListener('click', () => {
+      const anyActive = rainNode || droneOsc || binauralOscL;
+      if (anyActive) {
+        document.getElementById('rain-toggle').checked = false; toggleRain(false);
+        document.getElementById('drone-toggle').checked = false; toggleDrone(false);
+        document.getElementById('binaural-toggle').checked = false; toggleBinaural(false);
+      } else {
+        document.getElementById('rain-toggle').checked = true; toggleRain(true);
+        document.getElementById('drone-toggle').checked = true; toggleDrone(true);
+      }
+    });
+
+    /* --- Chronos Focus Timer --- */
+    let totalSeconds = 1500;
+    let remainingSeconds = 1500;
+    let timerInterval = null;
+    let isRunning = false;
+    const circleCircumference = 2 * Math.PI * 44;
+
+    const timerDisplay = document.getElementById('timer-display');
+    const timerProgress = document.getElementById('timer-progress');
+    const toggleBtn = document.getElementById('timer-toggle-btn');
+    const toggleText = document.getElementById('timer-toggle-text');
+    const toggleIcon = document.getElementById('timer-toggle-icon');
+    const resetBtn = document.getElementById('timer-reset-btn');
+    const timerLabel = document.getElementById('timer-label');
+
+    function formatDisplay(sec) {
+      const m = Math.floor(sec / 60);
+      const s = sec % 60;
+      return `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
+    }
+
+    function updateTimerVisuals() {
+      timerDisplay.textContent = formatDisplay(remainingSeconds);
+      const offset = circleCircumference - (remainingSeconds / totalSeconds) * circleCircumference;
+      timerProgress.style.strokeDashoffset = offset;
+    }
+
+    function triggerChime() {
+      initAudioContext();
+      const chime = audioCtx.createOscillator();
+      const chimeGain = audioCtx.createGain();
+      chime.type = 'sine';
+      chime.frequency.setValueAtTime(880, audioCtx.currentTime);
+      chime.frequency.exponentialRampToValueAtTime(440, audioCtx.currentTime + 1.2);
+      chimeGain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+      chimeGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.2);
+      chime.connect(chimeGain);
+      chimeGain.connect(audioCtx.destination);
+      chime.start();
+      chime.stop(audioCtx.currentTime + 1.2);
+    }
+
+    function toggleTimer() {
+      if (isRunning) {
+        clearInterval(timerInterval);
+        isRunning = false;
+        toggleText.textContent = 'Resume Work';
+        toggleIcon.innerHTML = '<polygon points="5,3 17,10 5,17" />';
+      } else {
+        initAudioContext();
+        isRunning = true;
+        toggleText.textContent = 'Hold Focus';
+        toggleIcon.innerHTML = '<rect x="4" y="4" width="4" height="12" /><rect x="12" y="4" width="4" height="12" />';
+        timerInterval = setInterval(() => {
+          if (remainingSeconds > 0) {
+            remainingSeconds--;
+            updateTimerVisuals();
+          } else {
+            clearInterval(timerInterval);
+            isRunning = false;
+            triggerChime();
+            toggleText.textContent = 'Session Complete';
+            toggleIcon.innerHTML = '<polygon points="5,3 17,10 5,17" />';
+          }
+        }, 1000);
+      }
+    }
+
+    function resetTimer() {
+      clearInterval(timerInterval);
+      isRunning = false;
+      remainingSeconds = totalSeconds;
+      toggleText.textContent = 'Initiate Session';
+      toggleIcon.innerHTML = '<polygon points="5,3 17,10 5,17" />';
+      updateTimerVisuals();
+    }
+
+    toggleBtn.addEventListener('click', toggleTimer);
+    resetBtn.addEventListener('click', resetTimer);
+
+    document.querySelectorAll('.timer-mode-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.timer-mode-btn').forEach((b) => {
+          b.classList.remove('text-white', 'bg-indigo-600');
+          b.classList.add('text-slate-400');
+        });
+        btn.classList.add('text-white', 'bg-indigo-600');
+        btn.classList.remove('text-slate-400');
+
+        totalSeconds = parseInt(btn.dataset.time, 10);
+        timerLabel.textContent = btn.dataset.mode + ' Session';
+        resetTimer();
+      });
+    });
+    updateTimerVisuals();
+
+    /* --- Persistent Micro-Task Matrix --- */
+    const taskForm = document.getElementById('task-form');
+    const taskInput = document.getElementById('task-input');
+    const taskList = document.getElementById('task-list');
+    const taskCounter = document.getElementById('task-counter');
+
+    let tasks = JSON.parse(localStorage.getItem('aether_tasks') || '[]');
+    if (tasks.length === 0) {
+      tasks = [
+        { id: 1, text: 'Review critical architecture roadmap', done: true },
+        { id: 2, text: 'Deep uninterrupted focus for 50m sprint', done: false }
+      ];
+    }
+
+    function saveAndRenderTasks() {
+      localStorage.setItem('aether_tasks', JSON.stringify(tasks));
+      taskList.innerHTML = '';
+      const doneCount = tasks.filter((t) => t.done).length;
+      taskCounter.textContent = `${doneCount}/${tasks.length} Completed`;
+
+      if (tasks.length === 0) {
+        taskList.innerHTML = '<div class="text-xs text-slate-500 py-4 text-center font-mono">No active tasks in flight.</div>';
+        return;
+      }
+
+      tasks.forEach((task) => {
+        const div = document.createElement('div');
+        div.className = 'group flex items-center justify-between p-3 rounded-xl bg-slate-900/60 border border-white/5 hover:border-white/10 transition-all';
+        div.innerHTML = `
+          <div class="flex items-center space-x-3 overflow-hidden pr-2">
+            <input type="checkbox" ${task.done ? 'checked' : ''} class="w-4 h-4 rounded text-indigo-600 bg-slate-800 border-white/20 focus:ring-0 cursor-pointer" data-id="${task.id}" />
+            <span class="text-sm ${task.done ? 'line-through text-slate-500' : 'text-slate-200'} truncate transition-colors">${task.text}</span>
+          </div>
+          <button class="delete-task text-slate-500 hover:text-rose-400 opacity-60 group-hover:opacity-100 transition-opacity p-1" data-id="${task.id}" title="Remove Task">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+          </button>
+        `;
+        taskList.appendChild(div);
+      });
+
+      taskList.querySelectorAll('input[type="checkbox"]').forEach((cb) => {
+        cb.addEventListener('change', (e) => {
+          const id = parseInt(e.target.dataset.id, 10);
+          const targetTask = tasks.find((t) => t.id === id);
+          if (targetTask) {
+            targetTask.done = e.target.checked;
+            saveAndRenderTasks();
+          }
+        });
+      });
+
+      taskList.querySelectorAll('.delete-task').forEach((btn) => {
+        btn.addEventListener('click', (e) => {
+          const btnEl = e.target.closest('button');
+          const id = parseInt(btnEl.dataset.id, 10);
+          tasks = tasks.filter((t) => t.id !== id);
+          saveAndRenderTasks();
+        });
+      });
+    }
+
+    taskForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const val = taskInput.value.trim();
+      if (val) {
+        tasks.push({ id: Date.now(), text: val, done: false });
+        taskInput.value = '';
+        saveAndRenderTasks();
+      }
+    });
+    saveAndRenderTasks();
+
+    /* --- Interactive Charity Clipboard Helper --- */
+    const copyBtn = document.getElementById('copy-upi-btn');
+    const copyText = document.getElementById('copy-btn-text');
+    const targetUpi = 'donation1@postbank';
+
+    copyBtn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(targetUpi);
+        copyText.textContent = 'Copied to Clipboard!';
+        copyBtn.classList.add('bg-emerald-700');
+        setTimeout(() => {
+          copyText.textContent = 'Copy UPI ID';
+          copyBtn.classList.remove('bg-emerald-700');
+        }, 2200);
+      } catch (err) {
+        copyText.textContent = 'UPI: donation1@postbank';
+      }
+    });
+  </script>
+</body>
+</html>
