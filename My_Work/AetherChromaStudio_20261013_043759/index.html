@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AetherChroma Studio | Generative Design Engine</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            void: '#07090E',
+            surface: 'rgba(15, 23, 42, 0.75)',
+            surfaceBorder: 'rgba(255, 255, 255, 0.08)',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+    * {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    code, pre, .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .glass-panel {
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .glass-card {
+      background: rgba(30, 41, 59, 0.45);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .glow-accent {
+      box-shadow: 0 0 35px -5px rgba(99, 102, 241, 0.25);
+    }
+  </style>
+</head>
+<body class="bg-void text-slate-100 min-h-screen flex flex-col antialiased selection:bg-indigo-500 selection:text-white">
+
+  <!-- Top Navigation -->
+  <header class="sticky top-0 z-50 glass-panel border-b border-surfaceBorder">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+          <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-base font-bold tracking-tight bg-gradient-to-r from-white via-slate-200 to-indigo-300 bg-clip-text text-transparent">AetherChroma</h1>
+          <p class="text-[10px] text-slate-400 font-medium tracking-wide uppercase">Generative System Lab</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <button id="randomizeBtn" class="px-4 py-2 text-xs font-semibold rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/30 transition-all flex items-center gap-2 active:scale-95">
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          <span>Generate (Space)</span>
+        </button>
+        <button id="openExportModal" class="px-3.5 py-2 text-xs font-medium rounded-lg glass-card hover:bg-slate-800 text-slate-200 border border-slate-700/60 transition-all">
+          Export Code
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Layout -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    
+    <!-- Generation Strategy Bar -->
+    <div class="glass-panel rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4 border border-surfaceBorder">
+      <div class="flex flex-wrap items-center gap-2">
+        <span class="text-xs text-slate-400 uppercase tracking-wider font-semibold mr-1">Harmony Mode:</span>
+        <button data-harmony="harmonic" class="harmony-tab px-3 py-1.5 rounded-lg text-xs font-medium bg-indigo-600/30 text-indigo-300 border border-indigo-500/40">Harmonic</button>
+        <button data-harmony="analogous" class="harmony-tab px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 border border-transparent hover:border-slate-700">Analogous</button>
+        <button data-harmony="triadic" class="harmony-tab px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 border border-transparent hover:border-slate-700">Triadic</button>
+        <button data-harmony="complementary" class="harmony-tab px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 border border-transparent hover:border-slate-700">Complementary</button>
+        <button data-harmony="monochromatic" class="harmony-tab px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 border border-transparent hover:border-slate-700">Monochrome</button>
+      </div>
+      <div class="flex items-center gap-3 text-xs text-slate-400">
+        <span class="flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          WCAG 2.2 Live Auditing
+        </span>
+      </div>
+    </div>
+
+    <!-- Swatches Grid -->
+    <section class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3.5" id="swatchesContainer">
+      <!-- Swatches dynamically rendered via JS -->
+    </section>
+
+    <!-- Real-time Preview Stage & Contrast Analysis -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      
+      <!-- Interactive UI Component Sandbox (7 cols) -->
+      <div class="lg:col-span-7 glass-panel rounded-2xl p-6 border border-surfaceBorder space-y-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-sm font-bold uppercase tracking-wider text-slate-200">Live Component Sandbox</h2>
+            <p class="text-xs text-slate-400">Reactive preview styled using your generated palette swatches.</p>
+          </div>
+          <span class="px-2 py-0.5 text-[10px] uppercase font-bold tracking-widest bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-md">Dynamic Scope</span>
+        </div>
+
+        <!-- Sandbox Component Canvas -->
+        <div id="sandboxCanvas" class="p-6 rounded-xl border border-slate-700/50 space-y-6 transition-all duration-300">
+          <!-- Mini UI Card Demo -->
+          <div id="previewCard" class="p-5 rounded-xl border transition-all duration-300 space-y-4 shadow-xl">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div id="previewAvatar" class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm shadow">AC</div>
+                <div>
+                  <h4 id="previewHeadline" class="font-bold text-sm">Aether Dashboard v4.2</h4>
+                  <p id="previewSubtext" class="text-xs opacity-75">Algorithmic Color Space Architecture</p>
+                </div>
+              </div>
+              <span id="previewBadge" class="text-[11px] font-semibold px-2.5 py-1 rounded-full">Active Node</span>
+            </div>
+
+            <p id="previewParagraph" class="text-xs leading-relaxed opacity-90">
+              Intelligent chromatic orchestration dynamically harmonizes high-contrast primitives for production-ready design hierarchies with zero manual token calibration.
+            </p>
+
+            <div class="flex items-center gap-2 pt-2">
+              <button id="previewPrimaryBtn" class="px-4 py-2 text-xs font-semibold rounded-lg shadow transition-transform active:scale-95">Primary Action</button>
+              <button id="previewSecondaryBtn" class="px-4 py-2 text-xs font-semibold rounded-lg border transition-transform active:scale-95">Secondary</button>
+            </div>
+          </div>
+
+          <!-- Interactive Gradient Mesh Canvas Box -->
+          <div class="space-y-2">
+            <div class="flex justify-between items-center text-xs text-slate-400">
+              <span>Synthesized Gradient Mesh</span>
+              <button id="copyCssGradient" class="text-indigo-400 hover:text-indigo-300 font-mono text-[11px]">Copy CSS</button>
+            </div>
+            <div id="meshPreview" class="w-full h-24 rounded-xl border border-white/10 transition-all duration-500"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- WCAG Contrast Matrix & Token Inspector (5 cols) -->
+      <div class="lg:col-span-5 glass-panel rounded-2xl p-6 border border-surfaceBorder flex flex-col justify-between space-y-6">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h2 class="text-sm font-bold uppercase tracking-wider text-slate-200">WCAG 2.2 Matrix</h2>
+              <p class="text-xs text-slate-400">Accessible contrast validation across pairs.</p>
+            </div>
+            <span class="text-[10px] font-mono px-2 py-1 rounded bg-slate-800 text-slate-300 border border-slate-700">ISO 9241</span>
+          </div>
+
+          <!-- Contrast Cards Stack -->
+          <div id="contrastMatrix" class="space-y-3 font-mono text-xs">
+            <!-- Contrast items populated dynamically -->
+          </div>
+        </div>
+
+        <!-- Quick Stats Token Banner -->
+        <div class="p-4 rounded-xl glass-card border border-surfaceBorder space-y-2">
+          <div class="flex justify-between text-xs text-slate-300">
+            <span>Color Space</span>
+            <span class="font-mono font-semibold text-indigo-400">sRGB / OKLCH Mapped</span>
+          </div>
+          <div class="flex justify-between text-xs text-slate-300">
+            <span>Overall Compliance</span>
+            <span id="overallComplianceBadge" class="font-semibold text-emerald-400">AA / AAA Optimal</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Export Code Modal (Toggleable) -->
+    <div id="exportModal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+      <div class="glass-panel w-full max-w-2xl rounded-2xl border border-surfaceBorder p-6 space-y-4 shadow-2xl">
+        <div class="flex items-center justify-between">
+          <h3 class="text-base font-bold text-white">Export Design Tokens</h3>
+          <button id="closeExportModal" class="text-slate-400 hover:text-white p-1 rounded-lg">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+          </button>
+        </div>
+        
+        <div class="flex gap-2 border-b border-slate-800 pb-2 text-xs font-semibold">
+          <button id="tabTailwind" class="px-3 py-1.5 rounded-lg bg-indigo-600/30 text-indigo-300 border border-indigo-500/40">Tailwind CSS</button>
+          <button id="tabCss" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white">CSS Variables</button>
+          <button id="tabJson" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white">JSON Tokens</button>
+        </div>
+
+        <pre id="codeBlock" class="bg-slate-950 p-4 rounded-xl border border-slate-800 text-xs text-emerald-300 overflow-x-auto max-h-72 select-all"></pre>
+
+        <div class="flex justify-end gap-3">
+          <button id="copyCodeBtn" class="px-4 py-2 text-xs font-bold rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white transition-all">
+            Copy to Clipboard
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CAUSE-DRIVEN CHARITY & SUPPORT BANNER -->
+    <section class="glass-panel rounded-2xl border border-rose-500/20 bg-gradient-to-br from-rose-950/20 via-slate-900/60 to-purple-950/20 p-6 md:p-8 relative overflow-hidden">
+      <div class="absolute -top-24 -right-24 w-64 h-64 bg-rose-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="max-w-4xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
+        
+        <!-- Left Context -->
+        <div class="space-y-3 text-center md:text-left flex-1">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs font-semibold uppercase tracking-wider">
+            <svg class="w-3.5 h-3.5 text-rose-400 fill-rose-400" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+            Direct Humanitarian Impact
+          </div>
+          <h3 class="text-xl md:text-2xl font-bold text-white tracking-tight">Help Heal Lives & Empower Young Minds</h3>
+          <p class="text-sm text-slate-300 leading-relaxed">
+            <strong class="text-rose-300 font-semibold">95% of all contributions go directly towards Cancer Patient Support &amp; School Education Initiatives</strong> (5% retained for server maintenance).
+          </p>
+          <div class="pt-1 text-xs text-slate-400 flex flex-wrap gap-y-1 gap-x-4 justify-center md:justify-start">
+            <span>Recipient: <strong class="text-slate-200 font-medium">ASKAR ALI</strong></span>
+            <span>&bull;</span>
+            <span>Unified Payments: <strong class="text-slate-200 font-medium">donation1@postbank</strong></span>
+          </div>
+        </div>
+
+        <!-- Right Payment Trigger & Dynamic QR -->
+        <div class="flex flex-col sm:flex-row items-center gap-4 bg-slate-900/80 p-4 rounded-xl border border-white/10 shadow-xl">
+          <div class="bg-white p-2 rounded-lg shadow-inner flex items-center justify-center shrink-0">
+            <img 
+              src="https://api.qrserver.com/v1/create-qr-code/?data=upi://pay?pa=donation1@postbank&pn=YUGRAAL_Cause" 
+              alt="UPI Donation QR Code" 
+              class="w-24 h-24 object-contain rounded"
+              loading="lazy"
+            />
+          </div>
+          <div class="flex flex-col items-center sm:items-start gap-2.5">
+            <div class="text-center sm:text-left">
+              <span class="text-[11px] font-mono text-slate-400 block">Official UPI ID</span>
+              <span class="text-xs font-mono font-bold text-indigo-300 select-all">donation1@postbank</span>
+            </div>
+            <button id="copyUpiBtn" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-rose-600 hover:bg-rose-500 text-white shadow-md shadow-rose-600/30 transition-all flex items-center gap-1.5 active:scale-95">
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg>
+              <span>Copy UPI ID</span>
+            </button>
+            <span id="upiCopyFeedback" class="text-[10px] text-emerald-400 font-medium h-3 transition-opacity opacity-0">Copied to clipboard!</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Global Notification Toast -->
+  <div id="toast" class="fixed bottom-5 right-5 z-50 pointer-events-none transform translate-y-10 opacity-0 transition-all duration-300 bg-slate-900 border border-indigo-500/40 text-slate-100 px-4 py-2.5 rounded-xl shadow-2xl text-xs flex items-center gap-2">
+    <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+    <span id="toastMsg">Notification</span>
+  </div>
+
+  <footer class="py-6 text-center text-xs text-slate-500 border-t border-slate-900">
+    &copy; 2025 AetherChroma Studio. Architected for creators &amp; social impact.
+  </footer>
+
+  <!-- Application Logic -->
+  <script>
+    // State Management
+    let currentHarmony = 'harmonic';
+    let swatches = [
+      { id: 1, hex: '#4F46E5', locked: false, role: 'Primary' },
+      { id: 2, hex: '#06B6D4', locked: false, role: 'Secondary' },
+      { id: 3, hex: '#10B981', locked: false, role: 'Accent' },
+      { id: 4, hex: '#F59E0B', locked: false, role: 'Highlight' },
+      { id: 5, hex: '#0F172A', locked: false, role: 'Base Ground' }
+    ];
+
+    // Color Utilities
+    function hslToHex(h, s, l) {
+      l /= 100;
+      const a = (s * Math.min(l, 1 - l)) / 100;
+      const f = n => {
+        const k = (n + h / 30) % 12;
+        const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+        return Math.round(255 * color).toString(16).padStart(2, '0');
+      };
+      return `#${f(0)}${f(8)}${f(4)}`.toUpperCase();
+    }
+
+    function hexToRgb(hex) {
+      hex = hex.replace('#', '');
+      if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+      const num = parseInt(hex, 16);
+      return { r: (num >> 16) & 255, g: (num >> 8) & 255, b: num & 255 };
+    }
+
+    function rgbToHex(r, g, b) {
+      return '#' + [r, g, b].map(x => Math.max(0, Math.min(255, Math.round(x))).toString(16).padStart(2, '0')).join('').toUpperCase();
+    }
+
+    function getRelativeLuminance(rgb) {
+      const srgb = [rgb.r / 255, rgb.g / 255, rgb.b / 255].map(val => {
+        return val <= 0.03928 ? val / 12.92 : Math.pow((val + 0.055) / 1.055, 2.4);
+      });
+      return 0.2126 * srgb[0] + 0.7152 * srgb[1] + 0.0722 * srgb[2];
+    }
+
+    function getContrastRatio(hex1, hex2) {
+      const lum1 = getRelativeLuminance(hexToRgb(hex1));
+      const lum2 = getRelativeLuminance(hexToRgb(hex2));
+      const brightest = Math.max(lum1, lum2);
+      const darkest = Math.min(lum1, lum2);
+      return ((brightest + 0.05) / (darkest + 0.05)).toFixed(2);
+    }
+
+    function getBestTextColor(bgHex) {
+      const lum = getRelativeLuminance(hexToRgb(bgHex));
+      return lum > 0.4 ? '#090D16' : '#F8FAFC';
+    }
+
+    // Palette Generation Strategies
+    function generateColors() {
+      const baseHue = Math.floor(Math.random() * 360);
+      const roles = ['Primary', 'Secondary', 'Accent', 'Highlight', 'Base Ground'];
+
+      let hues = [];
+      if (currentHarmony === 'harmonic') {
+        hues = [baseHue, (baseHue + 40) % 360, (baseHue + 180) % 360, (baseHue + 210) % 360, (baseHue + 280) % 360];
+      } else if (currentHarmony === 'analogous') {
+        hues = [baseHue, (baseHue + 25) % 360, (baseHue + 50) % 360, (baseHue + 75) % 360, (baseHue + 335) % 360];
+      } else if (currentHarmony === 'triadic') {
+        hues = [baseHue, (baseHue + 120) % 360, (baseHue + 240) % 360, (baseHue + 140) % 360, (baseHue + 260) % 360];
+      } else if (currentHarmony === 'complementary') {
+        hues = [baseHue, (baseHue + 15) % 360, (baseHue + 180) % 360, (baseHue + 195) % 360, (baseHue + 30) % 360];
+      } else if (currentHarmony === 'monochromatic') {
+        hues = [baseHue, baseHue, baseHue, baseHue, baseHue];
+      }
+
+      swatches = swatches.map((swatch, idx) => {
+        if (swatch.locked) return swatch;
+        const h = hues[idx];
+        let s = currentHarmony === 'monochromatic' ? 65 : 65 + Math.floor(Math.random() * 25);
+        let l;
+        if (idx === 4) l = 12; // deep base
+        else if (idx === 0) l = 50;
+        else if (idx === 1) l = 55;
+        else if (idx === 2) l = 60;
+        else l = 65;
+
+        return {
+          id: idx + 1,
+          hex: hslToHex(h, s, l),
+          locked: false,
+          role: roles[idx]
+        };
+      });
+
+      renderSwatches();
+      updateSandbox();
+      updateContrastAudit();
+    }
+
+    // Render Swatches
+    function renderSwatches() {
+      const container = document.getElementById('swatchesContainer');
+      container.innerHTML = '';
+
+      swatches.forEach((swatch, idx) => {
+        const textColor = getBestTextColor(swatch.hex);
+        const card = document.createElement('div');
+        card.className = 'group relative rounded-2xl p-4 flex flex-col justify-between h-56 transition-all duration-300 hover:-translate-y-1 shadow-lg border border-white/10';
+        card.style.backgroundColor = swatch.hex;
+        card.style.color = textColor;
+
+        card.innerHTML = `
+          <div class="flex justify-between items-start">
+            <span class="text-[11px] font-bold tracking-wider uppercase opacity-80 px-2 py-0.5 rounded backdrop-blur-md bg-black/20">${swatch.role}</span>
+            <button class="lock-btn p-1.5 rounded-lg backdrop-blur-md bg-black/20 hover:bg-black/40 transition-colors" data-id="${swatch.id}">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                ${swatch.locked 
+                  ? '<path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/>'
+                  : '<path d="M10 2a5 5 0 00-5 5v2a2 2 0 00-2 2v5a2 2 0 002 2h10a2 2 0 002-2v-5a2 2 0 00-2-2H7V7a3 3 0 015.905-.75 1 1 0 001.937-.5A5.002 5.002 0 0010 2z"/>'}
+              </svg>
+            </button>
+          </div>
+
+          <div class="space-y-1">
+            <div class="flex items-center justify-between">
+              <input type="color" value="${swatch.hex}" data-id="${swatch.id}" class="color-picker-input w-6 h-6 rounded cursor-pointer border-0 bg-transparent opacity-70 hover:opacity-100" />
+              <button class="copy-hex-btn font-mono text-sm font-bold tracking-wider hover:underline" data-hex="${swatch.hex}">${swatch.hex}</button>
+            </div>
+            <p class="text-[10px] opacity-75 font-mono">RGB: ${Object.values(hexToRgb(swatch.hex)).join(', ')}</p>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+
+      // Attach listeners
+      container.querySelectorAll('.lock-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const id = parseInt(e.currentTarget.dataset.id);
+          const item = swatches.find(s => s.id === id);
+          if (item) item.locked = !item.locked;
+          renderSwatches();
+        });
+      });
+
+      container.querySelectorAll('.copy-hex-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          navigator.clipboard.writeText(e.target.dataset.hex);
+          showToast(`Copied ${e.target.dataset.hex} to clipboard`);
+        });
+      });
+
+      container.querySelectorAll('.color-picker-input').forEach(input => {
+        input.addEventListener('input', (e) => {
+          const id = parseInt(e.target.dataset.id);
+          const targetSwatch = swatches.find(s => s.id === id);
+          if (targetSwatch) {
+            targetSwatch.hex = e.target.value.toUpperCase();
+            updateSandbox();
+            updateContrastAudit();
+          }
+        });
+        input.addEventListener('change', () => renderSwatches());
+      });
+    }
+
+    // Sandbox UI Sync
+    function updateSandbox() {
+      const [c1, c2, c3, c4, c5] = swatches.map(s => s.hex);
+
+      const canvas = document.getElementById('sandboxCanvas');
+      canvas.style.backgroundColor = c5;
+
+      const previewCard = document.getElementById('previewCard');
+      previewCard.style.backgroundColor = 'rgba(255, 255, 255, 0.04)';
+      previewCard.style.borderColor = 'rgba(255, 255, 255, 0.12)';
+
+      const headline = document.getElementById('previewHeadline');
+      headline.style.color = getBestTextColor(c5);
+
+      const subtext = document.getElementById('previewSubtext');
+      subtext.style.color = getBestTextColor(c5);
+
+      const paragraph = document.getElementById('previewParagraph');
+      paragraph.style.color = getBestTextColor(c5);
+
+      const avatar = document.getElementById('previewAvatar');
+      avatar.style.backgroundColor = c2;
+      avatar.style.color = getBestTextColor(c2);
+
+      const badge = document.getElementById('previewBadge');
+      badge.style.backgroundColor = c3 + '22';
+      badge.style.color = c3;
+      badge.style.border = `1px solid ${c3}44`;
+
+      const primaryBtn = document.getElementById('previewPrimaryBtn');
+      primaryBtn.style.backgroundColor = c1;
+      primaryBtn.style.color = getBestTextColor(c1);
+
+      const secondaryBtn = document.getElementById('previewSecondaryBtn');
+      secondaryBtn.style.borderColor = c2 + '66';
+      secondaryBtn.style.color = c2;
+
+      const mesh = document.getElementById('meshPreview');
+      mesh.style.background = `radial-gradient(at 0% 0%, ${c1} 0px, transparent 50%), radial-gradient(at 100% 0%, ${c2} 0px, transparent 50%), radial-gradient(at 100% 100%, ${c3} 0px, transparent 50%), radial-gradient(at 0% 100%, ${c4} 0px, transparent 50%), ${c5}`;
+    }
+
+    // Contrast Audit
+    function updateContrastAudit() {
+      const matrix = document.getElementById('contrastMatrix');
+      matrix.innerHTML = '';
+
+      const pairs = [
+        { label: 'Primary on Base', fg: swatches[0].hex, bg: swatches[4].hex },
+        { label: 'Accent on Base', fg: swatches[2].hex, bg: swatches[4].hex },
+        { label: 'Text on Primary', fg: getBestTextColor(swatches[0].hex), bg: swatches[0].hex },
+        { label: 'Secondary on Base', fg: swatches[1].hex, bg: swatches[4].hex }
+      ];
+
+      pairs.forEach(pair => {
+        const ratio = parseFloat(getContrastRatio(pair.fg, pair.bg));
+        const passesAA = ratio >= 4.5;
+        const passesAAA = ratio >= 7.0;
+
+        const item = document.createElement('div');
+        item.className = 'flex items-center justify-between p-2.5 rounded-lg glass-card border border-surfaceBorder';
+        item.innerHTML = `
+          <div class="flex items-center gap-2.5">
+            <div class="w-5 h-5 rounded-md border border-white/20 flex items-center justify-center font-bold text-[10px]" style="background-color: ${pair.bg}; color: ${pair.fg}">A</div>
+            <span class="text-slate-300 font-sans text-xs">${pair.label}</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="font-bold ${ratio >= 4.5 ? 'text-emerald-400' : 'text-amber-400'}">${ratio}:1</span>
+            <span class="px-1.5 py-0.5 rounded text-[10px] font-bold ${passesAAA ? 'bg-emerald-500/20 text-emerald-300' : passesAA ? 'bg-indigo-500/20 text-indigo-300' : 'bg-rose-500/20 text-rose-300'}">
+              ${passesAAA ? 'AAA' : passesAA ? 'AA' : 'FAIL'}
+            </span>
+          </div>
+        `;
+        matrix.appendChild(item);
+      });
+    }
+
+    // Code Export Builder
+    function buildExportCode(type) {
+      const [c1, c2, c3, c4, c5] = swatches.map(s => s.hex);
+      if (type === 'tailwind') {
+        return `// tailwind.config.js\nmodule.exports = {\n  theme: {\n    extend: {\n      colors: {\n        brand: {\n          primary: '${c1}',\n          secondary: '${c2}',\n          accent: '${c3}',\n          highlight: '${c4}',\n          surface: '${c5}',\n        }\n      }\n    }\n  }\n};`;
+      } else if (type === 'css') {
+        return `:root {\n  --color-primary: ${c1};\n  --color-secondary: ${c2};\n  --color-accent: ${c3};\n  --color-highlight: ${c4};\n  --color-surface: ${c5};\n}`;
+      } else if (type === 'json') {
+        return JSON.stringify({
+          brand: {
+            primary: { value: c1, type: "color" },
+            secondary: { value: c2, type: "color" },
+            accent: { value: c3, type: "color" },
+            highlight: { value: c4, type: "color" },
+            surface: { value: c5, type: "color" }
+          }
+        }, null, 2);
+      }
+    }
+
+    // Notification Toast
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toastMsg');
+      toastMsg.innerText = msg;
+      toast.classList.remove('translate-y-10', 'opacity-0');
+      setTimeout(() => {
+        toast.classList.add('translate-y-10', 'opacity-0');
+      }, 2600);
+    }
+
+    // Event Listeners
+    document.getElementById('randomizeBtn').addEventListener('click', generateColors);
+    
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Space' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+        e.preventDefault();
+        generateColors();
+      }
+    });
+
+    // Harmony Selector tabs
+    document.querySelectorAll('.harmony-tab').forEach(tab => {
+      tab.addEventListener('click', (e) => {
+        document.querySelectorAll('.harmony-tab').forEach(t => {
+          t.classList.remove('bg-indigo-600/30', 'text-indigo-300', 'border-indigo-500/40');
+          t.classList.add('text-slate-400', 'border-transparent');
+        });
+        e.currentTarget.classList.add('bg-indigo-600/30', 'text-indigo-300', 'border-indigo-500/40');
+        e.currentTarget.classList.remove('text-slate-400', 'border-transparent');
+        currentHarmony = e.currentTarget.dataset.harmony;
+        generateColors();
+      });
+    });
+
+    // Copy CSS Gradient
+    document.getElementById('copyCssGradient').addEventListener('click', () => {
+      const [c1, c2, c3, c4, c5] = swatches.map(s => s.hex);
+      const grad = `background: radial-gradient(at 0% 0%, ${c1} 0px, transparent 50%), radial-gradient(at 100% 0%, ${c2} 0px, transparent 50%), radial-gradient(at 100% 100%, ${c3} 0px, transparent 50%), radial-gradient(at 0% 100%, ${c4} 0px, transparent 50%), ${c5};`;
+      navigator.clipboard.writeText(grad);
+      showToast('Mesh Gradient CSS copied!');
+    });
+
+    // Modal Management
+    let activeExportType = 'tailwind';
+    const exportModal = document.getElementById('exportModal');
+    const codeBlock = document.getElementById('codeBlock');
+
+    function refreshExportView() {
+      codeBlock.textContent = buildExportCode(activeExportType);
+    }
+
+    document.getElementById('openExportModal').addEventListener('click', () => {
+      refreshExportView();
+      exportModal.classList.remove('hidden');
+    });
+
+    document.getElementById('closeExportModal').addEventListener('click', () => {
+      exportModal.classList.add('hidden');
+    });
+
+    document.getElementById('tabTailwind').addEventListener('click', () => {
+      activeExportType = 'tailwind';
+      refreshExportView();
+    });
+    document.getElementById('tabCss').addEventListener('click', () => {
+      activeExportType = 'css';
+      refreshExportView();
+    });
+    document.getElementById('tabJson').addEventListener('click', () => {
+      activeExportType = 'json';
+      refreshExportView();
+    });
+
+    document.getElementById('copyCodeBtn').addEventListener('click', () => {
+      navigator.clipboard.writeText(codeBlock.textContent);
+      showToast('Export tokens copied to clipboard!');
+    });
+
+    // Copy UPI ID button logic
+    const copyUpiBtn = document.getElementById('copyUpiBtn');
+    const upiFeedback = document.getElementById('upiCopyFeedback');
+    copyUpiBtn.addEventListener('click', () => {
+      const upiId = 'donation1@postbank';
+      navigator.clipboard.writeText(upiId).then(() => {
+        upiFeedback.classList.remove('opacity-0');
+        showToast('UPI ID copied: ' + upiId);
+        setTimeout(() => {
+          upiFeedback.classList.add('opacity-0');
+        }, 3000);
+      });
+    });
+
+    // Init
+    generateColors();
+  </script>
+</body>
+</html>
