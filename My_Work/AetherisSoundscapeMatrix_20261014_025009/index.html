@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AETHERIS - Procedural Ambient & Focus Matrix</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              400: '#818cf8',
+              500: '#6366f1',
+              600: '#4f46e5',
+              900: '#1e1b4b'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: radial-gradient(circle at 50% 0%, #1e1b4b 0%, #030712 75%);
+      min-height: 100vh;
+      color: #f3f4f6;
+    }
+    .glass {
+      background: rgba(17, 24, 39, 0.7);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .glass-highlight {
+      background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+    input[type=range] {
+      accent-color: #818cf8;
+    }
+  </style>
+</head>
+<body class="p-4 md:p-8 flex flex-col justify-between items-center text-slate-100 antialiased">
+
+  <!-- App Container -->
+  <div class="w-full max-w-5xl mx-auto flex flex-col gap-8">
+    
+    <!-- Header -->
+    <header class="flex flex-wrap items-center justify-between gap-4 glass p-6 rounded-3xl shadow-2xl border border-indigo-500/20">
+      <div class="flex items-center gap-4">
+        <div class="relative flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-600 to-purple-500 shadow-lg shadow-indigo-500/30 ring-2 ring-indigo-400/30">
+          <svg class="w-6 h-6 text-white animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-2xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-200 via-indigo-400 to-purple-300">AETHERIS</h1>
+          <p class="text-xs text-indigo-300/80 font-medium tracking-wide uppercase">Procedural Soundscape & Circadian Engine</p>
+        </div>
+      </div>
+      
+      <div class="flex items-center gap-3">
+        <button id="masterToggle" class="px-6 py-2.5 rounded-full font-semibold text-sm transition-all duration-300 flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 shadow-lg shadow-indigo-600/30 active:scale-95 text-white">
+          <svg id="playIcon" class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M8 5v14l11-7z"/>
+          </svg>
+          <span id="masterText">Engage Engine</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Audio Reactive Canvas & Visualizer -->
+    <div class="glass rounded-3xl p-4 overflow-hidden relative border border-slate-800 shadow-2xl">
+      <canvas id="visualizerCanvas" class="w-full h-32 rounded-2xl"></canvas>
+      <div class="absolute bottom-6 left-8 flex items-center gap-2 text-xs font-mono text-indigo-300 bg-slate-900/60 px-3 py-1.5 rounded-lg border border-white/5">
+        <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+        <span id="audioStatusLabel">Synthesizer Offline</span>
+      </div>
+    </div>
+
+    <!-- Main Control Deck: Sound Biomes & Timer -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      
+      <!-- Sound Mix Matrix -->
+      <div class="lg:col-span-2 glass rounded-3xl p-6 flex flex-col gap-6">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+          <h2 class="text-lg font-semibold text-slate-100 flex items-center gap-2">
+            <span>Acoustic Texture Matrix</span>
+          </h2>
+          <div class="flex gap-2">
+            <button class="preset-btn text-xs px-3 py-1 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors" data-preset="zen">Deep Zen</button>
+            <button class="preset-btn text-xs px-3 py-1 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors" data-preset="cyber">Cyber Focus</button>
+            <button class="preset-btn text-xs px-3 py-1 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors" data-preset="sleep">Rest Sleep</button>
+          </div>
+        </div>
+
+        <!-- Sound Channels -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          
+          <!-- Brown Noise -->
+          <div class="glass-highlight p-4 rounded-2xl flex flex-col gap-2">
+            <div class="flex items-center justify-between">
+              <span class="text-sm font-medium text-slate-200">Deep Brown Noise</span>
+              <span id="brownVal" class="text-xs font-mono text-indigo-400">0%</span>
+            </div>
+            <input type="range" id="brownVolume" min="0" max="1" step="0.01" value="0.2" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+            <p class="text-[11px] text-slate-400">Calms overactive cortex & neutralizes abrupt room sounds.</p>
+          </div>
+
+          <!-- Cosmic Binaural 432Hz/Alpha -->
+          <div class="glass-highlight p-4 rounded-2xl flex flex-col gap-2">
+            <div class="flex items-center justify-between">
+              <span class="text-sm font-medium text-slate-200">Alpha Wave (8.5Hz Binaural)</span>
+              <span id="binauralVal" class="text-xs font-mono text-indigo-400">0%</span>
+            </div>
+            <input type="range" id="binauralVolume" min="0" max="1" step="0.01" value="0" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+            <p class="text-[11px] text-slate-400">Synchronizes hemispheric theta/alpha focus states.</p>
+          </div>
+
+          <!-- Rain Emulation -->
+          <div class="glass-highlight p-4 rounded-2xl flex flex-col gap-2">
+            <div class="flex items-center justify-between">
+              <span class="text-sm font-medium text-slate-200">Atmospheric Rain</span>
+              <span id="rainVal" class="text-xs font-mono text-indigo-400">0%</span>
+            </div>
+            <input type="range" id="rainVolume" min="0" max="1" step="0.01" value="0" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+            <p class="text-[11px] text-slate-400">Gentle granular liquid droplets synthesis.</p>
+          </div>
+
+          <!-- Harmonic Bell Drones -->
+          <div class="glass-highlight p-4 rounded-2xl flex flex-col gap-2">
+            <div class="flex items-center justify-between">
+              <span class="text-sm font-medium text-slate-200">Celestial Drone</span>
+              <span id="droneVal" class="text-xs font-mono text-indigo-400">0%</span>
+            </div>
+            <input type="range" id="droneVolume" min="0" max="1" step="0.01" value="0" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+            <p class="text-[11px] text-slate-400">Subharmonic modal resonance generator.</p>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Circadian Deep Work Clock -->
+      <div class="glass rounded-3xl p-6 flex flex-col justify-between items-center text-center gap-6">
+        <div class="w-full flex items-center justify-between border-b border-slate-800 pb-3">
+          <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-300">Circadian Sprint</h3>
+          <span class="px-2.5 py-1 text-[10px] font-bold rounded-full bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">FLOW STATE</span>
+        </div>
+
+        <div class="relative flex items-center justify-center my-2">
+          <svg class="w-48 h-48 transform -rotate-90">
+            <circle cx="96" cy="96" r="80" stroke="currentColor" stroke-width="8" class="text-slate-800 fill-none" />
+            <circle id="timerCircle" cx="96" cy="96" r="80" stroke="currentColor" stroke-width="8" stroke-linecap="round" class="text-indigo-500 fill-none transition-all duration-500" stroke-dasharray="502.65" stroke-dashoffset="0" />
+          </svg>
+          <div class="absolute flex flex-col items-center">
+            <span id="timerDisplay" class="text-3xl font-bold tracking-tighter font-mono">25:00</span>
+            <span id="timerLabel" class="text-[11px] uppercase tracking-wider text-slate-400 font-medium mt-1">Focus Interval</span>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 w-full">
+          <button id="startTimerBtn" class="flex-1 py-2.5 px-4 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/20 active:scale-95 transition-all">Start Timer</button>
+          <button id="resetTimerBtn" class="py-2.5 px-4 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 active:scale-95 transition-all">Reset</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- MANDATORY CAUSE-DRIVEN CHARITY CARD -->
+    <section class="w-full glass rounded-3xl p-6 md:p-8 border border-emerald-500/20 shadow-2xl relative overflow-hidden">
+      <div class="absolute top-0 right-0 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20"></div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-center relative z-10">
+        
+        <!-- Description & Cause Statement -->
+        <div class="md:col-span-2 space-y-3">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+            </svg>
+            Direct Humanitarian Impact Fund
+          </div>
+          
+          <h3 class="text-xl md:text-2xl font-bold tracking-tight text-white">Empowering Real Lives Through Pure Giving</h3>
+          
+          <!-- MANDATORY CLEAR MESSAGE STRING -->
+          <p class="text-emerald-300 font-semibold text-sm leading-relaxed border-l-2 border-emerald-400 pl-3 py-1 bg-emerald-950/20 rounded-r-lg">
+            95% of all contributions go directly towards Cancer Patient Support & School Education Initiatives (5% retained for server maintenance)
+          </p>
+          
+          <p class="text-xs text-slate-400 leading-relaxed">
+            By contributing, you are directly aiding impoverished families facing extreme medical cancer therapy costs and funding verified educational books, fees, and digital tools for underprivileged children.
+          </p>
+
+          <!-- Receiver Information Details -->
+          <div class="pt-2 flex flex-wrap items-center gap-4 text-xs">
+            <div class="bg-slate-900/80 px-3.5 py-2 rounded-xl border border-slate-800 flex items-center gap-2">
+              <span class="text-slate-400">Beneficiary:</span>
+              <span class="font-semibold text-slate-100">ASKAR ALI</span>
+            </div>
+            <div class="bg-slate-900/80 px-3.5 py-2 rounded-xl border border-slate-800 flex items-center gap-2">
+              <span class="text-slate-400">UPI ID:</span>
+              <code id="upiText" class="font-mono font-semibold text-emerald-400">donation1@postbank</code>
+              <button id="copyUpiBtn" title="Copy UPI ID" class="ml-2 p-1.5 bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 rounded-lg transition-all">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div id="copyNotification" class="text-[11px] text-emerald-400 hidden animate-fade-in font-medium">UPI ID successfully copied to clipboard!</div>
+        </div>
+
+        <!-- QR Code Block -->
+        <div class="flex flex-col items-center justify-center p-4 bg-slate-900/90 rounded-2xl border border-emerald-500/20 shadow-inner text-center gap-2">
+          <div class="p-2 bg-white rounded-xl shadow-lg ring-4 ring-emerald-500/20">
+            <img id="qrImage" src="https://api.qrserver.com/v1/create-qr-code/?data=upi://pay?pa=donation1@postbank&pn=YUGRAAL_Cause&size=160x160" alt="UPI QR Code" class="w-32 h-32 md:w-36 md:h-36 object-contain rounded-lg" loading="lazy">
+          </div>
+          <span class="text-[11px] font-mono tracking-wider text-slate-400 uppercase mt-1">Scan with GPay / PhonePe / Paytm</span>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Footer Info -->
+    <footer class="text-center pb-4 text-xs text-slate-500">
+      AETHERIS Engine &bull; Zero External Audio Assets &bull; Pure Procedural Synthesis &bull; 100% Non-Profit Contribution Supported
+    </footer>
+  </div>
+
+  <!-- Procedural Audio Engine JavaScript -->
+  <script>
+    // Audio Context & Nodes
+    let audioCtx = null;
+    let isPlaying = false;
+    let analyser = null;
+    let animFrame = null;
+
+    // Channel Nodes
+    let brownNode = null, brownGain = null;
+    let oscL = null, oscR = null, binauralGain = null;
+    let rainNode = null, rainGain = null;
+    let droneOsc1 = null, droneOsc2 = null, droneGain = null;
+
+    // Master Gain
+    let masterGain = null;
+
+    function initAudio() {
+      if (audioCtx) return;
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      audioCtx = new AudioContext();
+
+      masterGain = audioCtx.createGain();
+      masterGain.gain.setValueAtTime(0.8, audioCtx.currentTime);
+
+      analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 64;
+
+      masterGain.connect(analyser);
+      analyser.connect(audioCtx.destination);
+
+      // 1. Brown Noise Generator (Buffer Loop)
+      const bufferSize = audioCtx.sampleRate * 2;
+      const brownBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const data = brownBuffer.getChannelData(0);
+      let lastOut = 0.0;
+      for (let i = 0; i < bufferSize; i++) {
+        const white = Math.random() * 2 - 1;
+        data[i] = (lastOut + (0.02 * white)) / 1.02;
+        lastOut = data[i];
+        data[i] *= 3.5; // Gain compensation
+      }
+      brownNode = audioCtx.createBufferSource();
+      brownNode.buffer = brownBuffer;
+      brownNode.loop = true;
+      brownGain = audioCtx.createGain();
+      brownGain.gain.value = parseFloat(document.getElementById('brownVolume').value);
+      brownNode.connect(brownGain);
+      brownGain.connect(masterGain);
+      brownNode.start();
+
+      // 2. Binaural Beats (Left 216Hz, Right 224.5Hz -> 8.5Hz Alpha Beat)
+      const merger = audioCtx.createChannelMerger(2);
+      oscL = audioCtx.createOscillator();
+      oscR = audioCtx.createOscillator();
+      oscL.type = 'sine';
+      oscR.type = 'sine';
+      oscL.frequency.setValueAtTime(216, audioCtx.currentTime);
+      oscR.frequency.setValueAtTime(224.5, audioCtx.currentTime);
+      oscL.connect(merger, 0, 0);
+      oscR.connect(merger, 0, 1);
+      binauralGain = audioCtx.createGain();
+      binauralGain.gain.value = parseFloat(document.getElementById('binauralVolume').value);
+      merger.connect(binauralGain);
+      binauralGain.connect(masterGain);
+      oscL.start();
+      oscR.start();
+
+      // 3. Rain Simulator (Pink noise + Bandpass)
+      const rainBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const rainData = rainBuffer.getChannelData(0);
+      let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+      for (let i = 0; i < bufferSize; i++) {
+        const white = Math.random() * 2 - 1;
+        b0 = 0.99886 * b0 + white * 0.0555179;
+        b1 = 0.99332 * b1 + white * 0.0750759;
+        b2 = 0.96900 * b2 + white * 0.1538520;
+        b3 = 0.86650 * b3 + white * 0.3104856;
+        b4 = 0.55000 * b4 + white * 0.5329522;
+        b5 = -0.7616 * b5 - white * 0.0168980;
+        rainData[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.11;
+        b6 = white * 0.115926;
+      }
+      rainNode = audioCtx.createBufferSource();
+      rainNode.buffer = rainBuffer;
+      rainNode.loop = true;
+      const rainFilter = audioCtx.createBiquadFilter();
+      rainFilter.type = 'lowpass';
+      rainFilter.frequency.setValueAtTime(1400, audioCtx.currentTime);
+      rainGain = audioCtx.createGain();
+      rainGain.gain.value = parseFloat(document.getElementById('rainVolume').value);
+      rainNode.connect(rainFilter);
+      rainFilter.connect(rainGain);
+      rainGain.connect(masterGain);
+      rainNode.start();
+
+      // 4. Celestial Harmonic Drone
+      droneGain = audioCtx.createGain();
+      droneGain.gain.value = parseFloat(document.getElementById('droneVolume').value);
+      droneOsc1 = audioCtx.createOscillator();
+      droneOsc2 = audioCtx.createOscillator();
+      droneOsc1.type = 'triangle';
+      droneOsc2.type = 'sine';
+      droneOsc1.frequency.setValueAtTime(108, audioCtx.currentTime);
+      droneOsc2.frequency.setValueAtTime(162, audioCtx.currentTime);
+      droneOsc1.connect(droneGain);
+      droneOsc2.connect(droneGain);
+      droneGain.connect(masterGain);
+      droneOsc1.start();
+      droneOsc2.start();
+
+      drawVisualizer();
+    }
+
+    // Master Toggle Control
+    const masterToggleBtn = document.getElementById('masterToggle');
+    const masterText = document.getElementById('masterText');
+    const audioStatusLabel = document.getElementById('audioStatusLabel');
+
+    masterToggleBtn.addEventListener('click', () => {
+      if (!audioCtx) {
+        initAudio();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      if (!isPlaying) {
+        isPlaying = true;
+        masterGain.gain.setTargetAtTime(0.8, audioCtx.currentTime, 0.05);
+        masterText.textContent = 'Mute Audio';
+        masterToggleBtn.classList.replace('bg-indigo-600', 'bg-rose-600');
+        masterToggleBtn.classList.replace('hover:bg-indigo-500', 'hover:bg-rose-500');
+        audioStatusLabel.textContent = 'Acoustic Synthesizer Active';
+      } else {
+        isPlaying = false;
+        masterGain.gain.setTargetAtTime(0.0001, audioCtx.currentTime, 0.05);
+        masterText.textContent = 'Engage Engine';
+        masterToggleBtn.classList.replace('bg-rose-600', 'bg-indigo-600');
+        masterToggleBtn.classList.replace('hover:bg-rose-500', 'hover:bg-indigo-500');
+        audioStatusLabel.textContent = 'Synthesizer Standby';
+      }
+    });
+
+    // Sliders Realtime Bindings
+    function setupSlider(id, gainNode, labelId) {
+      const slider = document.getElementById(id);
+      const label = document.getElementById(labelId);
+      label.textContent = Math.round(slider.value * 100) + '%';
+      slider.addEventListener('input', (e) => {
+        const val = parseFloat(e.target.value);
+        label.textContent = Math.round(val * 100) + '%';
+        if (gainNode && audioCtx) {
+          gainNode.gain.setTargetAtTime(val, audioCtx.currentTime, 0.05);
+        }
+      });
+    }
+
+    setupSlider('brownVolume', brownGain, 'brownVal');
+    setupSlider('binauralVolume', binauralGain, 'binauralVal');
+    setupSlider('rainVolume', rainGain, 'rainVal');
+    setupSlider('droneVolume', droneGain, 'droneVal');
+
+    // Presets Handlers
+    const presets = {
+      zen: { brown: 0.1, binaural: 0.35, rain: 0.15, drone: 0.4 },
+      cyber: { brown: 0.45, binaural: 0.6, rain: 0.0, drone: 0.1 },
+      sleep: { brown: 0.3, binaural: 0.1, rain: 0.5, drone: 0.0 }
+    };
+
+    document.querySelectorAll('.preset-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const p = presets[btn.dataset.preset];
+        applyPreset(p);
+      });
+    });
+
+    function applyPreset(p) {
+      if (!audioCtx) initAudio();
+      document.getElementById('brownVolume').value = p.brown;
+      document.getElementById('binauralVolume').value = p.binaural;
+      document.getElementById('rainVolume').value = p.rain;
+      document.getElementById('droneVolume').value = p.drone;
+
+      document.getElementById('brownVal').textContent = Math.round(p.brown * 100) + '%';
+      document.getElementById('binauralVal').textContent = Math.round(p.binaural * 100) + '%';
+      document.getElementById('rainVal').textContent = Math.round(p.rain * 100) + '%';
+      document.getElementById('droneVal').textContent = Math.round(p.drone * 100) + '%';
+
+      if (brownGain) brownGain.gain.setTargetAtTime(p.brown, audioCtx.currentTime, 0.05);
+      if (binauralGain) binauralGain.gain.setTargetAtTime(p.binaural, audioCtx.currentTime, 0.05);
+      if (rainGain) rainGain.gain.setTargetAtTime(p.rain, audioCtx.currentTime, 0.05);
+      if (droneGain) droneGain.gain.setTargetAtTime(p.drone, audioCtx.currentTime, 0.05);
+    }
+
+    // Visualizer Loop
+    const canvas = document.getElementById('visualizerCanvas');
+    const ctx = canvas.getContext('2d');
+
+    function resizeCanvas() {
+      canvas.width = canvas.clientWidth * window.devicePixelRatio;
+      canvas.height = canvas.clientHeight * window.devicePixelRatio;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function drawVisualizer() {
+      animFrame = requestAnimationFrame(drawVisualizer);
+      if (!analyser || !isPlaying) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        return;
+      }
+      const bufferLength = analyser.frequencyBinCount;
+      const dataArray = new Uint8Array(bufferLength);
+      analyser.getByteFrequencyData(dataArray);
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const barWidth = (canvas.width / bufferLength) * 1.5;
+      let x = 0;
+
+      for (let i = 0; i < bufferLength; i++) {
+        const barHeight = (dataArray[i] / 255) * canvas.height * 0.9;
+        const gradient = ctx.createLinearGradient(0, canvas.height, 0, 0);
+        gradient.addColorStop(0, 'rgba(79, 70, 229, 0.2)');
+        gradient.addColorStop(1, 'rgba(129, 140, 248, 0.8)');
+
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.roundRect(x, canvas.height - barHeight, barWidth - 4, barHeight, [4, 4, 0, 0]);
+        ctx.fill();
+        x += barWidth;
+      }
+    }
+
+    // Circadian Sprint Timer Logic
+    let timerTotal = 25 * 60;
+    let timerRemaining = timerTotal;
+    let timerInterval = null;
+    const timerCircle = document.getElementById('timerCircle');
+    const timerDisplay = document.getElementById('timerDisplay');
+    const startTimerBtn = document.getElementById('startTimerBtn');
+    const resetTimerBtn = document.getElementById('resetTimerBtn');
+    const perimeter = 2 * Math.PI * 80;
+
+    function updateTimerUI() {
+      const m = Math.floor(timerRemaining / 60).toString().padStart(2, '0');
+      const s = (timerRemaining % 60).toString().padStart(2, '0');
+      timerDisplay.textContent = `${m}:${s}`;
+      const offset = perimeter - (timerRemaining / timerTotal) * perimeter;
+      timerCircle.style.strokeDashoffset = offset;
+    }
+
+    startTimerBtn.addEventListener('click', () => {
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+        startTimerBtn.textContent = 'Resume Timer';
+      } else {
+        startTimerBtn.textContent = 'Pause Timer';
+        timerInterval = setInterval(() => {
+          if (timerRemaining > 0) {
+            timerRemaining--;
+            updateTimerUI();
+          } else {
+            clearInterval(timerInterval);
+            timerInterval = null;
+            startTimerBtn.textContent = 'Start Timer';
+            alert('Circadian focus sprint completed!');
+          }
+        }, 1000);
+      }
+    });
+
+    resetTimerBtn.addEventListener('click', () => {
+      clearInterval(timerInterval);
+      timerInterval = null;
+      timerRemaining = timerTotal;
+      startTimerBtn.textContent = 'Start Timer';
+      updateTimerUI();
+    });
+    updateTimerUI();
+
+    // Copy UPI ID to Clipboard
+    const copyBtn = document.getElementById('copyUpiBtn');
+    const notification = document.getElementById('copyNotification');
+    copyBtn.addEventListener('click', () => {
+      navigator.clipboard.writeText('donation1@postbank').then(() => {
+        notification.classList.remove('hidden');
+        setTimeout(() => {
+          notification.classList.add('hidden');
+        }, 3000);
+      });
+    });
+  </script>
+</body>
+</html>
