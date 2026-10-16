@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AetherPulse DevSuite | Elite Developer Workstation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darker: '#0a0b10',
+                        carddark: 'rgba(18, 20, 32, 0.7)',
+                        accent: '#6366f1',
+                        accentglow: '#818cf8'
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .glass {
+            background: rgba(18, 20, 32, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glass-hover:hover {
+            background: rgba(26, 29, 46, 0.8);
+            border-color: rgba(99, 102, 241, 0.4);
+        }
+        @keyframes pulseGlow {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 0.8; }
+        }
+        .glow-bg {
+            animation: pulseGlow 6s ease-in-out infinite;
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #0a0b10; }
+        ::-webkit-scrollbar-thumb { background: #2d314d; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #4f46e5; }
+    </style>
+</head>
+<body class="bg-darker text-slate-100 min-h-screen flex flex-col font-sans selection:bg-indigo-500 selection:text-white relative overflow-x-hidden">
+
+    <!-- Background Glow Blobs -->
+    <div class="absolute top-0 left-1/4 w-96 h-96 bg-indigo-600/20 rounded-full blur-3xl glow-bg pointer-events-none"></div>
+    <div class="absolute top-1/3 right-1/4 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl glow-bg pointer-events-none delay-1000"></div>
+
+    <!-- Header Navigation -->
+    <header class="w-full border-b border-white/10 glass sticky top-0 z-50 px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+                <i class="fa-solid fa-cube text-white text-lg"></i>
+            </div>
+            <div>
+                <h1 class="text-lg font-bold tracking-wide bg-gradient-to-r from-white via-indigo-200 to-indigo-400 bg-clip-text text-transparent">AetherPulse</h1>
+                <p class="text-xs text-slate-400">Elite DevSuite & Utilities</p>
+            </div>
+        </div>
+        <nav class="hidden md:flex items-center space-x-1 bg-white/5 p-1 rounded-xl border border-white/10">
+            <button onclick="switchTab('markdown')" id="btn-markdown" class="px-4 py-2 rounded-lg text-sm font-medium transition-all bg-indigo-600 text-white shadow-md">Markdown</button>
+            <button onclick="switchTab('formatter')" id="btn-formatter" class="px-4 py-2 rounded-lg text-sm font-medium transition-all text-slate-400 hover:text-white">Format & Minify</button>
+            <button onclick="switchTab('glass')" id="btn-glass" class="px-4 py-2 rounded-lg text-sm font-medium transition-all text-slate-400 hover:text-white">Glass Generator</button>
+            <button onclick="switchTab('regex')" id="btn-regex" class="px-4 py-2 rounded-lg text-sm font-medium transition-all text-slate-400 hover:text-white">Regex Tester</button>
+        </nav>
+        <div class="flex items-center space-x-3">
+            <span class="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> System Online
+            </span>
+        </div>
+    </header>
+
+    <!-- Mobile Nav Bar -->
+    <div class="md:hidden flex overflow-x-auto p-3 bg-black/40 border-b border-white/10 space-x-2">
+        <button onclick="switchTab('markdown')" id="mbtn-markdown" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-indigo-600 text-white whitespace-nowrap">Markdown</button>
+        <button onclick="switchTab('formatter')" id="mbtn-formatter" class="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 whitespace-nowrap">Format & Minify</button>
+        <button onclick="switchTab('glass')" id="mbtn-glass" class="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 whitespace-nowrap">Glass Generator</button>
+        <button onclick="switchTab('regex')" id="mbtn-regex" class="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 whitespace-nowrap">Regex Tester</button>
+    </div>
+
+    <!-- Main Workspace Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-8 z-10">
+        
+        <!-- 1. MARKDOWN LIVE PREVIEW -->
+        <section id="tab-markdown" class="workspace-tab grid grid-cols-1 lg:grid-cols-2 gap-6 h-[72vh]">
+            <div class="flex flex-col glass rounded-2xl p-4 border border-white/10 shadow-xl">
+                <div class="flex items-center justify-between pb-3 border-b border-white/10 mb-3">
+                    <span class="text-sm font-semibold text-slate-300 flex items-center gap-2"><i class="fa-brands fa-markdown text-indigo-400"></i> Markdown Input</span>
+                    <button onclick="clearMarkdown()" class="text-xs text-slate-400 hover:text-white transition"><i class="fa-solid fa-trash"></i> Clear</button>
+                </div>
+                <textarea id="md-input" oninput="renderMarkdown()" class="w-full flex-1 bg-transparent text-slate-200 placeholder-slate-600 resize-none focus:outline-none font-mono text-sm leading-relaxed" placeholder="Type Markdown here... (# Heading, **bold**, *italic*, - list)"></textarea>
+            </div>
+            <div class="flex flex-col glass rounded-2xl p-4 border border-white/10 shadow-xl">
+                <div class="flex items-center justify-between pb-3 border-b border-white/10 mb-3">
+                    <span class="text-sm font-semibold text-slate-300 flex items-center gap-2"><i class="fa-solid fa-eye text-indigo-400"></i> Live Preview</span>
+                    <span class="text-xs text-indigo-400 font-mono">HTML Output</span>
+                </div>
+                <div id="md-output" class="w-full flex-1 overflow-y-auto prose prose-invert max-w-none text-slate-200 text-sm"></div>
+            </div>
+        </section>
+
+        <!-- 2. FORMATTER & MINIFIER -->
+        <section id="tab-formatter" class="workspace-tab hidden grid-cols-1 lg:grid-cols-2 gap-6 h-[72vh]">
+            <div class="flex flex-col glass rounded-2xl p-4 border border-white/10 shadow-xl">
+                <div class="flex items-center justify-between pb-3 border-b border-white/10 mb-3">
+                    <span class="text-sm font-semibold text-slate-300 flex items-center gap-2"><i class="fa-solid fa-code text-indigo-400"></i> Raw Input</span>
+                    <div class="flex items-center gap-2">
+                        <select id="format-type" class="bg-black/40 border border-white/10 rounded-lg text-xs px-2 py-1 text-slate-300 focus:outline-none">
+                            <option value="json">JSON</option>
+                            <option value="css">CSS</option>
+                        </select>
+                    </div>
+                </div>
+                <textarea id="fmt-input" class="w-full flex-1 bg-transparent text-slate-200 placeholder-slate-600 resize-none focus:outline-none font-mono text-sm leading-relaxed" placeholder="Paste JSON or CSS code here..."></textarea>
+                <div class="flex items-center justify-between pt-3 border-t border-white/10 mt-3">
+                    <button onclick="formatCode('beautify')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-xs font-semibold transition shadow-lg shadow-indigo-600/30">Beautify / Format</button>
+                    <button onclick="formatCode('minify')" class="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-semibold transition">Minify</button>
+                </div>
+            </div>
+            <div class="flex flex-col glass rounded-2xl p-4 border border-white/10 shadow-xl">
+                <div class="flex items-center justify-between pb-3 border-b border-white/10 mb-3">
+                    <span class="text-sm font-semibold text-slate-300 flex items-center gap-2"><i class="fa-solid fa-wand-magic-sparkles text-indigo-400"></i> Processed Output</span>
+                    <button onclick="copyOutput('fmt-output')" class="text-xs text-indigo-400 hover:text-indigo-300 font-medium transition"><i class="fa-regular fa-copy"></i> Copy Result</button>
+                </div>
+                <textarea id="fmt-output" readonly class="w-full flex-1 bg-transparent text-emerald-300 resize-none focus:outline-none font-mono text-sm leading-relaxed"></textarea>
+            </div>
+        </section>
+
+        <!-- 3. GLASSMORPHISM GENERATOR -->
+        <section id="tab-glass" class="workspace-tab hidden grid-cols-1 lg:grid-cols-2 gap-6 h-[72vh]">
+            <div class="flex flex-col glass rounded-2xl p-6 border border-white/10 shadow-xl overflow-y-auto space-y-4">
+                <h3 class="text-sm font-semibold text-slate-300 pb-2 border-b border-white/10"><i class="fa-solid fa-sliders text-indigo-400"></i> Glassmorphism Controls</h3>
+                
+                <div>
+                    <label class="text-xs text-slate-400 block mb-1">Blur Intensity: <span id="val-blur">16</span>px</label>
+                    <input type="range" min="0" max="40" value="16" oninput="updateGlass()" id="range-blur" class="w-full accent-indigo-500">
+                </div>
+                <div>
+                    <label class="text-xs text-slate-400 block mb-1">Background Opacity: <span id="val-opacity">0.4</span></label>
+                    <input type="range" min="0" max="1" step="0.05" value="0.4" oninput="updateGlass()" id="range-opacity" class="w-full accent-indigo-500">
+                </div>
+                <div>
+                    <label class="text-xs text-slate-400 block mb-1">Border Opacity: <span id="val-border">0.15</span></label>
+                    <input type="range" min="0" max="1" step="0.05" value="0.15" oninput="updateGlass()" id="range-border" class="w-full accent-indigo-500">
+                </div>
+                <div>
+                    <label class="text-xs text-slate-400 block mb-1">Border Radius: <span id="val-radius">24</span>px</label>
+                    <input type="range" min="0" max="48" value="24" oninput="updateGlass()" id="range-radius" class="w-full accent-indigo-500">
+                </div>
+
+                <div class="pt-2">
+                    <button onclick="copyGlassCSS()" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-xs font-semibold transition shadow-lg shadow-indigo-600/30"><i class="fa-regular fa-copy"></i> Copy CSS Code</button>
+                </div>
+            </div>
+            <div class="relative flex items-center justify-center glass rounded-2xl p-6 border border-white/10 shadow-xl overflow-hidden bg-gradient-to-tr from-indigo-900/40 via-purple-900/40 to-pink-900/40">
+                <!-- Floating Orbs behind preview -->
+                <div class="absolute w-32 h-32 bg-pink-500 rounded-full blur-2xl top-10 left-10"></div>
+                <div class="absolute w-32 h-32 bg-indigo-500 rounded-full blur-2xl bottom-10 right-10"></div>
+                
+                <!-- Preview Glass Card -->
+                <div id="glass-preview-box" class="w-full max-w-sm p-6 text-slate-100 transition-all">
+                    <h4 class="text-lg font-bold mb-2">Live Glass Card</h4>
+                    <p class="text-xs text-slate-300 leading-relaxed mb-4">Adjust the sliders on the left to instantly experience real-time CSS glassmorphism generation with frosted backdrop filters.</p>
+                    <div class="flex items-center justify-between">
+                        <span class="px-3 py-1 rounded-full bg-white/20 text-xs font-medium">Interactive</span>
+                        <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+                            <i class="fa-solid fa-arrow-right text-xs"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. REGEX TESTER -->
+        <section id="tab-regex" class="workspace-tab hidden grid-cols-1 lg:grid-cols-2 gap-6 h-[72vh]">
+            <div class="flex flex-col glass rounded-2xl p-6 border border-white/10 shadow-xl space-y-4">
+                <h3 class="text-sm font-semibold text-slate-300 pb-2 border-b border-white/10"><i class="fa-solid fa-magnifying-glass text-indigo-400"></i> Regular Expression Engine</h3>
+                <div>
+                    <label class="text-xs text-slate-400 block mb-1">Regex Pattern & Flags</label>
+                    <div class="flex gap-2">
+                        <span class="flex items-center px-3 bg-black/40 border border-white/10 rounded-xl text-slate-400 font-mono">/</span>
+                        <input type="text" id="regex-pattern" oninput="testRegex()" class="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-2 font-mono text-sm text-slate-200 focus:outline-none focus:border-indigo-500" placeholder="^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$">
+                        <input type="text" id="regex-flags" oninput="testRegex()" class="w-16 bg-black/40 border border-white/10 rounded-xl px-3 py-2 font-mono text-sm text-slate-200 text-center focus:outline-none focus:border-indigo-500" value="g">
+                        <span class="flex items-center px-3 bg-black/40 border border-white/10 rounded-xl text-slate-400 font-mono">/</span>
+                    </div>
+                </div>
+                <div class="flex-1 flex flex-col">
+                    <label class="text-xs text-slate-400 block mb-1">Test String</label>
+                    <textarea id="regex-teststr" oninput="testRegex()" class="w-full flex-1 bg-black/40 border border-white/10 rounded-xl p-3 text-slate-200 placeholder-slate-600 resize-none focus:outline-none font-mono text-sm leading-relaxed" placeholder="Enter text to test matches against...">support@aetherpulse.dev, contact@yugraal.io, invalid-email@, hello@domain.co.uk</textarea>
+                </div>
+            </div>
+            <div class="flex flex-col glass rounded-2xl p-6 border border-white/10 shadow-xl">
+                <div class="flex items-center justify-between pb-3 border-b border-white/10 mb-3">
+                    <span class="text-sm font-semibold text-slate-300 flex items-center gap-2"><i class="fa-solid fa-list-check text-indigo-400"></i> Match Results</span>
+                    <span id="regex-count" class="text-xs font-mono px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300">0 matches</span>
+                </div>
+                <div id="regex-output" class="flex-1 bg-black/40 border border-white/10 rounded-xl p-4 font-mono text-xs overflow-y-auto space-y-2 text-slate-300 leading-relaxed">
+                    <span class="text-slate-500">Matches will appear here in real-time...</span>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- CAUSE-DRIVEN CHARITY & SUPPORT FOOTER SECTION -->
+    <footer class="w-full bg-black/60 border-t border-white/10 mt-auto py-8 px-6 z-20">
+        <div class="max-w-7xl mx-auto flex flex-col lg:flex-row items-center justify-between gap-6">
+            <div class="flex flex-col max-w-xl text-center lg:text-left">
+                <div class="flex items-center justify-center lg:justify-start space-x-2 mb-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse"></span>
+                    <h4 class="text-sm font-bold text-rose-400 uppercase tracking-wider">Cause-Driven Initiative & Support</h4>
+                </div>
+                <p class="text-xs text-slate-300 leading-relaxed">
+                    <strong>95% of all contributions go directly towards Cancer Patient Support & School Education Initiatives</strong> (5% retained strictly for server maintenance and infrastructure costs).
+                </p>
+                <div class="mt-3 flex flex-wrap items-center justify-center lg:justify-start gap-4 text-xs text-slate-400">
+                    <span>Receiver: <strong class="text-slate-200">ASKAR ALI</strong></span>
+                    <span>UPI ID: <strong id="upi-id-text" class="text-indigo-400 font-mono">donation1@postbank</strong></span>
+                    <button onclick="copyUpiId()" class="px-3 py-1 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 rounded-lg transition">
+                        <i class="fa-regular fa-copy"></i> Copy UPI ID
+                    </button>
+                </div>
+            </div>
+
+            <!-- Dynamic UPI QR Code Generation Box -->
+            <div class="flex items-center gap-4 bg-white/5 border border-white/10 p-4 rounded-2xl">
+                <div class="bg-white p-2 rounded-xl shadow-md">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?data=upi://pay?pa=donation1@postbank&pn=YUGRAAL_Cause&amount=&cur=INR" alt="Donation UPI QR Code" class="w-20 h-20 object-contain">
+                </div>
+                <div class="text-left">
+                    <p class="text-xs font-semibold text-slate-200">Scan & Support</p>
+                    <p class="text-[11px] text-slate-400 mt-0.5">Approve any amount via UPI</p>
+                    <span class="inline-block mt-2 text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-md font-mono">100% Transparent</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript Engine -->
+    <script>
+        // Tab Switching Logic
+        function switchTab(tabId) {
+            const tabs = ['markdown', 'formatter', 'glass', 'regex'];
+            tabs.forEach(t => {
+                document.getElementById('tab-' + t).classList.add('hidden');
+                document.getElementById('tab-' + t).classList.remove('grid');
+                document.getElementById('btn-' + t).className = 'px-4 py-2 rounded-lg text-sm font-medium transition-all text-slate-400 hover:text-white';
+                document.getElementById('mbtn-' + t).className = 'px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 whitespace-nowrap';
+            });
+
+            document.getElementById('tab-' + tabId).classList.remove('hidden');
+            document.getElementById('tab-' + tabId).classList.add('grid');
+            document.getElementById('btn-' + tabId).className = 'px-4 py-2 rounded-lg text-sm font-medium transition-all bg-indigo-600 text-white shadow-md';
+            document.getElementById('mbtn-' + tabId).className = 'px-3 py-1.5 rounded-lg text-xs font-medium bg-indigo-600 text-white whitespace-nowrap';
+        }
+
+        // 1. Markdown Simple Parser
+        function renderMarkdown() {
+            const text = document.getElementById('md-input').value;
+            let html = text
+                .replace(/^# (.*$)/gim, '<h1 class="text-2xl font-bold text-white mb-3">$1</h1>')
+                .replace(/^## (.*$)/gim, '<h2 class="text-xl font-bold text-slate-100 mb-2">$1</h2>')
+                .replace(/^### (.*$)/gim, '<h3 class="text-lg font-semibold text-slate-200 mb-2">$3</h3>')
+                .replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold text-white">$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em class="italic text-slate-300">$1</em>')
+                .replace(/^- (.*$)/gim, '<li class="ml-4 list-disc text-slate-300">$1</li>')
+                .replace(/\n/g, '<br>');
+            document.getElementById('md-output').innerHTML = html;
+        }
+
+        function clearMarkdown() {
+            document.getElementById('md-input').value = '';
+            document.getElementById('md-output').innerHTML = '';
+        }
+
+        // Initial sample markdown
+        document.getElementById('md-input').value = '# Welcome to AetherPulse\n\nThis is a **live Markdown** renderer with zero dependencies.\n\n- Fast & responsive\n- Clean dark aesthetics\n- Built for elite developers';
+        renderMarkdown();
+
+        // 2. Formatter & Minifier Logic
+        function formatCode(action) {
+            const type = document.getElementById('format-type').value;
+            const input = document.getElementById('fmt-input').value;
+            const outputEl = document.getElementById('fmt-output');
+
+            try {
+                if (type === 'json') {
+                    const parsed = JSON.parse(input);
+                    outputEl.value = action === 'beautify' ? JSON.stringify(parsed, null, 2) : JSON.stringify(parsed);
+                } else if (type === 'css') {
+                    if (action === 'beautify') {
+                        outputEl.value = input.replace(/\s+/g, ' ').replace(/\s*([\{\}\:\;\,])\s*/g, '$1').replace(/\;/g, ';\n  ').replace(/\{/g, ' {\n  ').replace(/\}/g, '\n}\n');
+                    } else {
+                        outputEl.value = input.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\s+/g, ' ').replace(/\s*([\{\}\:\;\,])\s*/g, '$1');
+                    }
+                }
+            } catch (e) {
+                outputEl.value = 'Error: Invalid syntax for formatting.\n' + e.message;
+            }
+        }
+
+        function copyOutput(elementId) {
+            const text = document.getElementById(elementId).value;
+            navigator.clipboard.writeText(text);
+            alert('Copied to clipboard successfully!');
+        }
+
+        // 3. Glassmorphism Generator Logic
+        function updateGlass() {
+            const blur = document.getElementById('range-blur').value;
+            const opacity = document.getElementById('range-opacity').value;
+            const border = document.getElementById('range-border').value;
+            const radius = document.getElementById('range-radius').value;
+
+            document.getElementById('val-blur').innerText = blur;
+            document.getElementById('val-opacity').innerText = opacity;
+            document.getElementById('val-border').innerText = border;
+            document.getElementById('val-radius').innerText = radius;
+
+            const box = document.getElementById('glass-preview-box');
+            box.style.background = `rgba(255, 255, 255, ${opacity})`;
+            box.style.backdropFilter = `blur(${blur}px)`;
+            box.style.webkitBackdropFilter = `blur(${blur}px)`;
+            box.style.border = `1px solid rgba(255, 255, 255, ${border})`;
+            box.style.borderRadius = `${radius}px`;
+        }
+        updateGlass();
+
+        function copyGlassCSS() {
+            const blur = document.getElementById('range-blur').value;
+            const opacity = document.getElementById('range-opacity').value;
+            const border = document.getElementById('range-border').value;
+            const radius = document.getElementById('range-radius').value;
+
+            const css = `background: rgba(255, 255, 255, ${opacity});\nbackdrop-filter: blur(${blur}px);\n-webkit-backdrop-filter: blur(${blur}px);\nborder: 1px solid rgba(255, 255, 255, ${border});\nborder-radius: ${radius}px;`;
+            navigator.clipboard.writeText(css);
+            alert('Glass CSS properties copied to clipboard!');
+        }
+
+        // 4. Regex Tester Logic
+        function testRegex() {
+            const pattern = document.getElementById('regex-pattern').value;
+            const flags = document.getElementById('regex-flags').value;
+            const testStr = document.getElementById('regex-teststr').value;
+            const outputEl = document.getElementById('regex-output');
+            const countEl = document.getElementById('regex-count');
+
+            if (!pattern) {
+                outputEl.innerHTML = '<span class="text-slate-500">Please enter a regex pattern...</span>';
+                countEl.innerText = '0 matches';
+                return;
+            }
+
+            try {
+                const regex = new RegExp(pattern, flags);
+                const matches = [...testStr.matchAll(regex)];
+                
+                countEl.innerText = `${matches.length} match${matches.length === 1 ? '' : 'es'}`;
+                
+                if (matches.length === 0) {
+                    outputEl.innerHTML = '<span class="text-amber-400">No matches found in test string.</span>';
+                    return;
+                }
+
+                let html = '';
+                matches.forEach((m, i) => {
+                    html += `<div class="p-2 bg-white/5 rounded border border-white/5">Match ${i+1}: <strong class="text-emerald-400">${m[0]}</strong> <span class="text-slate-500">(index: ${m.index})</span></div>`;
+                });
+                outputEl.innerHTML = html;
+            } catch (e) {
+                outputEl.innerHTML = `<span class="text-rose-400">Invalid Regular Expression: ${e.message}</span>`;
+                countEl.innerText = 'Error';
+            }
+        }
+        testRegex();
+
+        // UPI ID Copy Handler
+        function copyUpiId() {
+            navigator.clipboard.writeText('donation1@postbank');
+            alert('UPI ID donation1@postbank copied to clipboard!');
+        }
+    </script>
+</body>
+</html>
