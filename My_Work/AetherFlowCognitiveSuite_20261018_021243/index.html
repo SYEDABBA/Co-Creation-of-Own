@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AetherFlow Cognitive Suite</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              400: '#818cf8',
+              500: '#6366f1',
+              600: '#4f46e5',
+              900: '#1e1b4b'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @keyframes pulseGlow {
+      0%, 100% { transform: scale(1); opacity: 0.8; }
+      50% { transform: scale(1.08); opacity: 1; filter: drop-shadow(0 0 24px rgba(99, 102, 241, 0.6)); }
+    }
+    .breath-bubble {
+      animation: pulseGlow 8s ease-in-out infinite;
+    }
+    .glass {
+      background: rgba(17, 24, 39, 0.75);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .glass-card {
+      background: rgba(31, 41, 55, 0.65);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-brand-500 selection:text-white">
+
+  <!-- Top Navigation -->
+  <header class="glass sticky top-0 z-40 border-b border-slate-800/80 px-6 py-4 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 via-indigo-500 to-cyan-400 flex items-center justify-center shadow-lg shadow-brand-500/20">
+        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+      </div>
+      <div>
+        <h1 class="text-lg font-bold tracking-tight bg-gradient-to-r from-white via-slate-200 to-indigo-300 bg-clip-text text-transparent">AetherFlow</h1>
+        <p class="text-xs text-slate-400 font-mono">v2.4 Cognitive Engine</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-4 text-xs font-medium">
+      <div class="bg-slate-900/80 border border-slate-800 rounded-lg px-3 py-1.5 flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span id="focusStreakText">Streak: 0 Days</span>
+      </div>
+      <div class="bg-slate-900/80 border border-slate-800 rounded-lg px-3 py-1.5 flex items-center gap-2">
+        <svg class="w-4 h-4 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <span id="totalFocusTime">0h 0m</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Workspace -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+    <!-- Left Column: Ambient Synthesizer & Breath Engine (5 cols) -->
+    <section class="lg:col-span-5 flex flex-col gap-6">
+      
+      <!-- Focus & Breath Pacer -->
+      <div class="glass-card rounded-2xl p-6 shadow-xl relative overflow-hidden">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-300 flex items-center gap-2">
+            <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+            Neuro Breath Pacer
+          </h2>
+          <select id="breathMode" class="bg-slate-900/90 text-xs border border-slate-700 rounded-lg px-2.5 py-1 text-slate-200 focus:outline-none focus:border-brand-500">
+            <option value="4-4-4-4">Box Breathing (4-4-4-4)</option>
+            <option value="4-7-8">Relaxation (4-7-8)</option>
+            <option value="5-5">Coherence (5-5)</option>
+          </select>
+        </div>
+
+        <div class="flex flex-col items-center justify-center py-6">
+          <div id="breathOrb" class="breath-bubble w-36 h-36 rounded-full bg-gradient-to-tr from-brand-600/40 via-cyan-500/30 to-indigo-500/20 border border-indigo-400/40 flex items-center justify-center shadow-2xl">
+            <span id="breathInstruction" class="text-sm font-semibold tracking-wide text-indigo-200 uppercase">Inhale</span>
+          </div>
+          <span id="breathTimerSec" class="text-xs text-slate-400 mt-4 font-mono">Cycle Pace Active</span>
+        </div>
+      </div>
+
+      <!-- Procedural Sound Generator -->
+      <div class="glass-card rounded-2xl p-6 shadow-xl">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-300 flex items-center gap-2">
+            <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/></svg>
+            Procedural Soundscape
+          </h2>
+          <button id="toggleAudioBtn" class="px-3 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-500 text-white font-medium text-xs flex items-center gap-1.5 transition-all">
+            <svg id="playIcon" class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path></svg>
+            <span id="audioBtnLabel">Start Noise</span>
+          </button>
+        </div>
+
+        <div class="space-y-4 text-xs">
+          <div>
+            <div class="flex justify-between text-slate-400 mb-1">
+              <span>Brownian Focus Noise</span>
+              <span id="brownVolVal">40%</span>
+            </div>
+            <input type="range" id="brownVol" min="0" max="1" step="0.01" value="0.4" class="w-full accent-brand-500 bg-slate-800 rounded-lg h-1.5 cursor-pointer">
+          </div>
+
+          <div>
+            <div class="flex justify-between text-slate-400 mb-1">
+              <span>432Hz Drone Oscillator</span>
+              <span id="droneVolVal">20%</span>
+            </div>
+            <input type="range" id="droneVol" min="0" max="1" step="0.01" value="0.2" class="w-full accent-cyan-400 bg-slate-800 rounded-lg h-1.5 cursor-pointer">
+          </div>
+
+          <div>
+            <div class="flex justify-between text-slate-400 mb-1">
+              <span>Alpha Binaural Beat (10Hz)</span>
+              <span id="binauralVolVal">15%</span>
+            </div>
+            <input type="range" id="binauralVol" min="0" max="1" step="0.01" value="0.15" class="w-full accent-indigo-400 bg-slate-800 rounded-lg h-1.5 cursor-pointer">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Right Column: Flow Session & Focus Matrix (7 cols) -->
+    <section class="lg:col-span-7 flex flex-col gap-6">
+
+      <!-- Pomodoro Chronometer -->
+      <div class="glass-card rounded-2xl p-6 shadow-xl flex flex-col md:flex-row items-center justify-between gap-6">
+        <div class="relative flex items-center justify-center">
+          <svg class="w-44 h-44 transform -rotate-90">
+            <circle cx="88" cy="88" r="78" stroke="currentColor" stroke-width="8" class="text-slate-800" fill="transparent"/>
+            <circle id="timerProgress" cx="88" cy="88" r="78" stroke="currentColor" stroke-width="8" class="text-brand-500 transition-all duration-300" stroke-linecap="round" fill="transparent" stroke-dasharray="490.08" stroke-dashoffset="0"/>
+          </svg>
+          <div class="absolute flex flex-col items-center">
+            <span id="timerDisplay" class="text-3xl font-extrabold tracking-tighter font-mono">25:00</span>
+            <span id="timerStatus" class="text-[11px] text-slate-400 uppercase tracking-widest mt-1">Focus Session</span>
+          </div>
+        </div>
+
+        <div class="flex-1 flex flex-col gap-4 w-full">
+          <div class="grid grid-cols-3 gap-2">
+            <button class="mode-btn active py-2 rounded-xl text-xs font-medium border border-brand-500/40 bg-brand-600/20 text-brand-300 transition-all" data-time="25" data-type="Focus">Focus (25m)</button>
+            <button class="mode-btn py-2 rounded-xl text-xs font-medium border border-slate-700 bg-slate-900/40 text-slate-400 transition-all" data-time="5" data-type="Short Rest">Break (5m)</button>
+            <button class="mode-btn py-2 rounded-xl text-xs font-medium border border-slate-700 bg-slate-900/40 text-slate-400 transition-all" data-time="15" data-type="Deep Rest">Long (15m)</button>
+          </div>
+          <div class="flex items-center gap-3">
+            <button id="startTimerBtn" class="flex-1 py-3 bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-500 hover:to-indigo-500 text-white font-semibold rounded-xl text-sm transition-all shadow-lg shadow-brand-500/25">
+              Start Flow
+            </button>
+            <button id="resetTimerBtn" class="px-4 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium rounded-xl text-sm transition-all border border-slate-700">
+              Reset
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Minimalist Task Flow Matrix -->
+      <div class="glass-card rounded-2xl p-6 shadow-xl flex-1 flex flex-col">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-300 flex items-center gap-2">
+            <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+            Execution Pipeline
+          </h2>
+          <span id="taskCount" class="text-xs text-slate-400 font-mono">0 Active</span>
+        </div>
+
+        <!-- Add Task Input -->
+        <form id="taskForm" class="flex gap-2 mb-4">
+          <input id="taskInput" type="text" placeholder="Add deep work objective..." class="flex-1 bg-slate-900/90 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-brand-500 transition-all" required>
+          <button type="submit" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl border border-slate-700 transition-all flex items-center gap-1">
+            + Add
+          </button>
+        </form>
+
+        <!-- Task List -->
+        <div id="taskList" class="space-y-2 overflow-y-auto max-h-60 flex-1 pr-1"></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Cause-Driven Charity & Support Section (Mandatory Spec) -->
+  <footer class="mt-auto glass border-t border-slate-800/80 px-6 py-8 relative z-20">
+    <div class="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+      
+      <!-- Charity Mission Text -->
+      <div class="flex-1 text-center md:text-left space-y-2">
+        <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-medium">
+          <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span>
+          Transparent Giving Initiative
+        </div>
+        <p class="text-sm text-slate-300 leading-relaxed font-medium">
+          95% of all contributions go directly towards Cancer Patient Support & School Education Initiatives (5% retained for server maintenance).
+        </p>
+        <p class="text-xs text-slate-500">
+          Beneficiary: <span class="text-slate-300 font-semibold">ASKAR ALI</span> &bull; Verified Direct UPI Node
+        </p>
+      </div>
+
+      <!-- Interactive UPI & Dynamic QR Card -->
+      <div class="flex items-center gap-4 bg-slate-900/90 p-3 rounded-2xl border border-slate-800 shadow-2xl">
+        <img 
+          src="https://api.qrserver.com/v1/create-qr-code/?data=upi://pay?pa=donation1@postbank&pn=YUGRAAL_Cause&size=90x90" 
+          alt="Scan to Donate UPI" 
+          class="w-20 h-20 rounded-xl bg-white p-1 shadow-md"
+        />
+        <div class="flex flex-col gap-2">
+          <div class="text-left">
+            <span class="text-[10px] text-slate-500 uppercase tracking-widest font-semibold block">UPI ID</span>
+            <span class="text-xs font-mono font-bold text-slate-200 select-all">donation1@postbank</span>
+          </div>
+          <button id="copyUpiBtn" class="px-3 py-1.5 rounded-lg bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 border border-indigo-500/30 text-xs font-medium flex items-center justify-center gap-1.5 transition-all active:scale-95">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
+            <span id="copyBtnLabel">Copy UPI ID</span>
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="mt-6 text-center text-[11px] text-slate-600">
+      Powered by YUGRAAL Co-Creator Engine &bull; Non-commercial, zero-ad cognitive architecture.
+    </div>
+  </footer>
+
+  <!-- Client Application Engine Logic -->
+  <script>
+    // Audio Synthesizer State (Procedural Web Audio API)
+    let audioCtx = null;
+    let isAudioPlaying = false;
+    let brownNoiseNode = null;
+    let brownGainNode = null;
+    let droneOsc = null;
+    let droneGainNode = null;
+    let binauralLeftOsc = null;
+    let binauralRightOsc = null;
+    let binauralGainNode = null;
+
+    const toggleAudioBtn = document.getElementById('toggleAudioBtn');
+    const audioBtnLabel = document.getElementById('audioBtnLabel');
+    const playIcon = document.getElementById('playIcon');
+    const brownVol = document.getElementById('brownVol');
+    const droneVol = document.getElementById('droneVol');
+    const binauralVol = document.getElementById('binauralVol');
+
+    function initAudioContext() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+
+    function createBrownNoiseNode(ctx) {
+      const bufferSize = 2 * ctx.sampleRate;
+      const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      const output = noiseBuffer.getChannelData(0);
+      let lastOut = 0.0;
+      for (let i = 0; i < bufferSize; i++) {
+        const white = Math.random() * 2 - 1;
+        output[i] = (lastOut + (0.02 * white)) / 1.02;
+        lastOut = output[i];
+        output[i] *= 3.5; // Gain compensation
+      }
+      const whiteNoise = ctx.createBufferSource();
+      whiteNoise.buffer = noiseBuffer;
+      whiteNoise.loop = true;
+      return whiteNoise;
+    }
+
+    function startSoundEngine() {
+      initAudioContext();
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+
+      // 1. Brownian Noise
+      brownNoiseNode = createBrownNoiseNode(audioCtx);
+      brownGainNode = audioCtx.createGain();
+      brownGainNode.gain.value = parseFloat(brownVol.value);
+      brownNoiseNode.connect(brownGainNode);
+      brownGainNode.connect(audioCtx.destination);
+      brownNoiseNode.start();
+
+      // 2. 432Hz Drone Sine Oscillator
+      droneOsc = audioCtx.createOscillator();
+      droneGainNode = audioCtx.createGain();
+      droneOsc.type = 'sine';
+      droneOsc.frequency.setValueAtTime(432, audioCtx.currentTime);
+      droneGainNode.gain.value = parseFloat(droneVol.value);
+      droneOsc.connect(droneGainNode);
+      droneGainNode.connect(audioCtx.destination);
+      droneOsc.start();
+
+      // 3. Alpha Binaural (200Hz Left / 210Hz Right -> 10Hz Alpha difference)
+      const merger = audioCtx.createChannelMerger(2);
+      binauralGainNode = audioCtx.createGain();
+      binauralGainNode.gain.value = parseFloat(binauralVol.value);
+
+      binauralLeftOsc = audioCtx.createOscillator();
+      binauralRightOsc = audioCtx.createOscillator();
+      binauralLeftOsc.type = 'sine';
+      binauralRightOsc.type = 'sine';
+      binauralLeftOsc.frequency.setValueAtTime(200, audioCtx.currentTime);
+      binauralRightOsc.frequency.setValueAtTime(210, audioCtx.currentTime);
+
+      binauralLeftOsc.connect(merger, 0, 0);
+      binauralRightOsc.connect(merger, 0, 1);
+      merger.connect(binauralGainNode);
+      binauralGainNode.connect(audioCtx.destination);
+
+      binauralLeftOsc.start();
+      binauralRightOsc.start();
+
+      isAudioPlaying = true;
+      audioBtnLabel.textContent = 'Mute Audio';
+      toggleAudioBtn.classList.replace('bg-brand-600', 'bg-rose-600');
+      toggleAudioBtn.classList.replace('hover:bg-brand-500', 'hover:bg-rose-500');
+    }
+
+    function stopSoundEngine() {
+      if (brownNoiseNode) { brownNoiseNode.stop(); brownNoiseNode.disconnect(); }
+      if (droneOsc) { droneOsc.stop(); droneOsc.disconnect(); }
+      if (binauralLeftOsc) { binauralLeftOsc.stop(); binauralLeftOsc.disconnect(); }
+      if (binauralRightOsc) { binauralRightOsc.stop(); binauralRightOsc.disconnect(); }
+      isAudioPlaying = false;
+      audioBtnLabel.textContent = 'Start Noise';
+      toggleAudioBtn.classList.replace('bg-rose-600', 'bg-brand-600');
+      toggleAudioBtn.classList.replace('hover:bg-rose-500', 'hover:bg-brand-500');
+    }
+
+    toggleAudioBtn.addEventListener('click', () => {
+      if (!isAudioPlaying) startSoundEngine();
+      else stopSoundEngine();
+    });
+
+    brownVol.addEventListener('input', (e) => {
+      document.getElementById('brownVolVal').textContent = Math.round(e.target.value * 100) + '%';
+      if (brownGainNode) brownGainNode.gain.value = parseFloat(e.target.value);
+    });
+    droneVol.addEventListener('input', (e) => {
+      document.getElementById('droneVolVal').textContent = Math.round(e.target.value * 100) + '%';
+      if (droneGainNode) droneGainNode.gain.value = parseFloat(e.target.value);
+    });
+    binauralVol.addEventListener('input', (e) => {
+      document.getElementById('binauralVolVal').textContent = Math.round(e.target.value * 100) + '%';
+      if (binauralGainNode) binauralGainNode.gain.value = parseFloat(e.target.value);
+    });
+
+    // Breathing Pattern Engine
+    const breathMode = document.getElementById('breathMode');
+    const breathOrb = document.getElementById('breathOrb');
+    const breathInstruction = document.getElementById('breathInstruction');
+    let breathInterval = null;
+
+    function runBreathingCycle() {
+      if (breathInterval) clearInterval(breathInterval);
+      const mode = breathMode.value;
+      let step = 0;
+
+      if (mode === '4-4-4-4') {
+        // Box: Inhale 4s, Hold 4s, Exhale 4s, Hold 4s
+        const steps = [
+          { label: 'Inhale', scale: 'scale-110', duration: 4000 },
+          { label: 'Hold', scale: 'scale-110', duration: 4000 },
+          { label: 'Exhale', scale: 'scale-90', duration: 4000 },
+          { label: 'Hold', scale: 'scale-90', duration: 4000 }
+        ];
+        let idx = 0;
+        const execute = () => {
+          const curr = steps[idx];
+          breathInstruction.textContent = curr.label;
+          breathOrb.style.transition = `transform ${curr.duration}ms ease-in-out`;
+          breathOrb.style.transform = curr.label === 'Inhale' || curr.label === 'Hold' && idx === 1 ? 'scale(1.2)' : 'scale(0.85)';
+          idx = (idx + 1) % steps.length;
+        };
+        execute();
+        breathInterval = setInterval(execute, 4000);
+      } else if (mode === '4-7-8') {
+        // 4 Inhale, 7 Hold, 8 Exhale
+        const seq = async () => {
+          breathInstruction.textContent = 'Inhale';
+          breathOrb.style.transition = 'transform 4000ms ease-in';
+          breathOrb.style.transform = 'scale(1.25)';
+          await new Promise(r => setTimeout(r, 4000));
+          breathInstruction.textContent = 'Hold';
+          await new Promise(r => setTimeout(r, 7000));
+          breathInstruction.textContent = 'Exhale';
+          breathOrb.style.transition = 'transform 8000ms ease-out';
+          breathOrb.style.transform = 'scale(0.85)';
+        };
+        seq();
+        breathInterval = setInterval(seq, 19000);
+      } else {
+        // 5-5 Coherence
+        const seq = async () => {
+          breathInstruction.textContent = 'Inhale';
+          breathOrb.style.transition = 'transform 5000ms ease-in-out';
+          breathOrb.style.transform = 'scale(1.2)';
+          await new Promise(r => setTimeout(r, 5000));
+          breathInstruction.textContent = 'Exhale';
+          breathOrb.style.transition = 'transform 5000ms ease-in-out';
+          breathOrb.style.transform = 'scale(0.85)';
+        };
+        seq();
+        breathInterval = setInterval(seq, 10000);
+      }
+    }
+    breathMode.addEventListener('change', runBreathingCycle);
+    runBreathingCycle();
+
+    // Flow Timer Logic
+    let timerMinutes = 25;
+    let totalSeconds = 25 * 60;
+    let remainingSeconds = totalSeconds;
+    let timerTicker = null;
+    let isTimerRunning = false;
+    const fullDashOffset = 490.08;
+
+    const timerDisplay = document.getElementById('timerDisplay');
+    const timerProgress = document.getElementById('timerProgress');
+    const startTimerBtn = document.getElementById('startTimerBtn');
+    const resetTimerBtn = document.getElementById('resetTimerBtn');
+    const timerStatus = document.getElementById('timerStatus');
+    const modeBtns = document.querySelectorAll('.mode-btn');
+
+    function updateTimerDisplay() {
+      const m = Math.floor(remainingSeconds / 60);
+      const s = remainingSeconds % 60;
+      timerDisplay.textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+      const progressFraction = remainingSeconds / totalSeconds;
+      timerProgress.style.strokeDashoffset = fullDashOffset * (1 - progressFraction);
+    }
+
+    function toggleTimer() {
+      if (!isTimerRunning) {
+        isTimerRunning = true;
+        startTimerBtn.textContent = 'Pause Flow';
+        startTimerBtn.classList.replace('from-brand-600', 'from-amber-600');
+        startTimerBtn.classList.replace('to-indigo-600', 'to-amber-700');
+        timerTicker = setInterval(() => {
+          if (remainingSeconds > 0) {
+            remainingSeconds--;
+            updateTimerDisplay();
+            trackFocusMinute();
+          } else {
+            clearInterval(timerTicker);
+            isTimerRunning = false;
+            startTimerBtn.textContent = 'Session Complete';
+            playChime();
+          }
+        }, 1000);
+      } else {
+        clearInterval(timerTicker);
+        isTimerRunning = false;
+        startTimerBtn.textContent = 'Resume Flow';
+        startTimerBtn.classList.replace('from-amber-600', 'from-brand-600');
+        startTimerBtn.classList.replace('to-amber-700', 'to-indigo-600');
+      }
+    }
+
+    function resetTimer() {
+      clearInterval(timerTicker);
+      isTimerRunning = false;
+      remainingSeconds = totalSeconds;
+      startTimerBtn.textContent = 'Start Flow';
+      startTimerBtn.className = 'flex-1 py-3 bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-500 hover:to-indigo-500 text-white font-semibold rounded-xl text-sm transition-all shadow-lg shadow-brand-500/25';
+      updateTimerDisplay();
+    }
+
+    function playChime() {
+      try {
+        initAudioContext();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
+        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.2);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 1.2);
+      } catch (err) {}
+    }
+
+    modeBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        modeBtns.forEach(b => {
+          b.classList.remove('active', 'border-brand-500/40', 'bg-brand-600/20', 'text-brand-300');
+          b.classList.add('border-slate-700', 'bg-slate-900/40', 'text-slate-400');
+        });
+        btn.classList.add('active', 'border-brand-500/40', 'bg-brand-600/20', 'text-brand-300');
+        btn.classList.remove('border-slate-700', 'bg-slate-900/40', 'text-slate-400');
+        timerMinutes = parseInt(btn.dataset.time);
+        timerStatus.textContent = btn.dataset.type;
+        totalSeconds = timerMinutes * 60;
+        resetTimer();
+      });
+    });
+
+    startTimerBtn.addEventListener('click', toggleTimer);
+    resetTimerBtn.addEventListener('click', resetTimer);
+
+    // Focus Stats Engine in LocalStorage
+    let focusSecondsToday = parseInt(localStorage.getItem('af_focus_seconds') || '0');
+    function trackFocusMinute() {
+      focusSecondsToday++;
+      localStorage.setItem('af_focus_seconds', focusSecondsToday);
+      renderFocusStats();
+    }
+
+    function renderFocusStats() {
+      const hours = Math.floor(focusSecondsToday / 3600);
+      const mins = Math.floor((focusSecondsToday % 3600) / 60);
+      document.getElementById('totalFocusTime').textContent = `${hours}h ${mins}m`;
+      
+      let streak = parseInt(localStorage.getItem('af_streak') || '1');
+      document.getElementById('focusStreakText').textContent = `Streak: ${streak} Day${streak > 1 ? 's' : ''}`;
+    }
+    renderFocusStats();
+
+    // Task Pipeline Engine
+    const taskForm = document.getElementById('taskForm');
+    const taskInput = document.getElementById('taskInput');
+    const taskList = document.getElementById('taskList');
+    const taskCount = document.getElementById('taskCount');
+    let tasks = JSON.parse(localStorage.getItem('af_tasks') || '[]');
+
+    function saveAndRenderTasks() {
+      localStorage.setItem('af_tasks', JSON.stringify(tasks));
+      taskList.innerHTML = '';
+      tasks.forEach((task, index) => {
+        const item = document.createElement('div');
+        item.className = `flex items-center justify-between p-3 rounded-xl border transition-all ${task.completed ? 'bg-slate-900/30 border-slate-800/40 opacity-50' : 'bg-slate-900/80 border-slate-700/60'}`;
+        item.innerHTML = `
+          <div class="flex items-center gap-3 overflow-hidden pr-2">
+            <button onclick="toggleTaskStatus(${index})" class="w-4 h-4 rounded border flex items-center justify-center transition-all ${task.completed ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-slate-600 hover:border-slate-400'}">
+              ${task.completed ? '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>' : ''}
+            </button>
+            <span class="text-xs ${task.completed ? 'line-through text-slate-500' : 'text-slate-200'} truncate">${task.text}</span>
+          </div>
+          <button onclick="deleteTask(${index})" class="text-slate-500 hover:text-rose-400 p-1 rounded-lg transition-colors">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+          </button>
+        `;
+        taskList.appendChild(item);
+      });
+      const activeCount = tasks.filter(t => !t.completed).length;
+      taskCount.textContent = `${activeCount} Active`;
+    }
+
+    window.toggleTaskStatus = function(index) {
+      tasks[index].completed = !tasks[index].completed;
+      saveAndRenderTasks();
+    };
+
+    window.deleteTask = function(index) {
+      tasks.splice(index, 1);
+      saveAndRenderTasks();
+    };
+
+    taskForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const text = taskInput.value.trim();
+      if (text) {
+        tasks.push({ text, completed: false });
+        taskInput.value = '';
+        saveAndRenderTasks();
+      }
+    });
+    saveAndRenderTasks();
+
+    // Copy UPI ID Clipboard Interaction
+    const copyUpiBtn = document.getElementById('copyUpiBtn');
+    const copyBtnLabel = document.getElementById('copyBtnLabel');
+    copyUpiBtn.addEventListener('click', () => {
+      navigator.clipboard.writeText('donation1@postbank').then(() => {
+        copyBtnLabel.textContent = 'Copied!';
+        copyUpiBtn.classList.replace('text-indigo-300', 'text-emerald-400');
+        setTimeout(() => {
+          copyBtnLabel.textContent = 'Copy UPI ID';
+          copyUpiBtn.classList.replace('text-emerald-400', 'text-indigo-300');
+        }, 2200);
+      });
+    });
+  </script>
+</body>
+</html>
