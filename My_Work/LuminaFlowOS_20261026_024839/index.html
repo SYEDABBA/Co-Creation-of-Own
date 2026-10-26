@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang='en' class='dark'>
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <title>LuminaFlow OS | Deep Work Engine</title>
+    <script src='https://cdn.tailwindcss.com'></script>
+    <link rel='preconnect' href='https://fonts.googleapis.com'>
+    <link rel='preconnect' href='https://fonts.gstatic.com' crossorigin>
+    <link href='https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap' rel='stylesheet'>
+    <style>
+        :root {
+            --glass: rgba(15, 23, 42, 0.65);
+            --border: rgba(255, 255, 255, 0.1);
+            --accent: #8b5cf6;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at top left, #0f172a, #020617);
+            min-height: 100vh;
+            color: #f8fafc;
+            overflow-x: hidden;
+        }
+        .glass-panel {
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+        .timer-circle {
+            transition: stroke-dashoffset 0.5s ease;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+        .glow-button {
+            transition: all 0.3s ease;
+            box-shadow: 0 0 0px var(--accent);
+        }
+        .glow-button:hover {
+            box-shadow: 0 0 15px var(--accent);
+            transform: translateY(-2px);
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class='p-4 md:p-8 flex flex-col items-center'>
+
+    <!-- Header -->
+    <header class='w-full max-w-6xl flex justify-between items-center mb-12'>
+        <div class='flex items-center gap-3'>
+            <div class='w-10 h-10 bg-gradient-to-tr from-violet-600 to-fuchsia-500 rounded-lg flex items-center justify-center font-bold text-xl'>L</div>
+            <h1 class='text-2xl font-extrabold tracking-tighter'>Lumina<span class='text-violet-500'>Flow</span></h1>
+        </div>
+        <div id='real-time' class='font-mono text-slate-400'>00:00:00</div>
+    </header>
+
+    <main class='w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-8'>
+        <!-- Left: Timer Column -->
+        <div class='lg:col-span-4 flex flex-col gap-6'>
+            <div class='glass-panel rounded-3xl p-8 flex flex-col items-center text-center'>
+                <h2 class='text-sm uppercase tracking-[0.2em] text-slate-400 mb-6'>Focus Session</h2>
+                <div class='relative w-48 h-48 mb-8'>
+                    <svg class='w-full h-full'>
+                        <circle cx='96' cy='96' r='88' stroke='rgba(255,255,255,0.05)' stroke-width='8' fill='transparent' />
+                        <circle id='progress-ring' cx='96' cy='96' r='88' stroke='url(#grad1)' stroke-width='8' fill='transparent' stroke-dasharray='552.92' stroke-dashoffset='0' class='timer-circle' />
+                        <defs>
+                            <linearGradient id='grad1' x1='0%' y1='0%' x2='100%' y2='0%'>
+                                <stop offset='0%' style='stop-color:#8b5cf6;stop-opacity:1' />
+                                <stop offset='100%' style='stop-color:#d946ef;stop-opacity:1' />
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                    <div id='timer-display' class='absolute inset-0 flex items-center justify-center text-4xl font-black font-mono'>25:00</div>
+                </div>
+                <div class='flex gap-4'>
+                    <button onclick='toggleTimer()' id='start-btn' class='glow-button px-8 py-3 bg-violet-600 rounded-full font-semibold'>Start</button>
+                    <button onclick='resetTimer()' class='px-8 py-3 bg-slate-800 hover:bg-slate-700 rounded-full font-semibold transition-colors'>Reset</button>
+                </div>
+            </div>
+
+            <!-- Audio Mixer -->
+            <div class='glass-panel rounded-3xl p-6'>
+                <h3 class='text-sm font-semibold mb-4 text-slate-300'>Ambient Soundscape</h3>
+                <div class='space-y-4'>
+                    <div class='flex items-center gap-4'>
+                        <span class='w-20 text-xs text-slate-400'>Rain</span>
+                        <input type='range' class='flex-1 accent-violet-500' oninput='updateAudio("rain", this.value)'>
+                    </div>
+                    <div class='flex items-center gap-4'>
+                        <span class='w-20 text-xs text-slate-400'>Waves</span>
+                        <input type='range' class='flex-1 accent-violet-500' oninput='updateAudio("waves", this.value)'>
+                    </div>
+                    <div class='flex items-center gap-4'>
+                        <span class='w-20 text-xs text-slate-400'>Forest</span>
+                        <input type='range' class='flex-1 accent-violet-500' oninput='updateAudio("forest", this.value)'>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Task Management -->
+        <div class='lg:col-span-8'>
+            <div class='glass-panel rounded-3xl p-8 h-full'>
+                <div class='flex justify-between items-center mb-8'>
+                    <h2 class='text-2xl font-bold'>Deep Work Nodes</h2>
+                    <button onclick='addTask()' class='p-2 bg-white/5 hover:bg-white/10 rounded-lg border border-white/10 transition-colors'>
+                        <svg xmlns='http://www.w3.org/2000/svg' class='h-6 w-6' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
+                            <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='+12 4v16m8-8H4' />
+                        </svg>
+                    </button>
+                </div>
+                <div id='task-container' class='space-y-3'>
+                    <!-- Tasks inject here -->
+                    <div class='p-4 bg-white/5 border border-white/5 rounded-xl flex items-center justify-between group'>
+                        <span class='text-slate-300'>Initialize strategic roadmap</span>
+                        <button class='opacity-0 group-hover:opacity-100 text-slate-500 hover:text-red-400 transition-all'>Remove</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Charity Footer Banner -->
+    <footer class='w-full max-w-6xl mt-16 mb-8'>
+        <div class='glass-panel rounded-[2rem] p-8 border-violet-500/30 overflow-hidden relative'>
+            <div class='absolute top-0 right-0 w-64 h-64 bg-violet-600/10 blur-[80px] -z-10'></div>
+            <div class='flex flex-col md:flex-row items-center gap-8'>
+                <div class='flex-1'>
+                    <div class='inline-block px-3 py-1 bg-violet-500/20 text-violet-400 rounded-full text-xs font-bold mb-4 tracking-widest uppercase'>
+                        Cause Driven Initiative
+                    </div>
+                    <h3 class='text-2xl font-bold mb-3'>Impact Through Innovation</h3>
+                    <p class='text-slate-400 leading-relaxed mb-6'>
+                        95% of all contributions go directly towards <span class='text-white font-semibold'>Cancer Patient Support & School Education Initiatives</span>. 
+                        A minimal 5% is retained for global server infrastructure and maintenance.
+                    </p>
+                    <div class='flex flex-wrap items-center gap-4'>
+                        <div class='bg-black/40 px-5 py-3 rounded-2xl border border-white/10 flex items-center gap-4'>
+                            <div class='text-xs'>
+                                <p class='text-slate-500'>Receiver Name</p>
+                                <p class='font-mono font-bold text-slate-200'>ASKAR ALI</p>
+                            </div>
+                            <div class='h-8 w-[1px] bg-white/10'></div>
+                            <div class='text-xs'>
+                                <p class='text-slate-500'>UPI ID</p>
+                                <p id='upi-id' class='font-mono font-bold text-violet-400 uppercase'>donation1@postbank</p>
+                            </div>
+                        </div>
+                        <button onclick='copyUPI()' class='px-6 py-3 bg-violet-600 hover:bg-violet-500 rounded-xl font-bold transition-all transform active:scale-95 shadow-lg shadow-violet-900/20'>
+                            Copy UPI ID
+                        </button>
+                    </div>
+                </div>
+                <div class='flex flex-col items-center gap-2 p-4 bg-white rounded-2xl'>
+                    <img src='https://api.qrserver.com/v1/create-qr-code/?data=upi://pay?pa=donation1@postbank&pn=YUGRAAL_Cause&cu=INR' alt='Donate QR' class='w-32 h-32'>
+                    <span class='text-[10px] text-slate-600 font-bold uppercase tracking-tighter'>Scan to Contribute</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Timer Logic
+        let timeLeft = 1500;
+        let timerInterval = null;
+        let isRunning = false;
+        const ring = document.getElementById('progress-ring');
+        const display = document.getElementById('timer-display');
+        const startBtn = document.getElementById('start-btn');
+        const circumference = 2 * Math.PI * 88;
+
+        function updateTimer() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            display.innerText = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            const offset = circumference - (timeLeft / 1500) * circumference;
+            ring.style.strokeDashoffset = offset;
+
+            if (timeLeft === 0) {
+                clearInterval(timerInterval);
+                alert('Session Complete. Take a break.');
+            }
+        }
+
+        function toggleTimer() {
+            if (isRunning) {
+                clearInterval(timerInterval);
+                startBtn.innerText = 'Start';
+            } else {
+                timerInterval = setInterval(() => {
+                    timeLeft--;
+                    updateTimer();
+                }, 1000);
+                startBtn.innerText = 'Pause';
+            }
+            isRunning = !isRunning;
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            timeLeft = 1500;
+            isRunning = false;
+            startBtn.innerText = 'Start';
+            updateTimer();
+        }
+
+        // Task Logic
+        function addTask() {
+            const task = prompt("Enter focus node objective:");
+            if (task) {
+                const container = document.getElementById('task-container');
+                const div = document.createElement('div');
+                div.className = 'p-4 bg-white/5 border border-white/5 rounded-xl flex items-center justify-between group animate-in fade-in slide-in-from-bottom-2 duration-500';
+                div.innerHTML = `
+                    <span class='text-slate-300'>${task}</span>
+                    <button onclick='this.parentElement.remove()' class='opacity-0 group-hover:opacity-100 text-slate-500 hover:text-red-400 transition-all'>Remove</button>
+                `;
+                container.appendChild(div);
+            }
+        }
+
+        // Real-time clock
+        setInterval(() => {
+            document.getElementById('real-time').innerText = new Date().toLocaleTimeString([], {hour12: false});
+        }, 1000);
+
+        // Charity: Copy UPI
+        function copyUPI() {
+            const upi = document.getElementById('upi-id').innerText;
+            navigator.clipboard.writeText(upi).then(() => {
+                const btn = event.target;
+                const original = btn.innerText;
+                btn.innerText = 'Copied!';
+                btn.classList.replace('bg-violet-600', 'bg-green-600');
+                setTimeout(() => {
+                    btn.innerText = original;
+                    btn.classList.replace('bg-green-600', 'bg-violet-600');
+                }, 2000);
+            });
+        }
+
+        // Ambient Sound - Simulated (In production, load audio assets)
+        function updateAudio(type, value) {
+            console.log(`Adjusting ${type} volume to ${value}%`);
+            // Implementation for HTML5 Audio gain nodes goes here
+        }
+
+        // Init
+        updateTimer();
+    </script>
+</body>
+</html>
