@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Synthetix Mind Visualizer | YUGRAAL Engine</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        glass: 'rgba(255, 255, 255, 0.05)',
+                        glassBorder: 'rgba(255, 255, 255, 0.1)',
+                        neonCyan: '#00f2fe',
+                        neonPurple: '#4facfe'
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glow-effect {
+            box-shadow: 0 0 25px -5px rgba(0, 242, 254, 0.2);
+        }
+        @keyframes pulseGlow {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 0.8; }
+        }
+        .animate-pulse-glow { animation: pulseGlow 4s ease-in-out infinite; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between selection:bg-cyan-500 selection:text-white">
+
+    <!-- Background Ambient Glows -->
+    <div class="fixed inset-0 overflow-hidden pointer-events-none z-0">
+        <div class="absolute -top-40 -left-40 w-96 h-96 bg-cyan-600/20 rounded-full blur-3xl animate-pulse-glow"></div>
+        <div class="absolute top-1/2 -right-40 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl animate-pulse-glow" style="animation-delay: 2s;"></div>
+    </div>
+
+    <!-- Main Application Header -->
+    <header class="relative z-10 border-b border-slate-800/80 bg-slate-900/40 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-purple-600 flex items-center justify-center glow-effect">
+                    <i class="fa-solid fa-brain text-white text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg tracking-wider bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">SYNTHETIX MIND</h1>
+                    <p class="text-xs text-slate-400">YUGRAAL Neural Architecture Engine</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <button onclick="app.clearCanvas()" class="px-4 py-2 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 transition text-slate-300 border border-slate-700">
+                    <i class="fa-solid fa-rotate-right mr-1.5"></i> Reset Node Web
+                </button>
+                <button onclick="app.exportData()" class="px-4 py-2 text-xs font-semibold rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 transition text-white shadow-lg shadow-cyan-500/20">
+                    <i class="fa-solid fa-download mr-1.5"></i> Export JSON
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Core App Workspace -->
+    <main class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full grid grid-cols-1 lg:grid-cols-4 gap-6">
+        
+        <!-- Control Panel Sidebar -->
+        <div class="lg:col-span-1 glass-panel rounded-2xl p-6 flex flex-col justify-between space-y-6">
+            <div class="space-y-4">
+                <h2 class="text-sm font-bold uppercase tracking-wider text-cyan-400 flex items-center">
+                    <i class="fa-solid fa-sliders mr-2"></i> Node Synthesizer
+                </h2>
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1">Node Concept Title</label>
+                    <input type="text" id="nodeTitle" placeholder="e.g. Quantum Encryption" class="w-full bg-slate-900/80 border border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-cyan-500 transition text-slate-200">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1">Category Tag</label>
+                    <select id="nodeCategory" class="w-full bg-slate-900/80 border border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-cyan-500 transition text-slate-200">
+                        <option value="Core Idea">Core Idea</option>
+                        <option value="Architecture">Architecture</option>
+                        <option value="Algorithm">Algorithm</option>
+                        <option value="Metric">Metric</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1">Description / Details</label>
+                    <textarea id="nodeDesc" rows="3" placeholder="Detailed explanation of this mind node..." class="w-full bg-slate-900/80 border border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-cyan-500 transition text-slate-200"></textarea>
+                </div>
+                <button onclick="app.addNode()" class="w-full py-3 bg-gradient-to-r from-cyan-500 via-teal-500 to-purple-600 text-white font-semibold rounded-xl text-sm shadow-lg shadow-cyan-500/25 hover:opacity-95 transition">
+                    <i class="fa-solid fa-plus mr-2"></i> Synthesize Node
+                </button>
+            </div>
+            
+            <div class="bg-slate-900/50 rounded-xl p-4 border border-slate-800">
+                <div class="text-xs text-slate-400">Active Nodes in Memory</div>
+                <div id="nodeCount" class="text-2xl font-bold text-cyan-400 mt-1">0</div>
+            </div>
+        </div>
+
+        <!-- Interactive Canvas / Node Visualizer Area -->
+        <div class="lg:col-span-3 glass-panel rounded-2xl p-6 flex flex-col justify-between min-h-[500px] relative overflow-hidden">
+            <div class="flex items-center justify-between pb-4 border-b border-slate-800/80">
+                <h3 class="text-sm font-semibold text-slate-300 flex items-center">
+                    <i class="fa-solid fa-network-wired text-cyan-400 mr-2"></i> Neural Concept Web
+                </h3>
+                <span class="text-xs text-slate-500">Click any node to inspect details</span>
+            </div>
+            
+            <!-- Dynamic Node Container Grid -->
+            <div id="canvasGrid" class="flex-grow grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 py-6 overflow-y-auto max-h-[600px] items-start">
+                <!-- Empty State -->
+                <div id="emptyState" class="col-span-full flex flex-col items-center justify-center py-16 text-slate-500">
+                    <i class="fa-solid fa-atom text-4xl mb-3 text-slate-600 animate-pulse"></i>
+                    <p class="text-sm font-medium">Your neural web is currently empty.</p>
+                    <p class="text-xs text-slate-600 mt-1">Add your first concept node using the left control panel.</p>
+                </div>
+            </div>
+
+            <!-- Bottom Status bar inside visualizer -->
+            <div class="pt-4 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
+                <span id="statusText">Engine Status: <strong class="text-emerald-400">Optimal & Ready</strong></span>
+                <span id="lastAction">Ready for input</span>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Cause-Driven Charity & Support Section (Mandatory Requirement) -->
+    <footer class="relative z-10 border-t border-slate-800 bg-slate-900/80 backdrop-blur-md mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="glass-panel rounded-2xl p-6 md:p-8 border border-cyan-500/20 bg-gradient-to-br from-slate-900/90 via-slate-900/70 to-slate-950/90">
+                <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+                    
+                    <!-- Message & Receiver Info -->
+                    <div class="space-y-3 text-center md:text-left">
+                        <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-semibold">
+                            <i class="fa-solid fa-heart-pulse"></i>
+                            <span>YUGRAAL Philanthropy & Social Impact Initiative</span>
+                        </div>
+                        <h4 class="text-lg font-bold text-slate-100">Empowering Lives & Communities Together</h4>
+                        <p class="text-xs md:text-sm text-slate-300 max-w-2xl leading-relaxed">
+                            95% of all contributions go directly towards Cancer Patient Support & School Education Initiatives (5% retained for server maintenance).
+                        </p>
+                        <div class="flex flex-wrap items-center justify-center md:justify-start gap-4 text-xs text-slate-400 pt-1">
+                            <span><strong class="text-slate-200">Receiver:</strong> ASKAR ALI</span>
+                            <span class="hidden md:inline">•</span>
+                            <span class="flex items-center space-x-1.5">
+                                <strong class="text-slate-200">UPI ID:</strong> 
+                                <code id="upiIdText" class="bg-slate-950 px-2 py-1 rounded text-cyan-400 font-mono">donation1@postbank</code>
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Interactive Elements: QR Code & Copy Button -->
+                    <div class="flex flex-col sm:flex-row items-center gap-4 bg-slate-950/60 p-4 rounded-xl border border-slate-800">
+                        <div class="bg-white p-2 rounded-lg shadow-lg">
+                            <img src="https://api.qrserver.com/v1/create-qr-code/?data=upi://pay?pa=donation1@postbank&pn=YUGRAAL_Cause" alt="Donation QR Code" class="w-24 h-24 object-contain">
+                        </div>
+                        <div class="flex flex-col space-y-2 w-full">
+                            <button onclick="app.copyUpiId()" class="w-full px-4 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-semibold rounded-lg text-xs transition shadow-md flex items-center justify-center space-x-2">
+                                <i class="fa-solid fa-copy"></i>
+                                <span id="copyBtnText">Copy UPI ID</span>
+                            </button>
+                            <div class="text-[10px] text-center text-slate-500">Scan via any UPI app to contribute</div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            
+            <!-- Copyright -->
+            <div class="mt-8 text-center text-xs text-slate-500">
+                &copy; <span id="currentYear"></span> YUGRAAL Co-Creator Engine. Built with absolute precision & purpose.
+            </div>
+        </div>
+    </footer>
+
+    <!-- Modular JavaScript Engine -->
+    <script>
+        class SynthetixApp {
+            constructor() {
+                this.nodes = [];
+                this.init();
+            }
+
+            init() {
+                document.getElementById('currentYear').textContent = new Date().getFullYear();
+                // Load sample initial node for demonstration
+                this.nodes.push({
+                    id: Date.now(),
+                    title: 'Neural Architecture',
+                    category: 'Core Idea',
+                    desc: 'Initial baseline node synthesized by YUGRAAL engine.'
+                });
+                this.render();
+            }
+
+            addNode() {
+                const titleInput = document.getElementById('nodeTitle');
+                const categoryInput = document.getElementById('nodeCategory');
+                const descInput = document.getElementById('nodeDesc');
+
+                const title = titleInput.value.trim();
+                const category = categoryInput.value;
+                const desc = descInput.value.trim();
+
+                if (!title) {
+                    alert('Please enter a node concept title.');
+                    return;
+                }
+
+                const newNode = {
+                    id: Date.now(),
+                    title,
+                    category,
+                    desc: desc || 'No detailed description provided.'
+                };
+
+                this.nodes.push(newNode);
+                titleInput.value = '';
+                descInput.value = '';
+                
+                document.getElementById('lastAction').textContent = `Added node: ${title}`;
+                this.render();
+            }
+
+            deleteNode(id) {
+                this.nodes = this.nodes.filter(n => n.id !== id);
+                document.getElementById('lastAction').textContent = 'Deleted a node.';
+                this.render();
+            }
+
+            clearCanvas() {
+                if(confirm('Are you sure you want to reset the neural web?')) {
+                    this.nodes = [];
+                    document.getElementById('lastAction').textContent = 'Canvas reset.';
+                    this.render();
+                }
+            }
+
+            exportData() {
+                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(this.nodes, null, 2));
+                const downloadAnchor = document.createElement('a');
+                downloadAnchor.setAttribute("href", dataStr);
+                downloadAnchor.setAttribute("download", "synthetix_mind_nodes.json");
+                document.body.appendChild(downloadAnchor);
+                downloadAnchor.click();
+                downloadAnchor.remove();
+                document.getElementById('lastAction').textContent = 'Exported node data as JSON.';
+            }
+
+            copyUpiId() {
+                const upiText = 'donation1@postbank';
+                navigator.clipboard.writeText(upiText).then(() => {
+                    const btnText = document.getElementById('copyBtnText');
+                    btnText.textContent = 'Copied Successfully!';
+                    setTimeout(() => {
+                        btnText.textContent = 'Copy UPI ID';
+                    }, 2000);
+                });
+            }
+
+            render() {
+                const grid = document.getElementById('canvasGrid');
+                const nodeCountEl = document.getElementById('nodeCount');
+                nodeCountEl.textContent = this.nodes.length;
+
+                if (this.nodes.length === 0) {
+                    grid.innerHTML = `
+                        <div id="emptyState" class="col-span-full flex flex-col items-center justify-center py-16 text-slate-500">
+                            <i class="fa-solid fa-atom text-4xl mb-3 text-slate-600 animate-pulse"></i>
+                            <p class="text-sm font-medium">Your neural web is currently empty.</p>
+                            <p class="text-xs text-slate-600 mt-1">Add your first concept node using the left control panel.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                grid.innerHTML = '';
+                this.nodes.forEach(node => {
+                    const badgeColor = node.category === 'Core Idea' ? 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30' :
+                                       node.category === 'Architecture' ? 'bg-purple-500/10 text-purple-400 border-purple-500/30' :
+                                       node.category === 'Algorithm' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' :
+                                       'bg-amber-500/10 text-amber-400 border-amber-500/30';
+
+                    const card = document.createElement('div');
+                    card.className = 'bg-slate-900/80 border border-slate-800 hover:border-cyan-500/50 transition rounded-xl p-4 flex flex-col justify-between space-y-3 shadow-lg group';
+                    card.innerHTML = `
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${badgeColor}">${node.category}</span>
+                                <button onclick="app.deleteNode(${node.id})" class="text-slate-500 hover:text-red-400 transition">
+                                    <i class="fa-solid fa-trash-can text-xs"></i>
+                                </button>
+                            </div>
+                            <h4 class="font-bold text-sm text-slate-200 group-hover:text-cyan-300 transition">${escapeHtml(node.title)}</h4>
+                            <p class="text-xs text-slate-400 mt-1.5 line-clamp-3">${escapeHtml(node.desc)}</p>
+                        </div>
+                        <div class="pt-2 border-t border-slate-800/60 flex items-center justify-between text-[10px] text-slate-500">
+                            <span>ID: ${node.id.toString().slice(-4)}</span>
+                            <span class="text-cyan-500 font-mono">Active Node</span>
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                });
+            }
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+
+        const app = new SynthetixApp();
+    </script>
+</body>
+</html>
