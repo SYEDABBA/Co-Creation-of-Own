@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Synthetix Code Studio</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        .glass { background: rgba(17, 24, 39, 0.7); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); }
+        .glass-card { background: rgba(31, 41, 55, 0.5); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #0b0f19; }
+        ::-webkit-scrollbar-thumb { background: #374151; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #4b5563; }
+    </style>
+</head>
+<body class="bg-[#07090e] text-slate-100 min-h-screen flex flex-col selection:bg-indigo-500 selection:text-white">
+
+    <!-- Header / Navbar -->
+    <header class="glass sticky top-0 z-50 px-6 py-4 flex items-center justify-between border-b border-slate-800">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                <i class="fa-solid fa-code text-white text-lg"></i>
+            </div>
+            <div>
+                <h1 class="font-bold tracking-tight text-lg text-white flex items-center gap-2">
+                    Synthetix <span class="text-xs px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">Studio v2.4</span>
+                </h1>
+                <p class="text-xs text-slate-400">Next-Gen Browser Development Sandbox</p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-3">
+            <button onclick="resetWorkspace()" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium transition flex items-center gap-2 border border-slate-700">
+                <i class="fa-solid fa-rotate-right"></i> Reset
+            </button>
+            <button onclick="exportProject()" class="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold transition flex items-center gap-2 shadow-lg shadow-indigo-600/30">
+                <i class="fa-solid fa-download"></i> Export Bundle
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Studio Workspace -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
+        
+        <!-- Sidebar Controls / Navigation -->
+        <aside class="glass-card rounded-2xl p-4 flex flex-col gap-3 h-fit">
+            <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 px-2">Tools & Utilities</h2>
+            <div class="flex flex-col gap-1">
+                <button onclick="switchTab('sandbox')" id="btn-sandbox" class="tab-btn w-full text-left px-4 py-3 rounded-xl text-sm font-medium transition flex items-center gap-3 bg-indigo-600/20 text-indigo-400 border border-indigo-500/30">
+                    <i class="fa-solid fa-laptop-code w-5"></i> Live Code Sandbox
+                </button>
+                <button onclick="switchTab('regex')" id="btn-regex" class="tab-btn w-full text-left px-4 py-3 rounded-xl text-sm font-medium transition flex items-center gap-3 text-slate-400 hover:bg-slate-800/60 hover:text-slate-200">
+                    <i class="fa-solid fa-asterisk w-5"></i> Regex Tester
+                </button>
+                <button onclick="switchTab('flexbox')" id="btn-flexbox" class="tab-btn w-full text-left px-4 py-3 rounded-xl text-sm font-medium transition flex items-center gap-3 text-slate-400 hover:bg-slate-800/60 hover:text-slate-200">
+                    <i class="fa-solid fa-table-cells w-5"></i> Flex/Grid Visualizer
+                </button>
+                <button onclick="switchTab('markdown')" id="btn-markdown" class="tab-btn w-full text-left px-4 py-3 rounded-xl text-sm font-medium transition flex items-center gap-3 text-slate-400 hover:bg-slate-800/60 hover:text-slate-200">
+                    <i class="fa-solid fa-file-lines w-5"></i> MD Notes & Preview
+                </button>
+            </div>
+
+            <div class="mt-6 pt-6 border-t border-slate-800">
+                <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 px-2 mb-3">System Status</h2>
+                <div class="p-3 rounded-xl bg-slate-900/60 border border-slate-800 text-xs flex flex-col gap-2">
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-400">Engine:</span>
+                        <span class="text-emerald-400 font-mono">Operational</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-400">Storage:</span>
+                        <span class="text-indigo-400 font-mono">IndexedDB / Local</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-400">Latency:</span>
+                        <span class="text-slate-200 font-mono">&lt; 1ms</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Content Panel -->
+        <section class="lg:col-span-3 flex flex-col gap-6">
+            
+            <!-- TAB 1: LIVE CODE SANDBOX -->
+            <div id="tab-sandbox" class="panel-content flex flex-col gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 h-[480px]">
+                    <!-- Code Editor -->
+                    <div class="glass-card rounded-2xl flex flex-col overflow-hidden border border-slate-800">
+                        <div class="bg-slate-900/80 px-4 py-3 border-b border-slate-800 flex items-center justify-between">
+                            <span class="text-xs font-semibold text-slate-300 flex items-center gap-2">
+                                <i class="fa-brands fa-html5 text-orange-400"></i> HTML / Tailwind Markup
+                            </span>
+                            <span class="text-[10px] text-slate-500 mono">Auto-compiling</span>
+                        </div>
+                        <textarea id="sandbox-code" oninput="updateSandbox()" class="w-full flex-1 bg-transparent p-4 mono text-xs text-slate-200 resize-none focus:outline-none leading-relaxed" placeholder="Write HTML/Tailwind here...">&lt;div class="p-6 bg-gradient-to-br from-indigo-900/40 to-slate-900 rounded-xl border border-indigo-500/20 flex flex-col items-center text-center gap-4"&gt;
+  &lt;div class="w-12 h-12 rounded-full bg-indigo-600 flex items-center justify-center text-white text-lg font-bold shadow-lg shadow-indigo-500/50"&gt;
+    &lt;i class="fa-solid fa-bolt"&gt;&lt;/i&gt;
+  &lt;/div&gt;
+  &lt;h3 class="text-lg font-bold text-white"&gt;Synthetix Live Preview&lt;/h3&gt;
+  &lt;p class="text-xs text-slate-300 max-w-xs"&gt;Edit this HTML markup on the left panel to instantly inspect changes in real-time.&lt;/p&gt;
+  &lt;button onclick="alert('Interactive Button Triggered!')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold transition"&gt;
+    Test Action
+  &lt;/button&gt;
+&lt;/div&gt;</textarea>
+                    </div>
+                    <!-- Live Preview Iframe container -->
+                    <div class="glass-card rounded-2xl flex flex-col overflow-hidden border border-slate-800 bg-white">
+                        <div class="bg-slate-100 px-4 py-3 border-b border-slate-200 flex items-center justify-between">
+                            <span class="text-xs font-semibold text-slate-700 flex items-center gap-2">
+                                <i class="fa-solid fa-eye text-indigo-600"></i> Live Output
+                            </span>
+                            <div class="flex gap-1.5">
+                                <span class="w-2.5 h-2.5 rounded-full bg-red-400"></span>
+                                <span class="w-2.5 h-2.5 rounded-full bg-yellow-400"></span>
+                                <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+                            </div>
+                        </div>
+                        <iframe id="sandbox-preview" class="w-full flex-1 border-0"></iframe>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: REGEX TESTER -->
+            <div id="tab-regex" class="panel-content hidden flex flex-col gap-4">
+                <div class="glass-card rounded-2xl p-6 flex flex-col gap-4 border border-slate-800">
+                    <h3 class="text-sm font-semibold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-asterisk text-indigo-400"></i> Regular Expression Analyzer
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="md:col-span-2 flex flex-col gap-2">
+                            <label class="text-xs text-slate-400">Regular Expression Pattern</label>
+                            <div class="flex items-center bg-slate-900 border border-slate-700 rounded-xl px-3">
+                                <span class="text-slate-500 mono">/</span>
+                                <input type="text" id="regex-pattern" value="[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}" oninput="runRegex()" class="w-full bg-transparent py-2 px-1 mono text-xs text-slate-200 focus:outline-none">
+                                <span class="text-slate-500 mono">/gi</span>
+                            </div>
+                        </div>
+                        <div class="flex flex-col gap-2">
+                            <label class="text-xs text-slate-400">Quick Presets</label>
+                            <select onchange="setRegexPreset(this.value)" class="bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none">
+                                <option value="email">Email Address</option>
+                                <option value="url">Web URL</option>
+                                <option value="phone">Phone Number</option>
+                                <option value="hex">Hex Color</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <label class="text-xs text-slate-400">Test String Data</label>
+                        <textarea id="regex-test-string" oninput="runRegex()" rows="4" class="bg-slate-900 border border-slate-700 rounded-xl p-3 mono text-xs text-slate-200 focus:outline-none resize-none">Reach out to support@synthetix.io or admin@yugraal.org for inquiries. Visit https://example.com or call +1-555-0199. Background hex: #4f46e5.</textarea>
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <label class="text-xs text-slate-400">Match Results</label>
+                        <div id="regex-results" class="bg-slate-900/80 border border-slate-800 rounded-xl p-3 mono text-xs text-emerald-400 min-h-[60px] max-h-[120px] overflow-y-auto">
+                            No matches computed yet.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: FLEXBOX & GRID VISUALIZER -->
+            <div id="tab-flexbox" class="panel-content hidden flex flex-col gap-4">
+                <div class="glass-card rounded-2xl p-6 flex flex-col gap-4 border border-slate-800">
+                    <h3 class="text-sm font-semibold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-table-cells text-indigo-400"></i> CSS Flexbox Playground
+                    </h3>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="flex flex-col gap-1">
+                            <label class="text-[11px] text-slate-400">justify-content</label>
+                            <select id="flex-justify" onchange="updateFlexbox()" class="bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-slate-200">
+                                <option value="flex-start">flex-start</option>
+                                <option value="center">center</option>
+                                <option value="flex-end">flex-end</option>
+                                <option value="space-between" selected>space-between</option>
+                                <option value="space-around">space-around</option>
+                            </select>
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <label class="text-[11px] text-slate-400">align-items</label>
+                            <select id="flex-align" onchange="updateFlexbox()" class="bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-slate-200">
+                                <option value="flex-start">flex-start</option>
+                                <option value="center" selected>center</option>
+                                <option value="flex-end">flex-end</option>
+                                <option value="stretch">stretch</option>
+                            </select>
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <label class="text-[11px] text-slate-400">flex-direction</label>
+                            <select id="flex-direction" onchange="updateFlexbox()" class="bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-slate-200">
+                                <option value="row" selected>row</option>
+                                <option value="column">column</option>
+                            </select>
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <label class="text-[11px] text-slate-400">gap</label>
+                            <select id="flex-gap" onchange="updateFlexbox()" class="bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-slate-200">
+                                <option value="8px">8px</option>
+                                <option value="16px" selected>16px</option>
+                                <option value="24px">24px</option>
+                                <option value="32px">32px</option>
+                            </select>
+                        </div>
+                    </div>
+                    <!-- Flex Output Stage -->
+                    <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 min-h-[220px] flex items-center justify-center">
+                        <div id="flex-container" class="w-full h-40 bg-slate-900/80 rounded-lg p-4 border border-slate-800 flex">
+                            <div class="w-16 h-16 bg-indigo-600/80 rounded-lg flex items-center justify-center text-xs font-bold text-white shadow">01</div>
+                            <div class="w-16 h-16 bg-violet-600/80 rounded-lg flex items-center justify-center text-xs font-bold text-white shadow">02</div>
+                            <div class="w-16 h-16 bg-fuchsia-600/80 rounded-lg flex items-center justify-center text-xs font-bold text-white shadow">03</div>
+                        </div>
+                    </div>
+                    <div class="bg-slate-900/60 rounded-xl p-3 border border-slate-800 flex items-center justify-between">
+                        <span class="text-xs text-slate-400 mono" id="flex-css-output">display: flex; justify-content: space-between; align-items: center; gap: 16px;</span>
+                        <button onclick="copyFlexCSS()" class="text-xs text-indigo-400 hover:text-indigo-300 font-semibold flex items-center gap-1.5">
+                            <i class="fa-regular fa-copy"></i> Copy CSS
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 4: MARKDOWN NOTES -->
+            <div id="tab-markdown" class="panel-content hidden flex flex-col gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 h-[480px]">
+                    <div class="glass-card rounded-2xl flex flex-col overflow-hidden border border-slate-800">
+                        <div class="bg-slate-900/80 px-4 py-3 border-b border-slate-800">
+                            <span class="text-xs font-semibold text-slate-300">Markdown Input</span>
+                        </div>
+                        <textarea id="md-input" oninput="updateMarkdown()" class="w-full flex-1 bg-transparent p-4 mono text-xs text-slate-200 resize-none focus:outline-none leading-relaxed"># Project Documentation
+
+Welcome to **Synthetix Code Studio**.
+
+### Key Features
+* Real-time HTML Sandbox with Tailwind Support
+* Interactive Regex Debugger
+* Flexbox Visualizer with CSS Code Export
+
+> "Simplicity is the soul of efficiency." — Studio Core</textarea>
+                    </div>
+                    <div class="glass-card rounded-2xl flex flex-col overflow-hidden border border-slate-800">
+                        <div class="bg-slate-900/80 px-4 py-3 border-b border-slate-800">
+                            <span class="text-xs font-semibold text-slate-300">Rendered Preview</span>
+                        </div>
+                        <div id="md-output" class="w-full flex-1 p-6 text-xs text-slate-300 overflow-y-auto space-y-3">
+                            <!-- Rendered content inserted via JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <!-- CAUSE-DRIVEN CHARITY & SUPPORT FOOTER -->
+    <footer class="mt-auto w-full border-t border-slate-800/80 bg-[#06080d] py-8 px-6">
+        <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+            
+            <!-- Cause Statement -->
+            <div class="flex items-start space-x-4 max-w-xl">
+                <div class="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center shrink-0 mt-1">
+                    <i class="fa-solid fa-heart-pulse text-rose-400"></i>
+                </div>
+                <div>
+                    <h4 class="text-xs font-bold text-white uppercase tracking-wider mb-1">Social Impact Initiative</h4>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        95% of all contributions go directly towards Cancer Patient Support & School Education Initiatives (5% retained for server maintenance).
+                    </p>
+                    <div class="mt-2 flex items-center gap-3 text-xs text-slate-300">
+                        <span>Beneficiary: <strong class="text-white">ASKAR ALI</strong></span>
+                        <span class="text-slate-600">•</span>
+                        <span class="flex items-center gap-1.5 font-mono bg-slate-900 px-2 py-0.5 rounded border border-slate-800">
+                            <i class="fa-solid fa-wallet text-indigo-400"></i> donation1@postbank
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interactive UPI Donation Widget -->
+            <div class="flex items-center gap-4 bg-slate-900/80 p-4 rounded-2xl border border-slate-800">
+                <div class="relative group">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?data=upi://pay?pa=donation1@postbank&pn=YUGRAAL_Cause&size=100x100" alt="UPI QR Code" class="w-16 h-16 rounded-lg bg-white p-1 border border-slate-700 shadow">
+                </div>
+                <div class="flex flex-col gap-2">
+                    <span class="text-[11px] font-medium text-slate-300">Support via UPI QR</span>
+                    <button onclick="copyUPI()" id="copy-upi-btn" class="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold transition flex items-center gap-2 shadow">
+                        <i class="fa-regular fa-copy"></i> Copy UPI ID
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </footer>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // Tab Switching Logic
+        function switchTab(tabId) {
+            document.querySelectorAll('.panel-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById('tab-' + tabId).classList.remove('hidden');
+
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.className = 'tab-btn w-full text-left px-4 py-3 rounded-xl text-sm font-medium transition flex items-center gap-3 text-slate-400 hover:bg-slate-800/60 hover:text-slate-200';
+            });
+
+            const activeBtn = document.getElementById('btn-' + tabId);
+            activeBtn.className = 'tab-btn w-full text-left px-4 py-3 rounded-xl text-sm font-medium transition flex items-center gap-3 bg-indigo-600/20 text-indigo-400 border border-indigo-500/30';
+
+            if (tabId === 'markdown') updateMarkdown();
+        }
+
+        // Sandbox Live Compilation
+        function updateSandbox() {
+            const code = document.getElementById('sandbox-code').value;
+            const iframe = document.getElementById('sandbox-preview');
+            const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+            
+            iframeDoc.open();
+            iframeDoc.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="UTF-8">
+                    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"><\/script>
+                    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+                    <style>body { font-family: 'Plus Jakarta Sans', sans-serif; }</style>
+                </head>
+                <body class="bg-white p-6 flex items-center justify-center min-h-screen">
+                    ${code}
+                </body>
+                </html>
+            `);
+            iframeDoc.close();
+        }
+
+        // Regex Engine
+        const regexPresets = {
+            email: "[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}",
+            url: "https?://[\\w\\-]+(\\.[\\w\\-]+)+[/#?]?.*",
+            phone: "\\+?[0-9\\- ]{7,15}",
+            hex: "#[0-9a-fA-F]{3,6}"
+        };
+
+        function setRegexPreset(type) {
+            document.getElementById('regex-pattern').value = regexPresets[type] || '';
+            runRegex();
+        }
+
+        function runRegex() {
+            const pattern = document.getElementById('regex-pattern').value;
+            const testStr = document.getElementById('regex-test-string').value;
+            const resultsDiv = document.getElementById('regex-results');
+
+            try {
+                const regex = new RegExp(pattern, 'gi');
+                const matches = testStr.match(regex);
+                if (matches && matches.length > 0) {
+                    resultsDiv.innerHTML = `<span class="text-emerald-400 font-semibold">Found ${matches.length} match(es):</span><br>` + matches.map(m => `• ${escapeHTML(m)}`).join('<br>');
+                } else {
+                    resultsDiv.innerHTML = '<span class="text-amber-400">No matching patterns found.</span>';
+                }
+            } catch (e) {
+                resultsDiv.innerHTML = `<span class="text-rose-400">Invalid Regular Expression: ${e.message}</span>`;
+            }
+        }
+
+        // Flexbox Visualizer
+        function updateFlexbox() {
+            const justify = document.getElementById('flex-justify').value;
+            const align = document.getElementById('flex-align').value;
+            const direction = document.getElementById('flex-direction').value;
+            const gap = document.getElementById('flex-gap').value;
+
+            const container = document.getElementById('flex-container');
+            container.style.justifyContent = justify;
+            container.style.alignItems = align;
+            container.style.flexDirection = direction;
+            container.style.gap = gap;
+
+            const cssText = `display: flex; justify-content: ${justify}; align-items: ${align}; flex-direction: ${direction}; gap: ${gap};`;
+            document.getElementById('flex-css-output').innerText = cssText;
+        }
+
+        function copyFlexCSS() {
+            const css = document.getElementById('flex-css-output').innerText;
+            navigator.clipboard.writeText(css);
+            alert('Flexbox CSS copied to clipboard!');
+        }
+
+        // Markdown Previewer (Light Parser)
+        function updateMarkdown() {
+            const md = document.getElementById('md-input').value;
+            const output = document.getElementById('md-output');
+
+            let html = md
+                .replace(/^# (.*$)/gim, '<h1 class="text-lg font-bold text-white">$1</h1>')
+                .replace(/^### (.*$)/gim, '<h3 class="text-sm font-semibold text-indigo-400 mt-3">$1</h3>')
+                .replace(/\*\*(.*?)\*\*/g, '<strong class="text-white font-semibold">$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em class="text-slate-300">$1</em>')
+                .replace(/^\* (.*$)/gim, '<li class="ml-4 list-disc text-slate-300">$1</li>')
+                .replace(/^> (.*$)/gim, '<blockquote class="border-l-2 border-indigo-500 pl-3 italic text-slate-400">$1</blockquote>');
+
+            output.innerHTML = html;
+        }
+
+        // Utilities
+        function escapeHTML(str) {
+            return str.replace(/[&<>'"\\]/g, tag => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;', '\\': '&#92;'
+            }[tag] || tag));
+        }
+
+        function resetWorkspace() {
+            if (confirm('Reset all sandboxes and notes to default?')) {
+                location.reload();
+            }
+        }
+
+        function exportProject() {
+            const code = document.getElementById('sandbox-code').value;
+            const blob = new Blob([code], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'synthetix-export.html';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function copyUPI() {
+            navigator.clipboard.writeText('donation1@postbank');
+            const btn = document.getElementById('copy-upi-btn');
+            btn.innerHTML = '<i class="fa-solid fa-check"></i> Copied!';
+            setTimeout(() => {
+                btn.innerHTML = '<i class="fa-regular fa-copy"></i> Copy UPI ID';
+            }, 2000);
+        }
+
+        // Initialize on load
+        window.onload = () => {
+            updateSandbox();
+            runRegex();
+            updateFlexbox();
+            updateMarkdown();
+        };
+    </script>
+</body>
+</html>
