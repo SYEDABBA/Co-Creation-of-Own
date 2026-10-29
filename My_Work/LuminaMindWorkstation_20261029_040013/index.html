@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LuminaMind | Professional Focus OS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at top right, #1a1a2e, #16213e, #0f3460);
+            color: #e2e8f0;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        .glass {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        .timer-glow {
+            text-shadow: 0 0 20px rgba(96, 165, 250, 0.5);
+        }
+        @keyframes pulse-soft {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        .animate-pulse-slow { animation: pulse-soft 3s infinite; }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="max-w-6xl mx-auto space-y-8">
+        <!-- Header -->
+        <header class="flex flex-col md:flex-row justify-between items-center gap-4 mb-12">
+            <div>
+                <h1 class="text-4xl font-bold tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-emerald-400">LuminaMind OS</h1>
+                <p class="text-slate-400 font-light">Precision Cognitive Workstation</p>
+            </div>
+            <div id="clock" class="text-2xl mono font-bold text-blue-300">00:00:00</div>
+        </header>
+
+        <main class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Pomodoro Section -->
+            <section class="glass rounded-3xl p-8 flex flex-col items-center justify-center text-center">
+                <h2 class="text-sm uppercase tracking-widest text-blue-400 mb-6">Focus Engine</h2>
+                <div id="timer-display" class="text-7xl mono font-bold timer-glow mb-8">25:00</div>
+                <div class="flex gap-4">
+                    <button onclick="toggleTimer()" id="timer-btn" class="px-8 py-3 bg-blue-600 hover:bg-blue-500 rounded-full font-bold transition-all transform hover:scale-105 shadow-lg shadow-blue-900/20">START</button>
+                    <button onclick="resetTimer()" class="px-8 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full font-bold transition-all">RESET</button>
+                </div>
+                <div class="mt-8 flex gap-2">
+                    <span class="px-3 py-1 bg-white/5 rounded text-xs">Focus: 25m</span>
+                    <span class="px-3 py-1 bg-white/5 rounded text-xs">Rest: 5m</span>
+                </div>
+            </section>
+
+            <!-- Task Matrix -->
+            <section class="lg:col-span-2 glass rounded-3xl p-8">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-semibold">Priority Queue</h2>
+                    <span id="task-count" class="text-xs bg-emerald-500/20 text-emerald-400 px-2 py-1 rounded-full">0 Tasks</span>
+                </div>
+                <div class="flex gap-2 mb-6">
+                    <input type="text" id="task-input" placeholder="Define your next objective..." class="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 transition-all">
+                    <button onclick="addTask()" class="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-bold transition-all">ADD</button>
+                </div>
+                <ul id="task-list" class="space-y-3 max-h-64 overflow-y-auto pr-2 custom-scrollbar"></ul>
+            </section>
+
+            <!-- Zen Canvas / Ambient -->
+            <section class="glass rounded-3xl p-8">
+                <h2 class="text-sm uppercase tracking-widest text-blue-400 mb-6">Ambient Flow</h2>
+                <div class="grid grid-cols-2 gap-4">
+                    <button onclick="toggleAmbient('rain')" id="btn-rain" class="p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-blue-500/50 transition-all flex flex-col items-center gap-2">
+                        <span class="text-2xl">🌧️</span>
+                        <span class="text-xs">Rain</span>
+                    </button>
+                    <button onclick="toggleAmbient('forest')" id="btn-forest" class="p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-emerald-500/50 transition-all flex flex-col items-center gap-2">
+                        <span class="text-2xl">🌲</span>
+                        <span class="text-xs">Forest</span>
+                    </button>
+                </div>
+            </section>
+        </main>
+
+        <!-- Charity Section -->
+        <footer class="mt-16 glass rounded-3xl overflow-hidden border-blue-500/30">
+            <div class="p-1 bg-gradient-to-r from-blue-600 via-purple-600 to-emerald-600"></div>
+            <div class="p-8 flex flex-col md:flex-row items-center justify-between gap-8">
+                <div class="flex-1">
+                    <h3 class="text-2xl font-bold text-white mb-2">Empower Positive Change</h3>
+                    <p class="text-slate-300 leading-relaxed mb-4">
+                        95% of all contributions go directly towards <span class="text-blue-300 font-bold underline decoration-blue-500/50">Cancer Patient Support</span> & <span class="text-emerald-300 font-bold underline decoration-emerald-500/50">School Education Initiatives</span>. We retain only 5% for critical server maintenance.
+                    </p>
+                    <div class="flex flex-wrap items-center gap-4">
+                        <div class="bg-black/30 p-4 rounded-2xl border border-white/5">
+                            <p class="text-[10px] uppercase tracking-widest text-slate-500 mb-1">Verified Recipient</p>
+                            <p class="font-bold text-lg">ASKAR ALI</p>
+                        </div>
+                        <div class="bg-black/30 p-4 rounded-2xl border border-white/5 group relative">
+                            <p class="text-[10px] uppercase tracking-widest text-slate-500 mb-1">Official UPI ID</p>
+                            <div class="flex items-center gap-3">
+                                <code class="text-blue-400 font-mono">donation1@postbank</code>
+                                <button onclick="copyUPI()" class="hover:text-white transition-colors">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="dp8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white p-3 rounded-2xl shadow-2xl transform rotate-2 hover:rotate-0 transition-transform duration-500">
+                    <img id="qr-code" src="https://api.qrserver.com/v1/create-qr-code/?data=upi://pay?pa=donation1@postbank&pn=YUGRAAL_Cause&cu=INR" alt="Donation QR" class="w-32 h-32">
+                    <p class="text-[10px] text-center text-slate-800 font-bold mt-2">Scan to Contribute</p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Clock Logic
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('clock').innerText = now.toLocaleTimeString([], { hour12: false });
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // Pomodoro Logic
+        let timeLeft = 25 * 60;
+        let timerId = null;
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            document.getElementById('timer-display').innerText = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        function toggleTimer() {
+            const btn = document.getElementById('timer-btn');
+            if (timerId) {
+                clearInterval(timerId);
+                timerId = null;
+                btn.innerText = 'RESUME';
+                btn.classList.replace('bg-rose-600', 'bg-blue-600');
+            } else {
+                btn.innerText = 'PAUSE';
+                btn.classList.replace('bg-blue-600', 'bg-rose-600');
+                timerId = setInterval(() => {
+                    timeLeft--;
+                    updateTimerDisplay();
+                    if (timeLeft <= 0) {
+                        clearInterval(timerId);
+                        alert('Session Complete! Take a break.');
+                        resetTimer();
+                    }
+                }, 1000);
+            }
+        }
+
+        function resetTimer() {
+            clearInterval(timerId);
+            timerId = null;
+            timeLeft = 25 * 60;
+            updateTimerDisplay();
+            document.getElementById('timer-btn').innerText = 'START';
+            document.getElementById('timer-btn').classList.add('bg-blue-600');
+        }
+
+        // Task Logic
+        const tasks = JSON.parse(localStorage.getItem('lumina_tasks')) || [];
+        
+        function renderTasks() {
+            const list = document.getElementById('task-list');
+            list.innerHTML = '';
+            tasks.forEach((task, index) => {
+                const li = document.createElement('li');
+                li.className = 'flex justify-between items-center bg-white/5 p-4 rounded-xl border border-white/5 hover:bg-white/10 transition-all';
+                li.innerHTML = `
+                    <span class="${task.completed ? 'line-through text-slate-500' : ''}">${task.text}</span>
+                    <div class="flex gap-2">
+                        <button onclick="toggleTask(${index})" class="text-emerald-400">✓</button>
+                        <button onclick="deleteTask(${index})" class="text-rose-400">✕</button>
+                    </div>
+                `;
+                list.appendChild(li);
+            });
+            document.getElementById('task-count').innerText = `${tasks.length} Tasks`;
+            localStorage.setItem('lumina_tasks', JSON.stringify(tasks));
+        }
+
+        function addTask() {
+            const input = document.getElementById('task-input');
+            if (input.value.trim()) {
+                tasks.push({ text: input.value, completed: false });
+                input.value = '';
+                renderTasks();
+            }
+        }
+
+        function toggleTask(index) {
+            tasks[index].completed = !tasks[index].completed;
+            renderTasks();
+        }
+
+        function deleteTask(index) {
+            tasks.splice(index, 1);
+            renderTasks();
+        }
+
+        // Ambient Logic
+        function toggleAmbient(type) {
+            const btn = document.getElementById(`btn-${type}`);
+            const isActive = btn.classList.contains('bg-white/20');
+            
+            // Clear others
+            document.querySelectorAll('[id^="btn-"]').forEach(b => b.classList.remove('bg-white/20', 'border-blue-500'));
+            
+            if (!isActive) {
+                btn.classList.add('bg-white/20', 'border-blue-500');
+                // Logic for audio could go here if assets were local
+            }
+        }
+
+        function copyUPI() {
+            navigator.clipboard.writeText('donation1@postbank');
+            const btn = event.currentTarget;
+            const original = btn.innerHTML;
+            btn.innerHTML = '<span class="text-xs text-emerald-400">Copied!</span>';
+            setTimeout(() => btn.innerHTML = original, 2000);
+        }
+
+        renderTasks();
+    </script>
+</body>
+</html>
