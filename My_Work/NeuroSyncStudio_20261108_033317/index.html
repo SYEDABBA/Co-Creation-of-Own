@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NeuroSync Studio - Ambient Flow & Focus Engine</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0f9ff',
+              400: '#38bdf8',
+              500: '#0ea5e9',
+              600: '#0284c7',
+              glow: '#00f2fe'
+            }
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    @keyframes pulse-glow {
+      0%, 100% { opacity: 0.4; transform: scale(1); }
+      50% { opacity: 0.8; transform: scale(1.04); }
+    }
+    .glow-aura {
+      animation: pulse-glow 6s ease-in-out infinite;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-brand-500 selection:text-white">
+
+  <!-- Ambient background glow elements -->
+  <div class="fixed inset-0 overflow-hidden pointer-events-none z-0">
+    <div class="absolute -top-40 -left-40 w-96 h-96 bg-cyan-600/20 rounded-full blur-3xl glow-aura"></div>
+    <div class="absolute top-1/2 -right-40 w-96 h-96 bg-indigo-600/15 rounded-full blur-3xl glow-aura" style="animation-delay: -3s;"></div>
+    <div class="absolute -bottom-40 left-1/3 w-96 h-96 bg-purple-600/15 rounded-full blur-3xl glow-aura" style="animation-delay: -1.5s;"></div>
+  </div>
+
+  <!-- Top Header Navigation -->
+  <header class="relative z-10 border-b border-white/10 bg-slate-900/60 backdrop-blur-xl sticky top-0 px-6 py-4 flex items-center justify-between shadow-lg">
+    <div class="flex items-center space-x-3">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-cyan-500/20 border border-white/20">
+        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+        </svg>
+      </div>
+      <div>
+        <h1 class="font-bold tracking-tight text-lg text-white flex items-center gap-2">
+          NeuroSync <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">PRO 2.5</span>
+        </h1>
+        <p class="text-xs text-slate-400">Neural Entrainment & Deep Work Studio</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-3">
+      <div id="audioStatusBadge" class="px-3 py-1 rounded-full text-xs font-medium border border-slate-700 bg-slate-800/80 text-slate-400 flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-slate-500" id="audioStatusDot"></span>
+        <span id="audioStatusText">Synth Idle</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main App Content -->
+  <main class="relative z-10 flex-grow max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+    <!-- Left Col: Audio Synthesis Workspace -->
+    <div class="lg:col-span-7 flex flex-col space-y-6">
+      
+      <!-- Interactive Visualizer Card -->
+      <div class="relative bg-slate-900/40 backdrop-blur-xl border border-white/10 rounded-3xl p-5 shadow-2xl overflow-hidden group">
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center space-x-2">
+            <div class="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse"></div>
+            <h2 class="text-sm font-semibold tracking-wide text-slate-300 uppercase">Dynamic Resonator Display</h2>
+          </div>
+          <span id="brainwaveBadge" class="text-xs px-2.5 py-0.5 rounded-md font-mono bg-cyan-950 text-cyan-300 border border-cyan-800/60">Alpha: 10.0 Hz</span>
+        </div>
+        <div class="relative h-44 w-full bg-black/40 rounded-2xl overflow-hidden border border-white/5">
+          <canvas id="waveCanvas" class="w-full h-full"></canvas>
+          <div class="absolute inset-0 pointer-events-none bg-gradient-to-t from-slate-950/80 via-transparent to-transparent"></div>
+        </div>
+      </div>
+
+      <!-- Synth Controls -->
+      <div class="bg-slate-900/40 backdrop-blur-xl border border-white/10 rounded-3xl p-6 shadow-2xl space-y-6">
+        <div class="flex items-center justify-between border-b border-white/10 pb-4">
+          <div>
+            <h3 class="text-base font-semibold text-white">Binaural Frequency & Waves</h3>
+            <p class="text-xs text-slate-400">Synthesize pure dual-ear frequency offsets in real time.</p>
+          </div>
+          <button id="togglePlayBtn" class="px-6 py-2.5 rounded-xl font-semibold text-sm transition-all shadow-lg flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-indigo-600 text-white hover:brightness-110 active:scale-95 shadow-cyan-500/25">
+            <svg id="playIcon" class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"/></svg>
+            <span id="playBtnText">Initialize Soundscape</span>
+          </button>
+        </div>
+
+        <!-- Presets Grid -->
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Brainwave States Preset</label>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <button onclick="applyPreset('delta', 2.5, 136.1)" class="preset-btn px-3 py-2 text-xs rounded-xl border border-white/5 bg-white/5 hover:bg-cyan-500/20 hover:border-cyan-500/40 transition text-left">
+              <div class="font-medium text-slate-200">Delta (2.5 Hz)</div>
+              <div class="text-[10px] text-slate-400">Deep Sleep & Healing</div>
+            </button>
+            <button onclick="applyPreset('theta', 6.0, 180.0)" class="preset-btn px-3 py-2 text-xs rounded-xl border border-white/5 bg-white/5 hover:bg-cyan-500/20 hover:border-cyan-500/40 transition text-left">
+              <div class="font-medium text-slate-200">Theta (6.0 Hz)</div>
+              <div class="text-[10px] text-slate-400">Meditation & Vision</div>
+            </button>
+            <button onclick="applyPreset('alpha', 10.0, 216.0)" class="preset-btn active-preset px-3 py-2 text-xs rounded-xl border border-cyan-500/50 bg-cyan-500/20 transition text-left">
+              <div class="font-medium text-cyan-300">Alpha (10.0 Hz)</div>
+              <div class="text-[10px] text-cyan-400/80">Flow & Relaxation</div>
+            </button>
+            <button onclick="applyPreset('gamma', 40.0, 256.0)" class="preset-btn px-3 py-2 text-xs rounded-xl border border-white/5 bg-white/5 hover:bg-cyan-500/20 hover:border-cyan-500/40 transition text-left">
+              <div class="font-medium text-slate-200">Gamma (40 Hz)</div>
+              <div class="text-[10px] text-slate-400">Peak Processing</div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Sliders -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+          <div class="space-y-1.5">
+            <div class="flex justify-between text-xs">
+              <span class="text-slate-400">Carrier Frequency</span>
+              <span id="carrierFreqVal" class="font-mono text-cyan-400">216 Hz</span>
+            </div>
+            <input type="range" id="carrierSlider" min="100" max="440" step="1" value="216" class="w-full accent-cyan-400 cursor-pointer h-1.5 bg-slate-800 rounded-lg">
+          </div>
+          <div class="space-y-1.5">
+            <div class="flex justify-between text-xs">
+              <span class="text-slate-400">Binaural Offset (Target State)</span>
+              <span id="binauralOffsetVal" class="font-mono text-cyan-400">10.0 Hz</span>
+            </div>
+            <input type="range" id="binauralSlider" min="1" max="45" step="0.5" value="10" class="w-full accent-cyan-400 cursor-pointer h-1.5 bg-slate-800 rounded-lg">
+          </div>
+          <div class="space-y-1.5">
+            <div class="flex justify-between text-xs">
+              <span class="text-slate-400">Rain / Pink Noise Layer</span>
+              <span id="pinkNoiseVal" class="font-mono text-indigo-400">25%</span>
+            </div>
+            <input type="range" id="pinkNoiseSlider" min="0" max="1" step="0.01" value="0.25" class="w-full accent-indigo-400 cursor-pointer h-1.5 bg-slate-800 rounded-lg">
+          </div>
+          <div class="space-y-1.5">
+            <div class="flex justify-between text-xs">
+              <span class="text-slate-400">Master Volume</span>
+              <span id="masterVolVal" class="font-mono text-indigo-400">65%</span>
+            </div>
+            <input type="range" id="masterVolSlider" min="0" max="1" step="0.01" value="0.65" class="w-full accent-indigo-400 cursor-pointer h-1.5 bg-slate-800 rounded-lg">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Col: Deep Work Timer & Session Tasks -->
+    <div class="lg:col-span-5 flex flex-col space-y-6">
+      
+      <!-- Focus Timer -->
+      <div class="bg-slate-900/40 backdrop-blur-xl border border-white/10 rounded-3xl p-6 shadow-2xl text-center">
+        <div class="flex justify-between items-center mb-4">
+          <span class="text-xs font-semibold text-slate-400 uppercase tracking-widest">Sprint Interval</span>
+          <div class="flex space-x-1.5">
+            <button onclick="setTimerDuration(25)" class="timer-preset px-2.5 py-1 text-xs rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 text-slate-300">25m</button>
+            <button onclick="setTimerDuration(50)" class="timer-preset px-2.5 py-1 text-xs rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 text-slate-300">50m</button>
+            <button onclick="setTimerDuration(5)" class="timer-preset px-2.5 py-1 text-xs rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 text-slate-300">5m Break</button>
+          </div>
+        </div>
+
+        <!-- Circular/Digit Display -->
+        <div class="py-6">
+          <div id="timerDisplay" class="text-6xl font-extrabold tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-indigo-300 to-white font-mono">
+            25:00
+          </div>
+          <p id="sessionPhaseText" class="text-xs text-slate-400 mt-2 font-medium tracking-wider uppercase">Deep Work Block</p>
+        </div>
+
+        <!-- Controls -->
+        <div class="flex justify-center gap-3">
+          <button id="timerToggleBtn" class="px-6 py-2.5 rounded-xl font-semibold text-xs tracking-wider uppercase bg-white text-slate-950 hover:bg-slate-200 transition shadow-lg active:scale-95">
+            Start Focus
+          </button>
+          <button id="timerResetBtn" class="px-4 py-2.5 rounded-xl font-semibold text-xs tracking-wider uppercase border border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 transition active:scale-95">
+            Reset
+          </button>
+        </div>
+      </div>
+
+      <!-- Sprint Intentions & Tasks -->
+      <div class="bg-slate-900/40 backdrop-blur-xl border border-white/10 rounded-3xl p-6 shadow-2xl flex-grow flex flex-col">
+        <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-300 mb-3 flex items-center justify-between">
+          <span>Session Milestones</span>
+          <span id="taskCountBadge" class="text-xs font-normal text-slate-400 font-mono">0/0 completed</span>
+        </h3>
+        <form id="taskForm" class="flex gap-2 mb-4">
+          <input type="text" id="taskInput" placeholder="What is your singular target for this sprint?" class="w-full bg-slate-950/70 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 transition">
+          <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold transition active:scale-95 whitespace-nowrap">Add</button>
+        </form>
+        <div id="taskList" class="space-y-2 overflow-y-auto max-h-56 pr-1 custom-scroll flex-grow">
+          <div class="text-center py-6 text-xs text-slate-500 italic">
+            No goals set for this session yet. Define your single highest-leverage task.
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- CAUSE-DRIVEN CHARITY & SUPPORT SECTION (REQUIRED: 95% CANCER & EDUCATION) -->
+  <footer class="relative z-10 mt-12 border-t border-white/10 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 py-10 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-4xl mx-auto">
+      <div class="relative bg-gradient-to-r from-cyan-950/40 via-slate-900/80 to-purple-950/40 backdrop-blur-2xl border border-cyan-500/20 rounded-3xl p-6 sm:p-8 shadow-2xl shadow-cyan-950/40 overflow-hidden">
+        <!-- Accent lighting -->
+        <div class="absolute top-0 right-0 -mr-16 -mt-16 w-48 h-48 bg-cyan-500/10 rounded-full blur-2xl pointer-events-none"></div>
+        <div class="absolute bottom-0 left-0 -ml-16 -mb-16 w-48 h-48 bg-purple-500/10 rounded-full blur-2xl pointer-events-none"></div>
+
+        <div class="flex flex-col md:flex-row items-center gap-6 relative z-10">
+          <!-- QR Code Preview -->
+          <div class="flex-shrink-0 text-center">
+            <div class="p-2.5 bg-white rounded-2xl shadow-xl inline-block border border-white/30">
+              <img src="https://api.qrserver.com/v1/create-qr-code/?data=upi://pay?pa=donation1@postbank&pn=YUGRAAL_Cause&size=130x130" alt="UPI QR Code" class="w-28 h-28 object-contain rounded-lg" />
+            </div>
+            <span class="block text-[11px] font-mono text-cyan-300 mt-2 tracking-wide font-medium">Scan via Any UPI App</span>
+          </div>
+
+          <!-- Details & Transparent Commitment -->
+          <div class="flex-grow text-center md:text-left space-y-3">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-xs font-semibold">
+              <svg class="w-3.5 h-3.5 text-cyan-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"/></svg>
+              YUGRAAL Humanitarian Impact Initiative
+            </div>
+            
+            <h4 class="text-lg sm:text-xl font-bold text-white tracking-tight">
+              Empowering Lives Through Direct Solidarity
+            </h4>
+
+            <!-- Core 95% message required -->
+            <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+              <strong class="text-cyan-300 font-semibold">95% of all contributions go directly towards Cancer Patient Support & School Education Initiatives</strong> (5% retained for server maintenance).
+            </p>
+
+            <!-- Beneficiary details & interactive copy -->
+            <div class="pt-2 flex flex-wrap items-center justify-center md:justify-start gap-3 text-xs">
+              <div class="px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-slate-200">
+                <span class="text-slate-400">Beneficiary:</span> <span class="font-semibold text-white">ASKAR ALI</span>
+              </div>
+              <div class="px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 font-mono text-cyan-300 flex items-center gap-2">
+                <span>donation1@postbank</span>
+                <button onclick="copyUpiId()" id="copyUpiBtn" class="ml-1 text-slate-300 hover:text-white transition p-1 hover:bg-white/10 rounded">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                </button>
+              </div>
+              <span id="copyToast" class="text-xs text-green-400 font-medium hidden transition-all duration-300">UPI Copied!</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="text-center text-[11px] text-slate-600 mt-6 font-mono">
+        NeuroSync Studio &bull; Ethical Engineering by YUGRAAL Co-Creator &bull; No Ads &bull; No Trackers
+      </p>
+    </div>
+  </footer>
+
+  <!-- Application Logic -->
+  <script>
+    // Audio Context & Nodes
+    let audioCtx = null;
+    let isPlaying = false;
+    let carrierOscLeft = null;
+    let carrierOscRight = null;
+    let mergerNode = null;
+    let masterGain = null;
+    let noiseSource = null;
+    let noiseGain = null;
+
+    // Audio State variables
+    let carrierFreq = 216;
+    let binauralOffset = 10.0;
+    let noiseLevel = 0.25;
+    let masterVolume = 0.65;
+
+    // Visualizer Canvas
+    const canvas = document.getElementById('waveCanvas');
+    const ctx = canvas.getContext('2d');
+    let animationFrameId = null;
+    let phase = 0;
+
+    function initCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width * window.devicePixelRatio || 600;
+      canvas.height = rect.height * window.devicePixelRatio || 200;
+    }
+    window.addEventListener('resize', initCanvas);
+    initCanvas();
+
+    function renderVisualizer() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      const width = canvas.width;
+      const height = canvas.height;
+      const centerY = height / 2;
+
+      // Draw soft grid
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      for (let x = 0; x < width; x += 40) {
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, height);
+      }
+      ctx.stroke();
+
+      if (isPlaying) {
+        phase += 0.04;
+        
+        // Left ear wave (cyan)
+        ctx.beginPath();
+        ctx.lineWidth = 2.5;
+        ctx.strokeStyle = '#00f2fe';
+        ctx.shadowBlur = 12;
+        ctx.shadowColor = '#00f2fe';
+        for (let x = 0; x < width; x++) {
+          const frequency = (carrierFreq * 0.005);
+          const y = centerY + Math.sin(x * 0.02 * frequency + phase) * (height * 0.22);
+          if (x === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        // Right ear wave (indigo)
+        ctx.beginPath();
+        ctx.lineWidth = 2.5;
+        ctx.strokeStyle = '#818cf8';
+        ctx.shadowBlur = 12;
+        ctx.shadowColor = '#818cf8';
+        for (let x = 0; x < width; x++) {
+          const frequency = ((carrierFreq + binauralOffset) * 0.005);
+          const y = centerY + Math.sin(x * 0.02 * frequency - phase) * (height * 0.22);
+          if (x === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+      } else {
+        // Idle steady pulse line
+        phase += 0.015;
+        ctx.beginPath();
+        ctx.lineWidth = 1.5;
+        ctx.strokeStyle = 'rgba(148, 163, 184, 0.3)';
+        for (let x = 0; x < width; x++) {
+          const y = centerY + Math.sin(x * 0.01 + phase) * 6;
+          if (x === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+      }
+
+      animationFrameId = requestAnimationFrame(renderVisualizer);
+    }
+    renderVisualizer();
+
+    // Sound Engine Initialization
+    function buildAudioGraph() {
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      audioCtx = new AudioContextClass();
+
+      masterGain = audioCtx.createGain();
+      masterGain.gain.setValueAtTime(masterVolume, audioCtx.currentTime);
+      masterGain.connect(audioCtx.destination);
+
+      // Create dual binaural oscillators
+      carrierOscLeft = audioCtx.createOscillator();
+      carrierOscRight = audioCtx.createOscillator();
+      
+      carrierOscLeft.type = 'sine';
+      carrierOscRight.type = 'sine';
+      carrierOscLeft.frequency.setValueAtTime(carrierFreq, audioCtx.currentTime);
+      carrierOscRight.frequency.setValueAtTime(carrierFreq + binauralOffset, audioCtx.currentTime);
+
+      // Channel merger for absolute stereo separation
+      mergerNode = audioCtx.createChannelMerger(2);
+      carrierOscLeft.connect(mergerNode, 0, 0); // left
+      carrierOscRight.connect(mergerNode, 0, 1); // right
+
+      mergerNode.connect(masterGain);
+
+      // Ambient Pink-like Noise generator
+      const bufferSize = audioCtx.sampleRate * 2;
+      const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const output = noiseBuffer.getChannelData(0);
+      let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+      for (let i = 0; i < bufferSize; i++) {
+        const white = Math.random() * 2 - 1;
+        b0 = 0.99886 * b0 + white * 0.0555179;
+        b1 = 0.99332 * b1 + white * 0.0750759;
+        b2 = 0.96900 * b2 + white * 0.1538520;
+        b3 = 0.86650 * b3 + white * 0.3104856;
+        b4 = 0.55000 * b4 + white * 0.5329522;
+        b5 = -0.7616 * b5 - white * 0.0168980;
+        output[i] = b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362;
+        output[i] *= 0.11;
+        b6 = white * 0.115926;
+      }
+
+      noiseSource = audioCtx.createBufferSource();
+      noiseSource.buffer = noiseBuffer;
+      noiseSource.loop = true;
+
+      // Filter noise for smooth rain effect
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(900, audioCtx.currentTime);
+
+      noiseGain = audioCtx.createGain();
+      noiseGain.gain.setValueAtTime(noiseLevel * 0.4, audioCtx.currentTime);
+
+      noiseSource.connect(filter);
+      filter.connect(noiseGain);
+      noiseGain.connect(masterGain);
+
+      carrierOscLeft.start();
+      carrierOscRight.start();
+      noiseSource.start();
+    }
+
+    const togglePlayBtn = document.getElementById('togglePlayBtn');
+    const playBtnText = document.getElementById('playBtnText');
+    const audioStatusText = document.getElementById('audioStatusText');
+    const audioStatusDot = document.getElementById('audioStatusDot');
+
+    togglePlayBtn.addEventListener('click', async () => {
+      if (!isPlaying) {
+        if (!audioCtx) {
+          buildAudioGraph();
+        } else if (audioCtx.state === 'suspended') {
+          await audioCtx.resume();
+        }
+        isPlaying = true;
+        playBtnText.textContent = 'Pause Soundscape';
+        togglePlayBtn.classList.add('from-emerald-500', 'to-teal-600');
+        audioStatusText.textContent = 'Transmitting Neural Waves';
+        audioStatusDot.className = 'w-2 h-2 rounded-full bg-emerald-400 animate-ping';
+      } else {
+        if (audioCtx) {
+          await audioCtx.suspend();
+        }
+        isPlaying = false;
+        playBtnText.textContent = 'Resume Soundscape';
+        togglePlayBtn.classList.remove('from-emerald-500', 'to-teal-600');
+        audioStatusText.textContent = 'Paused';
+        audioStatusDot.className = 'w-2 h-2 rounded-full bg-amber-400';
+      }
+    });
+
+    // Slider Listeners
+    const carrierSlider = document.getElementById('carrierSlider');
+    const carrierFreqVal = document.getElementById('carrierFreqVal');
+    carrierSlider.addEventListener('input', (e) => {
+      carrierFreq = parseFloat(e.target.value);
+      carrierFreqVal.textContent = carrierFreq + ' Hz';
+      if (carrierOscLeft && audioCtx) {
+        carrierOscLeft.frequency.setValueAtTime(carrierFreq, audioCtx.currentTime);
+        carrierOscRight.frequency.setValueAtTime(carrierFreq + binauralOffset, audioCtx.currentTime);
+      }
+    });
+
+    const binauralSlider = document.getElementById('binauralSlider');
+    const binauralOffsetVal = document.getElementById('binauralOffsetVal');
+    const brainwaveBadge = document.getElementById('brainwaveBadge');
+    binauralSlider.addEventListener('input', (e) => {
+      binauralOffset = parseFloat(e.target.value);
+      binauralOffsetVal.textContent = binauralOffset.toFixed(1) + ' Hz';
+      brainwaveBadge.textContent = `Offset: ${binauralOffset.toFixed(1)} Hz`;
+      if (carrierOscRight && audioCtx) {
+        carrierOscRight.frequency.setValueAtTime(carrierFreq + binauralOffset, audioCtx.currentTime);
+      }
+    });
+
+    const pinkNoiseSlider = document.getElementById('pinkNoiseSlider');
+    const pinkNoiseVal = document.getElementById('pinkNoiseVal');
+    pinkNoiseSlider.addEventListener('input', (e) => {
+      noiseLevel = parseFloat(e.target.value);
+      pinkNoiseVal.textContent = Math.round(noiseLevel * 100) + '%';
+      if (noiseGain && audioCtx) {
+        noiseGain.gain.setValueAtTime(noiseLevel * 0.4, audioCtx.currentTime);
+      }
+    });
+
+    const masterVolSlider = document.getElementById('masterVolSlider');
+    const masterVolVal = document.getElementById('masterVolVal');
+    masterVolSlider.addEventListener('input', (e) => {
+      masterVolume = parseFloat(e.target.value);
+      masterVolVal.textContent = Math.round(masterVolume * 100) + '%';
+      if (masterGain && audioCtx) {
+        masterGain.gain.setValueAtTime(masterVolume, audioCtx.currentTime);
+      }
+    });
+
+    // Presets Method
+    function applyPreset(name, offset, baseCarrier) {
+      binauralOffset = offset;
+      carrierFreq = baseCarrier;
+
+      binauralSlider.value = offset;
+      carrierSlider.value = baseCarrier;
+      binauralOffsetVal.textContent = offset.toFixed(1) + ' Hz';
+      carrierFreqVal.textContent = baseCarrier + ' Hz';
+      brainwaveBadge.textContent = `${name.toUpperCase()}: ${offset.toFixed(1)} Hz`;
+
+      if (carrierOscLeft && carrierOscRight && audioCtx) {
+        carrierOscLeft.frequency.setValueAtTime(carrierFreq, audioCtx.currentTime);
+        carrierOscRight.frequency.setValueAtTime(carrierFreq + binauralOffset, audioCtx.currentTime);
+      }
+
+      document.querySelectorAll('.preset-btn').forEach(btn => {
+        btn.className = 'preset-btn px-3 py-2 text-xs rounded-xl border border-white/5 bg-white/5 hover:bg-cyan-500/20 transition text-left';
+      });
+      event.currentTarget.className = 'preset-btn active-preset px-3 py-2 text-xs rounded-xl border border-cyan-500/50 bg-cyan-500/20 transition text-left text-cyan-300';
+    }
+
+    // Focus Timer Logic
+    let timerDurationSeconds = 25 * 60;
+    let timerRemaining = timerDurationSeconds;
+    let timerInterval = null;
+    let isTimerRunning = false;
+
+    const timerDisplay = document.getElementById('timerDisplay');
+    const timerToggleBtn = document.getElementById('timerToggleBtn');
+    const timerResetBtn = document.getElementById('timerResetBtn');
+    const sessionPhaseText = document.getElementById('sessionPhaseText');
+
+    function updateTimerDisplay() {
+      const mins = Math.floor(timerRemaining / 60);
+      const secs = timerRemaining % 60;
+      timerDisplay.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    }
+
+    function setTimerDuration(mins) {
+      clearInterval(timerInterval);
+      isTimerRunning = false;
+      timerToggleBtn.textContent = 'Start Focus';
+      timerToggleBtn.classList.remove('bg-amber-400');
+      timerDurationSeconds = mins * 60;
+      timerRemaining = timerDurationSeconds;
+      sessionPhaseText.textContent = mins <= 5 ? 'Recovery Break' : 'Deep Work Block';
+      updateTimerDisplay();
+    }
+
+    timerToggleBtn.addEventListener('click', () => {
+      if (!isTimerRunning) {
+        isTimerRunning = true;
+        timerToggleBtn.textContent = 'Pause Focus';
+        timerToggleBtn.classList.add('bg-amber-400');
+        timerInterval = setInterval(() => {
+          if (timerRemaining > 0) {
+            timerRemaining--;
+            updateTimerDisplay();
+          } else {
+            clearInterval(timerInterval);
+            isTimerRunning = false;
+            timerToggleBtn.textContent = 'Session Complete';
+            alert('Focus block complete! Take a mindful breath.');
+          }
+        }, 1000);
+      } else {
+        clearInterval(timerInterval);
+        isTimerRunning = false;
+        timerToggleBtn.textContent = 'Resume Focus';
+        timerToggleBtn.classList.remove('bg-amber-400');
+      }
+    });
+
+    timerResetBtn.addEventListener('click', () => {
+      clearInterval(timerInterval);
+      isTimerRunning = false;
+      timerRemaining = timerDurationSeconds;
+      timerToggleBtn.textContent = 'Start Focus';
+      timerToggleBtn.classList.remove('bg-amber-400');
+      updateTimerDisplay();
+    });
+
+    // Tasks / Intentions
+    const taskForm = document.getElementById('taskForm');
+    const taskInput = document.getElementById('taskInput');
+    const taskList = document.getElementById('taskList');
+    const taskCountBadge = document.getElementById('taskCountBadge');
+    let tasks = [];
+
+    taskForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const val = taskInput.value.trim();
+      if (!val) return;
+      tasks.push({ id: Date.now(), text: val, completed: false });
+      taskInput.value = '';
+      renderTasks();
+    });
+
+    function toggleTask(id) {
+      tasks = tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t);
+      renderTasks();
+    }
+
+    function deleteTask(id) {
+      tasks = tasks.filter(t => t.id !== id);
+      renderTasks();
+    }
+
+    function renderTasks() {
+      if (tasks.length === 0) {
+        taskList.innerHTML = `<div class="text-center py-6 text-xs text-slate-500 italic">No goals set for this session yet. Define your single highest-leverage task.</div>`;
+        taskCountBadge.textContent = '0/0 completed';
+        return;
+      }
+      const completedCount = tasks.filter(t => t.completed).length;
+      taskCountBadge.textContent = `${completedCount}/${tasks.length} completed`;
+
+      taskList.innerHTML = tasks.map(t => `
+        <div class="flex items-center justify-between p-2.5 rounded-xl bg-white/5 border border-white/5 hover:border-white/10 transition group">
+          <div class="flex items-center space-x-2.5 overflow-hidden">
+            <button onclick="toggleTask(${t.id})" class="w-4 h-4 rounded border flex items-center justify-center transition ${t.completed ? 'bg-cyan-500 border-cyan-500 text-slate-950' : 'border-slate-600 bg-transparent'}">
+              ${t.completed ? '<svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>' : ''}
+            </button>
+            <span class="text-xs truncate ${t.completed ? 'line-through text-slate-500' : 'text-slate-200'}">${t.text}</span>
+          </div>
+          <button onclick="deleteTask(${t.id})" class="opacity-0 group-hover:opacity-100 text-slate-500 hover:text-red-400 transition p-1">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+      `).join('');
+    }
+
+    // UPI Copy Functionality
+    function copyUpiId() {
+      const upiId = 'donation1@postbank';
+      navigator.clipboard.writeText(upiId).then(() => {
+        const toast = document.getElementById('copyToast');
+        toast.classList.remove('hidden');
+        setTimeout(() => toast.classList.add('hidden'), 2400);
+      }).catch(err => {
+        console.error('Copy failed:', err);
+      });
+    }
+  </script>
+</body>
+</html>
