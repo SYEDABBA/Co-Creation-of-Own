@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CogniCanvas &mdash; Spatial Mind & Sound Engine</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: { 400: '#818cf8', 500: '#6366f1', 600: '#4f46e5' },
+            canvas: '#090d16'
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    body { background-color: #07090e; color: #e2e8f0; font-family: system-ui, -apple-system, sans-serif; overflow-x: hidden; }
+    .glass { background: rgba(17, 24, 39, 0.7); backdrop-filter: blur(14px); border: 1px solid rgba(255, 255, 255, 0.08); }
+    .glass-card { background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.06); }
+    .grid-bg {
+      background-image: radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+    .node-selected { box-shadow: 0 0 0 2px #818cf8, 0 10px 25px -5px rgba(99, 102, 241, 0.4); }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased selection:bg-brand-500 selection:text-white">
+
+  <!-- Top Navigation Bar -->
+  <header class="sticky top-0 z-40 glass border-b border-slate-800 px-6 py-3.5 flex flex-wrap items-center justify-between gap-4">
+    <div class="flex items-center space-x-3">
+      <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-brand-600 to-cyan-400 flex items-center justify-center shadow-lg shadow-brand-500/20 text-white font-black text-lg">
+        Ψ
+      </div>
+      <div>
+        <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-2">
+          CogniCanvas <span class="text-[10px] tracking-wider uppercase font-semibold px-2 py-0.5 rounded-full bg-brand-500/20 text-brand-400 border border-brand-500/30">Spatial Flow</span>
+        </h1>
+        <p class="text-xs text-slate-400">Neural Mapping &amp; Brainwave Synthesizer</p>
+      </div>
+    </div>
+
+    <!-- Quick Toolbar -->
+    <div class="flex items-center flex-wrap gap-2 text-xs">
+      <button id="addNodeBtn" class="px-3 py-1.5 rounded-lg bg-brand-500 hover:bg-brand-600 text-white font-medium transition shadow flex items-center gap-1.5">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+        Add Node
+      </button>
+      <button id="toggleAudioBtn" class="px-3 py-1.5 rounded-lg glass hover:bg-slate-800/80 text-slate-300 font-medium transition flex items-center gap-1.5 border border-slate-700/60">
+        <span id="audioPulse" class="w-2 h-2 rounded-full bg-slate-500"></span>
+        <span id="audioBtnText">Play 432Hz Alpha Flow</span>
+      </button>
+      <button id="exportMdBtn" class="px-3 py-1.5 rounded-lg glass hover:bg-slate-800/80 text-slate-300 font-medium transition flex items-center gap-1 border border-slate-700/60">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+        Export Markdown
+      </button>
+      <button id="clearCanvasBtn" class="px-3 py-1.5 rounded-lg glass hover:bg-red-950/40 text-red-400 font-medium transition border border-red-900/30">
+        Clear
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Content Layout -->
+  <main class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-0 relative overflow-hidden">
+    
+    <!-- Left Floating Control Sidebar -->
+    <aside class="lg:col-span-3 border-r border-slate-800/70 p-5 flex flex-col gap-5 glass z-20 overflow-y-auto max-h-[85vh]">
+      <!-- Audio Synthesizer Engine -->
+      <div class="glass-card p-4 rounded-xl space-y-3">
+        <div class="flex justify-between items-center">
+          <h2 class="text-sm font-semibold text-white tracking-wide flex items-center gap-2">
+            <svg class="w-4 h-4 text-brand-400" fill="currentColor" viewBox="0 0 20 20"><path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z"/></svg>
+            NeuroAcoustic Generator
+          </h2>
+          <span id="audioStatusBadge" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">OFFLINE</span>
+        </div>
+        <p class="text-xs text-slate-400">Real-time Web Audio binaural beat generator. No stream delays or external bandwidth required.</p>
+        
+        <div class="space-y-2 text-xs">
+          <div>
+            <div class="flex justify-between text-slate-300 mb-1">
+              <span>Carrier Frequency:</span>
+              <span id="freqVal" class="font-mono text-brand-400">432 Hz</span>
+            </div>
+            <input type="range" id="carrierFreq" min="200" max="600" value="432" class="w-full accent-indigo-500 cursor-pointer" />
+          </div>
+          <div>
+            <div class="flex justify-between text-slate-300 mb-1">
+              <span>Binaural Pulse (Theta/Alpha):</span>
+              <span id="beatVal" class="font-mono text-brand-400">10 Hz</span>
+            </div>
+            <input type="range" id="beatFreq" min="1" max="30" value="10" class="w-full accent-indigo-500 cursor-pointer" />
+          </div>
+          <div>
+            <div class="flex justify-between text-slate-300 mb-1">
+              <span>Ambient Volume:</span>
+              <span id="volVal" class="font-mono text-brand-400">25%</span>
+            </div>
+            <input type="range" id="synthVol" min="0" max="100" value="25" class="w-full accent-indigo-500 cursor-pointer" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Node Inspector Panel -->
+      <div class="glass-card p-4 rounded-xl space-y-3">
+        <h2 class="text-sm font-semibold text-white tracking-wide">Node Inspector</h2>
+        <div id="noNodeNotice" class="text-xs text-slate-500 italic py-4 text-center">Select or double-click a node on canvas to edit its properties.</div>
+        <div id="inspectorForm" class="hidden space-y-3 text-xs">
+          <div>
+            <label class="block text-slate-400 mb-1">Node Title</label>
+            <input type="text" id="nodeTitleInput" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white focus:outline-none focus:border-brand-500" />
+          </div>
+          <div>
+            <label class="block text-slate-400 mb-1">Detailed Notes</label>
+            <textarea id="nodeDescInput" rows="3" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white focus:outline-none focus:border-brand-500 resize-none"></textarea>
+          </div>
+          <div>
+            <label class="block text-slate-400 mb-1">Color Tag</label>
+            <div class="flex gap-2" id="colorSelectors">
+              <button data-color="indigo" class="w-6 h-6 rounded-full bg-indigo-500 ring-2 ring-offset-2 ring-offset-slate-900 ring-transparent focus:ring-indigo-400"></button>
+              <button data-color="emerald" class="w-6 h-6 rounded-full bg-emerald-500 ring-2 ring-offset-2 ring-offset-slate-900 ring-transparent focus:ring-emerald-400"></button>
+              <button data-color="rose" class="w-6 h-6 rounded-full bg-rose-500 ring-2 ring-offset-2 ring-offset-slate-900 ring-transparent focus:ring-rose-400"></button>
+              <button data-color="amber" class="w-6 h-6 rounded-full bg-amber-500 ring-2 ring-offset-2 ring-offset-slate-900 ring-transparent focus:ring-amber-400"></button>
+            </div>
+          </div>
+          <div class="pt-2 flex gap-2">
+            <button id="deleteNodeBtn" class="w-full py-1.5 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-300 font-medium transition border border-red-500/30 text-center">
+              Delete Node
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Spatial Statistics -->
+      <div class="glass-card p-4 rounded-xl text-xs space-y-2 text-slate-400">
+        <div class="flex justify-between">
+          <span>Total Nodes:</span>
+          <span id="nodeCountDisplay" class="font-mono text-white font-bold">0</span>
+        </div>
+        <div class="flex justify-between">
+          <span>Active Connections:</span>
+          <span id="connCountDisplay" class="font-mono text-white font-bold">0</span>
+        </div>
+        <div class="flex justify-between">
+          <span>Focus Session:</span>
+          <span id="focusTimer" class="font-mono text-brand-400 font-bold">00:00:00</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Spatial Interactive Canvas Area -->
+    <div class="lg:col-span-9 relative w-full h-[650px] lg:h-[82vh] bg-canvas grid-bg overflow-hidden select-none cursor-crosshair" id="canvasContainer">
+      <!-- SVG connector lines layer -->
+      <svg id="canvasSvg" class="absolute inset-0 w-full h-full pointer-events-none z-0"></svg>
+
+      <!-- Interactive nodes container -->
+      <div id="canvasNodes" class="absolute inset-0 z-10"></div>
+
+      <!-- Canvas Watermark / Hint -->
+      <div class="absolute bottom-4 right-4 pointer-events-none text-slate-600 text-xs flex items-center gap-3 bg-slate-950/40 px-3 py-1.5 rounded-lg backdrop-blur-sm border border-slate-800/40">
+        <span>Double-click canvas to create node</span>
+        <span>•</span>
+        <span>Drag headers to move</span>
+        <span>•</span>
+        <span>Shift+Click two nodes to connect</span>
+      </div>
+    </div>
+  </main>
+
+  <!-- Cause-Driven Charity & Support Section (100% Non-Affiliate, Dedicated Human Cause) -->
+  <footer class="border-t border-slate-800 bg-[#06080e] relative z-30 py-10 px-6">
+    <div class="max-w-4xl mx-auto glass rounded-2xl p-6 sm:p-8 border border-indigo-500/20 shadow-2xl relative overflow-hidden">
+      <div class="absolute -right-16 -bottom-16 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      
+      <div class="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
+        <!-- Cause Description -->
+        <div class="space-y-3 flex-1 text-center md:text-left">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold uppercase tracking-wider">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            Direct Impact Initiative
+          </div>
+          <h3 class="text-lg sm:text-xl font-bold text-white tracking-tight">
+            Fuel Human Healing &amp; Education
+          </h3>
+          <p class="text-sm text-slate-300 leading-relaxed">
+            <strong class="text-emerald-400 font-semibold">95% of all contributions go directly towards Cancer Patient Support &amp; School Education Initiatives</strong> <span class="text-slate-400">(5% retained for server maintenance)</span>. Every micro-contribution provides chemotherapy support and grassroots school supplies for underserved children.
+          </p>
+          <div class="pt-2 flex flex-wrap items-center justify-center md:justify-start gap-4 text-xs text-slate-400">
+            <span class="flex items-center gap-1.5">
+              <span class="text-slate-200 font-medium">Beneficiary:</span> ASKAR ALI
+            </span>
+            <span class="flex items-center gap-1.5">
+              <span class="text-slate-200 font-medium">Verified UPI:</span> 
+              <code class="bg-slate-900 px-2 py-0.5 rounded text-indigo-300 font-mono border border-slate-700">donation1@postbank</code>
+            </span>
+          </div>
+        </div>
+
+        <!-- Interactive QR & Copy Action -->
+        <div class="flex flex-col sm:flex-row items-center gap-4 bg-slate-900/80 p-4 rounded-xl border border-slate-800 shadow-inner shrink-0">
+          <div class="relative group">
+            <img 
+              src="https://api.qrserver.com/v1/create-qr-code/?data=upi://pay?pa=donation1@postbank&pn=YUGRAAL_Cause" 
+              alt="UPI QR Code for Cancer Support and Education"
+              class="w-28 h-28 rounded-lg bg-white p-1.5 shadow-md border border-slate-700 transition transform group-hover:scale-105"
+              loading="lazy"
+            />
+            <span class="block text-center text-[10px] text-slate-400 mt-1 font-mono">Scan to Support</span>
+          </div>
+          <div class="flex flex-col gap-2 w-full sm:w-auto">
+            <button 
+              id="copyUpiBtn"
+              class="px-4 py-2.5 rounded-lg bg-brand-600 hover:bg-brand-500 text-white font-medium text-xs transition duration-200 shadow-lg shadow-brand-600/30 flex items-center justify-center gap-2 active:scale-95"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
+              <span>Copy UPI ID</span>
+            </button>
+            <span id="copyToast" class="text-center text-[11px] text-emerald-400 font-medium opacity-0 transition-opacity duration-300">Copied successfully!</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="text-center text-xs text-slate-600 mt-6 font-mono">
+      © CogniCanvas — Empowering minds &amp; saving lives transparently.
+    </p>
+  </footer>
+
+  <!-- Application JavaScript Logic -->
+  <script>
+    // === Core Application State ===
+    const state = {
+      nodes: [
+        { id: 1, x: 120, y: 100, title: 'Central Thesis', desc: 'Core foundational objective of this exploration.', color: 'indigo' },
+        { id: 2, x: 420, y: 80, title: 'Neural Stimuli', desc: 'Acoustic wave synchronization for elevated cognition.', color: 'emerald' },
+        { id: 3, x: 340, y: 300, title: 'Synthesis & Action', desc: 'Consolidated mental map ready for rapid execution.', color: 'amber' }
+      ],
+      connections: [
+        { from: 1, to: 2 },
+        { from: 1, to: 3 }
+      ],
+      selectedNodeId: null,
+      connectSourceId: null,
+      isAudioPlaying: false,
+      audioCtx: null,
+      oscLeft: null,
+      oscRight: null,
+      gainNode: null
+    };
+
+    // === DOM References ===
+    const canvasContainer = document.getElementById('canvasContainer');
+    const canvasNodes = document.getElementById('canvasNodes');
+    const canvasSvg = document.getElementById('canvasSvg');
+    const nodeCountDisplay = document.getElementById('nodeCountDisplay');
+    const connCountDisplay = document.getElementById('connCountDisplay');
+    const inspectorForm = document.getElementById('inspectorForm');
+    const noNodeNotice = document.getElementById('noNodeNotice');
+    const nodeTitleInput = document.getElementById('nodeTitleInput');
+    const nodeDescInput = document.getElementById('nodeDescInput');
+    const deleteNodeBtn = document.getElementById('deleteNodeBtn');
+    const addNodeBtn = document.getElementById('addNodeBtn');
+    const clearCanvasBtn = document.getElementById('clearCanvasBtn');
+    const exportMdBtn = document.getElementById('exportMdBtn');
+    const toggleAudioBtn = document.getElementById('toggleAudioBtn');
+    const audioPulse = document.getElementById('audioPulse');
+    const audioBtnText = document.getElementById('audioBtnText');
+    const audioStatusBadge = document.getElementById('audioStatusBadge');
+    const carrierFreqInput = document.getElementById('carrierFreq');
+    const beatFreqInput = document.getElementById('beatFreq');
+    const synthVolInput = document.getElementById('synthVol');
+    const freqVal = document.getElementById('freqVal');
+    const beatVal = document.getElementById('beatVal');
+    const volVal = document.getElementById('volVal');
+    const colorSelectors = document.getElementById('colorSelectors');
+    const copyUpiBtn = document.getElementById('copyUpiBtn');
+    const copyToast = document.getElementById('copyToast');
+
+    const colorThemeMap = {
+      indigo: { border: 'border-indigo-500/60', bg: 'bg-indigo-950/60', header: 'bg-indigo-600/30 text-indigo-300' },
+      emerald: { border: 'border-emerald-500/60', bg: 'bg-emerald-950/60', header: 'bg-emerald-600/30 text-emerald-300' },
+      rose: { border: 'border-rose-500/60', bg: 'bg-rose-950/60', header: 'bg-rose-600/30 text-rose-300' },
+      amber: { border: 'border-amber-500/60', bg: 'bg-amber-950/60', header: 'bg-amber-600/30 text-amber-300' }
+    };
+
+    // === Canvas Rendering ===
+    function renderNodes() {
+      canvasNodes.innerHTML = '';
+      state.nodes.forEach(node => {
+        const theme = colorThemeMap[node.color] || colorThemeMap.indigo;
+        const isSelected = state.selectedNodeId === node.id;
+        const isConnectSource = state.connectSourceId === node.id;
+
+        const el = document.createElement('div');
+        el.className = `absolute rounded-xl ${theme.bg} ${theme.border} border p-3 w-64 shadow-xl backdrop-blur-md transition-shadow cursor-grab active:cursor-grabbing ${isSelected ? 'node-selected' : ''} ${isConnectSource ? 'ring-2 ring-emerald-400 animate-pulse' : ''}`;
+        el.style.left = `${node.x}px`;
+        el.style.top = `${node.y}px`;
+        el.dataset.id = node.id;
+
+        el.innerHTML = `
+          <div class="flex items-center justify-between font-semibold text-xs py-1 px-1.5 rounded mb-2 ${theme.header}">
+            <span class="truncate pointer-events-none">${escapeHtml(node.title)}</span>
+            <span class="text-[10px] opacity-75 font-mono">#${node.id}</span>
+          </div>
+          <p class="text-xs text-slate-300 leading-snug line-clamp-3 pointer-events-none">${escapeHtml(node.desc || 'No notes added...')}</p>
+        `;
+
+        // Dragging & Interaction logic
+        setupNodeDrag(el, node);
+        el.addEventListener('click', (e) => handleNodeClick(e, node.id));
+        canvasNodes.appendChild(el);
+      });
+
+      renderConnections();
+      updateCounters();
+    }
+
+    function renderConnections() {
+      canvasSvg.innerHTML = '';
+      state.connections.forEach(conn => {
+        const srcNode = state.nodes.find(n => n.id === conn.from);
+        const tgtNode = state.nodes.find(n => n.id === conn.to);
+        if (!srcNode || !tgtNode) return;
+
+        const x1 = srcNode.x + 128;
+        const y1 = srcNode.y + 40;
+        const x2 = tgtNode.x + 128;
+        const y2 = tgtNode.y + 40;
+
+        const dx = (x2 - x1) * 0.45;
+        const pathD = `M ${x1} ${y1} C ${x1 + dx} ${y1}, ${x2 - dx} ${y2}, ${x2} ${y2}`;
+
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('d', pathD);
+        path.setAttribute('stroke', 'rgba(129, 140, 248, 0.45)');
+        path.setAttribute('stroke-width', '2');
+        path.setAttribute('fill', 'none');
+        path.setAttribute('stroke-dasharray', '4 3');
+        canvasSvg.appendChild(path);
+      });
+    }
+
+    function setupNodeDrag(element, node) {
+      let startX, startY, origX, origY;
+      element.addEventListener('mousedown', (e) => {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+        startX = e.clientX;
+        startY = e.clientY;
+        origX = node.x;
+        origY = node.y;
+
+        function onMouseMove(moveEvent) {
+          const dx = moveEvent.clientX - startX;
+          const dy = moveEvent.clientY - startY;
+          node.x = Math.max(10, origX + dx);
+          node.y = Math.max(10, origY + dy);
+          element.style.left = `${node.x}px`;
+          element.style.top = `${node.y}px`;
+          renderConnections();
+        }
+
+        function onMouseUp() {
+          window.removeEventListener('mousemove', onMouseMove);
+          window.removeEventListener('mouseup', onMouseUp);
+        }
+
+        window.addEventListener('mousemove', onMouseMove);
+        window.addEventListener('mouseup', onMouseUp);
+      });
+    }
+
+    function handleNodeClick(e, id) {
+      e.stopPropagation();
+      if (e.shiftKey) {
+        // Connect nodes on shift click
+        if (!state.connectSourceId) {
+          state.connectSourceId = id;
+        } else if (state.connectSourceId !== id) {
+          const exists = state.connections.some(
+            c => (c.from === state.connectSourceId && c.to === id) || (c.from === id && c.to === state.connectSourceId)
+          );
+          if (!exists) {
+            state.connections.push({ from: state.connectSourceId, to: id });
+          }
+          state.connectSourceId = null;
+        } else {
+          state.connectSourceId = null;
+        }
+        renderNodes();
+        return;
+      }
+
+      selectNode(id);
+    }
+
+    function selectNode(id) {
+      state.selectedNodeId = id;
+      const node = state.nodes.find(n => n.id === id);
+      if (!node) {
+        inspectorForm.classList.add('hidden');
+        noNodeNotice.classList.remove('hidden');
+        return;
+      }
+      inspectorForm.classList.remove('hidden');
+      noNodeNotice.classList.add('hidden');
+      nodeTitleInput.value = node.title;
+      nodeDescInput.value = node.desc;
+      renderNodes();
+    }
+
+    function updateCounters() {
+      nodeCountDisplay.textContent = state.nodes.length;
+      connCountDisplay.textContent = state.connections.length;
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    // === Event Listeners for Node Controls ===
+    canvasContainer.addEventListener('dblclick', (e) => {
+      const rect = canvasContainer.getBoundingClientRect();
+      const x = e.clientX - rect.left - 120;
+      const y = e.clientY - rect.top - 40;
+      const newId = Date.now() % 10000;
+      state.nodes.push({
+        id: newId,
+        x: Math.max(20, x),
+        y: Math.max(20, y),
+        title: 'New Idea Concept',
+        desc: 'Document key components, links, and questions here.',
+        color: 'indigo'
+      });
+      selectNode(newId);
+    });
+
+    canvasContainer.addEventListener('click', (e) => {
+      if (e.target === canvasContainer || e.target === canvasSvg || e.target === canvasNodes) {
+        state.selectedNodeId = null;
+        state.connectSourceId = null;
+        inspectorForm.classList.add('hidden');
+        noNodeNotice.classList.remove('hidden');
+        renderNodes();
+      }
+    });
+
+    addNodeBtn.addEventListener('click', () => {
+      const newId = Date.now() % 10000;
+      state.nodes.push({
+        id: newId,
+        x: 100 + Math.random() * 200,
+        y: 80 + Math.random() * 150,
+        title: 'Fresh Concept',
+        desc: 'New thought vector initialized.',
+        color: 'emerald'
+      });
+      selectNode(newId);
+    });
+
+    nodeTitleInput.addEventListener('input', (e) => {
+      const node = state.nodes.find(n => n.id === state.selectedNodeId);
+      if (node) {
+        node.title = e.target.value;
+        renderNodes();
+      }
+    });
+
+    nodeDescInput.addEventListener('input', (e) => {
+      const node = state.nodes.find(n => n.id === state.selectedNodeId);
+      if (node) {
+        node.desc = e.target.value;
+        renderNodes();
+      }
+    });
+
+    colorSelectors.addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-color]');
+      if (!btn) return;
+      const col = btn.getAttribute('data-color');
+      const node = state.nodes.find(n => n.id === state.selectedNodeId);
+      if (node) {
+        node.color = col;
+        renderNodes();
+      }
+    });
+
+    deleteNodeBtn.addEventListener('click', () => {
+      if (!state.selectedNodeId) return;
+      state.nodes = state.nodes.filter(n => n.id !== state.selectedNodeId);
+      state.connections = state.connections.filter(c => c.from !== state.selectedNodeId && c.to !== state.selectedNodeId);
+      state.selectedNodeId = null;
+      inspectorForm.classList.add('hidden');
+      noNodeNotice.classList.remove('hidden');
+      renderNodes();
+    });
+
+    clearCanvasBtn.addEventListener('click', () => {
+      if (confirm('Clear all canvas nodes and connections?')) {
+        state.nodes = [];
+        state.connections = [];
+        state.selectedNodeId = null;
+        inspectorForm.classList.add('hidden');
+        noNodeNotice.classList.remove('hidden');
+        renderNodes();
+      }
+    });
+
+    exportMdBtn.addEventListener('click', () => {
+      let md = '# CogniCanvas Workspace Export\n\n';
+      state.nodes.forEach(n => {
+        md += `## [${n.title}] (#${n.id})\n${n.desc || 'No description'}\n\n`;
+      });
+      md += '## Spatial Connections\n';
+      state.connections.forEach(c => {
+        const src = state.nodes.find(n => n.id === c.from)?.title || c.from;
+        const tgt = state.nodes.find(n => n.id === c.to)?.title || c.to;
+        md += `- ${src} → ${tgt}\n`;
+      });
+      const blob = new Blob([md], { type: 'text/markdown' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `cognicanvas_${Date.now()}.md`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    // === Web Audio API Generator (Binaural Beats) ===
+    function initAudio() {
+      if (state.audioCtx) return;
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      state.audioCtx = new AudioCtx();
+
+      // Channel split for true stereo binaural pulse
+      const merger = state.audioCtx.createChannelMerger(2);
+      state.gainNode = state.audioCtx.createGain();
+
+      state.oscLeft = state.audioCtx.createOscillator();
+      state.oscRight = state.audioCtx.createOscillator();
+
+      state.oscLeft.type = 'sine';
+      state.oscRight.type = 'sine';
+
+      updateAudioFrequencies();
+
+      state.oscLeft.connect(merger, 0, 0);
+      state.oscRight.connect(merger, 0, 1);
+      merger.connect(state.gainNode);
+      state.gainNode.connect(state.audioCtx.destination);
+
+      state.gainNode.gain.setValueAtTime((Number(synthVolInput.value) / 100) * 0.15, state.audioCtx.currentTime);
+
+      state.oscLeft.start();
+      state.oscRight.start();
+    }
+
+    function updateAudioFrequencies() {
+      if (!state.oscLeft || !state.oscRight) return;
+      const carrier = parseFloat(carrierFreqInput.value);
+      const beat = parseFloat(beatFreqInput.value);
+      const leftFreq = carrier - (beat / 2);
+      const rightFreq = carrier + (beat / 2);
+
+      state.oscLeft.frequency.setValueAtTime(leftFreq, state.audioCtx.currentTime);
+      state.oscRight.frequency.setValueAtTime(rightFreq, state.audioCtx.currentTime);
+    }
+
+    toggleAudioBtn.addEventListener('click', async () => {
+      if (!state.audioCtx) initAudio();
+      if (state.audioCtx.state === 'suspended') await state.audioCtx.resume();
+
+      if (state.isAudioPlaying) {
+        state.gainNode.gain.setTargetAtTime(0, state.audioCtx.currentTime, 0.05);
+        state.isAudioPlaying = false;
+        audioPulse.classList.replace('bg-emerald-400', 'bg-slate-500');
+        audioPulse.classList.remove('animate-ping');
+        audioBtnText.textContent = 'Play 432Hz Alpha Flow';
+        audioStatusBadge.textContent = 'PAUSED';
+        audioStatusBadge.className = 'text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono';
+      } else {
+        const vol = (Number(synthVolInput.value) / 100) * 0.15;
+        state.gainNode.gain.setTargetAtTime(vol, state.audioCtx.currentTime, 0.05);
+        state.isAudioPlaying = true;
+        audioPulse.classList.replace('bg-slate-500', 'bg-emerald-400');
+        audioPulse.classList.add('animate-ping');
+        audioBtnText.textContent = 'Pause NeuroAcoustics';
+        audioStatusBadge.textContent = 'ACTIVE';
+        audioStatusBadge.className = 'text-[10px] px-1.5 py-0.5 rounded bg-emerald-900/60 text-emerald-300 font-mono border border-emerald-700/50';
+      }
+    });
+
+    carrierFreqInput.addEventListener('input', (e) => {
+      freqVal.textContent = `${e.target.value} Hz`;
+      if (state.isAudioPlaying) updateAudioFrequencies();
+    });
+
+    beatFreqInput.addEventListener('input', (e) => {
+      beatVal.textContent = `${e.target.value} Hz`;
+      if (state.isAudioPlaying) updateAudioFrequencies();
+    });
+
+    synthVolInput.addEventListener('input', (e) => {
+      volVal.textContent = `${e.target.value}%`;
+      if (state.isAudioPlaying && state.gainNode) {
+        state.gainNode.gain.setTargetAtTime((Number(e.target.value) / 100) * 0.15, state.audioCtx.currentTime, 0.05);
+      }
+    });
+
+    // === Focus Clock Telemetry ===
+    let focusSeconds = 0;
+    setInterval(() => {
+      focusSeconds++;
+      const h = String(Math.floor(focusSeconds / 3600)).padStart(2, '0');
+      const m = String(Math.floor((focusSeconds % 3600) / 60)).padStart(2, '0');
+      const s = String(focusSeconds % 60).padStart(2, '0');
+      document.getElementById('focusTimer').textContent = `${h}:${m}:${s}`;
+    }, 1000);
+
+    // === Cause Charity UPI Copy Logic ===
+    copyUpiBtn.addEventListener('click', async () => {
+      const upiId = 'donation1@postbank';
+      try {
+        await navigator.clipboard.writeText(upiId);
+        copyToast.classList.remove('opacity-0');
+        copyToast.textContent = 'UPI ID Copied to Clipboard!';
+        setTimeout(() => copyToast.classList.add('opacity-0'), 2500);
+      } catch (err) {
+        // Fallback prompt
+        prompt('Copy the UPI ID below to contribute directly:', upiId);
+      }
+    });
+
+    // Initial setup
+    renderNodes();
+  </script>
+</body>
+</html>
