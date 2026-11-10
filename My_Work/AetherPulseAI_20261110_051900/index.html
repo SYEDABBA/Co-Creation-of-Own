@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AetherPulse AI - Advanced Prompt Engine</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darker: '#090a0f',
+                        carddark: '#121520',
+                        accent: '#6366f1',
+                        accentglow: '#818cf8'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .glass {
+            background: rgba(18, 21, 32, 0.7);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glass-hover:hover {
+            background: rgba(26, 31, 46, 0.8);
+            border-color: rgba(99, 102, 241, 0.3);
+        }
+        @keyframes pulse-slow {
+            0%, 100% { opacity: 0.4; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.05); }
+        }
+        .animate-pulse-slow {
+            animation: pulse-slow 6s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-darker text-slate-100 min-h-screen font-sans selection:bg-indigo-500 selection:text-white relative overflow-x-hidden">
+
+    <!-- Background Glows -->
+    <div class="absolute top-0 left-1/4 w-96 h-96 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none animate-pulse-slow"></div>
+    <div class="absolute top-1/3 right-1/4 w-96 h-96 bg-violet-600/10 rounded-full blur-3xl pointer-events-none animate-pulse-slow" style="animation-delay: 2s;"></div>
+
+    <!-- Header -->
+    <header class="border-b border-white/5 glass sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                    <i class="fa-solid fa-microchip text-white text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight bg-gradient-to-r from-white via-indigo-200 to-indigo-400 bg-clip-text text-transparent">AetherPulse AI</h1>
+                    <p class="text-xs text-slate-400">Cognitive Prompt Architecture & Token Analyzer</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <span class="px-3 py-1 rounded-full text-xs font-medium bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                    <i class="fa-solid fa-circle text-[8px] mr-1.5 animate-pulse text-emerald-400"></i> Engine Active
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Layout -->
+    <main class="max-w-7xl mx-auto px-6 py-10 grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <!-- Left Column: Input & Controls -->
+        <div class="lg:col-span-7 space-y-6">
+            <div class="glass rounded-2xl p-6 shadow-2xl relative">
+                <div class="flex justify-between items-center mb-4">
+                    <label for="promptInput" class="text-sm font-semibold text-slate-300 flex items-center">
+                        <i class="fa-solid fa-pen-nib mr-2 text-indigo-400"></i> Raw Prompt Construction
+                    </label>
+                    <button onclick="clearPrompt()" class="text-xs text-slate-400 hover:text-white transition">
+                        <i class="fa-solid fa-rotate-right mr-1"></i> Reset
+                    </button>
+                </div>
+                <textarea id="promptInput" rows="6" 
+                    class="w-full bg-slate-900/80 border border-slate-700/60 rounded-xl p-4 text-slate-200 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition resize-y"
+                    placeholder="Enter raw prompt, instructions, or codebase context here...">You are an elite software architect. Design a secure microservice authentication module in Node.js using JWT, bcrypt, and Redis caching. Ensure high security against timing attacks and token replay.</textarea>
+                
+                <div class="flex flex-wrap items-center justify-between gap-4 mt-4 pt-4 border-t border-slate-800">
+                    <div class="flex items-center space-x-3">
+                        <label class="text-xs text-slate-400">Target Model:</label>
+                        <select id="modelSelect" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                            <option value="gpt4">GPT-4o / Claude 3.5 Sonnet</option>
+                            <option value="gpt35">GPT-3.5 / Llama 3 8B</option>
+                            <option value="claude3">Claude 3 Opus (Large Context)</option>
+                        </select>
+                    </div>
+                    <button onclick="analyzePrompt()" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white font-medium text-sm shadow-lg shadow-indigo-600/30 hover:opacity-90 active:scale-95 transition flex items-center">
+                        <i class="fa-solid fa-bolt mr-2"></i> Analyze & Optimize
+                    </button>
+                </div>
+            </div>
+
+            <!-- Optimized Output Section -->
+            <div class="glass rounded-2xl p-6 shadow-2xl">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-sm font-semibold text-slate-300 flex items-center">
+                        <i class="fa-solid fa-wand-magic-sparkles mr-2 text-indigo-400"></i> AI Enhanced Architecture Output
+                    </h3>
+                    <button onclick="copyOutput()" class="px-3 py-1 rounded-lg text-xs font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition">
+                        <i class="fa-regular fa-copy mr-1"></i> Copy Prompt
+                    </button>
+                </div>
+                <div id="outputBox" class="w-full bg-slate-900/90 border border-slate-800 rounded-xl p-4 text-slate-300 text-sm font-mono whitespace-pre-wrap min-h-[140px] max-h-[250px] overflow-y-auto">
+Click 'Analyze & Optimize' to generate structured prompt refinement and constraint injection.
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Metrics & Analytics -->
+        <div class="lg:col-span-5 space-y-6">
+            <div class="glass rounded-2xl p-6 shadow-2xl">
+                <h3 class="text-sm font-semibold text-slate-300 mb-4 flex items-center">
+                    <i class="fa-solid fa-chart-pie mr-2 text-indigo-400"></i> Semantic & Token Metrics
+                </h3>
+                
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800">
+                        <p class="text-xs text-slate-400">Estimated Tokens</p>
+                        <p id="tokenCount" class="text-2xl font-bold text-white mt-1">0</p>
+                    </div>
+                    <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800">
+                        <p class="text-xs text-slate-400">Clarity Index</p>
+                        <p id="clarityScore" class="text-2xl font-bold text-indigo-400 mt-1">0%</p>
+                    </div>
+                </div>
+
+                <!-- Chart -->
+                <div class="relative h-48 flex items-center justify-center">
+                    <canvas id="metricChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Diagnostics checklist -->
+            <div class="glass rounded-2xl p-6 shadow-2xl">
+                <h3 class="text-sm font-semibold text-slate-300 mb-4 flex items-center">
+                    <i class="fa-solid fa-shield-halved mr-2 text-indigo-400"></i> Constraint Diagnostics
+                </h3>
+                <ul id="diagnosticList" class="space-y-3 text-xs text-slate-300">
+                    <li class="flex items-center text-slate-400">
+                        <i class="fa-solid fa-circle-notch animate-spin mr-2"></i> Awaiting prompt execution...
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer / Cause-Driven Charity Section (Mandatory & Aesthetic) -->
+    <footer class="max-w-7xl mx-auto px-6 pb-12 mt-12">
+        <div class="glass rounded-3xl p-8 border border-indigo-500/20 bg-gradient-to-r from-indigo-950/40 via-carddark to-violet-950/40 shadow-2xl relative overflow-hidden">
+            <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none"></div>
+            
+            <div class="flex flex-col md:flex-row items-center justify-between gap-8 relative z-10">
+                <div class="space-y-3 max-w-xl text-center md:text-left">
+                    <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-semibold">
+                        <i class="fa-solid fa-heart text-emerald-400"></i><span>YUGRAAL Global Initiative</span>
+                    </div>
+                    <h4 class="text-lg font-bold text-white">Empowering Lives Through Care & Education</h4>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        95% of all contributions go directly towards Cancer Patient Support & School Education Initiatives (5% retained for server maintenance).
+                    </p>
+                    <div class="flex flex-wrap gap-4 text-xs text-slate-400 pt-2 justify-center md:justify-start">
+                        <span><strong class="text-slate-200">Receiver:</strong> ASKAR ALI</span>
+                        <span><strong class="text-slate-200">UPI ID:</strong> donation1@postbank</span>
+                    </div>
+                </div>
+
+                <!-- QR Code & Actions -->
+                <div class="flex flex-col sm:flex-row items-center gap-6 bg-slate-900/80 p-4 rounded-2xl border border-slate-800">
+                    <div class="bg-white p-2 rounded-xl shadow-md">
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?data=upi://pay?pa=donation1@postbank&pn=YUGRAAL_Cause&size=120x120" alt="Donation QR Code" class="w-28 h-28 object-contain">
+                    </div>
+                    <div class="flex flex-col space-y-3 text-center sm:text-left">
+                        <span class="text-xs text-slate-300 font-medium">Scan with any UPI app to support</span>
+                        <button onclick="copyUPI()" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold transition shadow-lg shadow-indigo-600/30 flex items-center justify-center space-x-2">
+                            <i class="fa-solid fa-copy"></i>
+                            <span id="upiBtnText">Copy UPI ID</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Script Logic -->
+    <script>
+        let chartInstance = null;
+
+        function initChart(tokens, clarity, complexity) {
+            const ctx = document.getElementById('metricChart').getContext('2d');
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+            chartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Token Load', 'Semantic Clarity', 'Structural Depth'],
+                    datasets: [{
+                        data: [tokens, clarity, complexity],
+                        backgroundColor: ['#6366f1', '#10b981', '#8b5cf6'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { color: '#94a3b8', font: { size: 10 } }
+                        }
+                    },
+                    cutout: '70%'
+                }
+            });
+        }
+
+        function analyzePrompt() {
+            const text = document.getElementById('promptInput').value;
+            const words = text.trim().split(/\s+/).length;
+            const estimatedTokens = Math.round(words * 1.3);
+            
+            // Heuristics for demo intelligence
+            let clarity = Math.min(95, Math.max(45, words * 2 + 30));
+            let complexity = Math.min(90, words * 1.5);
+
+            document.getElementById('tokenCount').innerText = estimatedTokens;
+            document.getElementById('clarityScore').innerText = clarity + '%';
+
+            initChart(estimatedTokens, clarity, complexity);
+
+            // Generate Output
+            const optimized = `[SYSTEM ROLE INJECTION]
+Act as a top-tier expert in the designated domain.
+
+[CONTEXT & DIRECTIVES]
+${text}
+
+[CONSTRAINTS & VERIFICATION]
+1. Avoid assumptions; verify logic integrity.
+2. Output production-ready, clean, and thoroughly commented solutions.
+3. Include fallback and error-handling routines.`;
+
+            document.getElementById('outputBox').innerText = optimized;
+
+            // Diagnostics
+            const diagList = document.getElementById('diagnosticList');
+            diagList.innerHTML = `
+                <li class="flex items-center text-emerald-400"><i class="fa-solid fa-check mr-2"></i> Role context successfully defined</li>
+                <li class="flex items-center text-emerald-400"><i class="fa-solid fa-check mr-2"></i> Token efficiency optimized (${estimatedTokens} tokens)</li>
+                <li class="flex items-center text-${clarity > 70 ? 'emerald' : 'amber'}-400">
+                    <i class="fa-solid fa-${clarity > 70 ? 'check' : 'triangle-exclamation'} mr-2"></i> Semantic intent clarity: ${clarity}%
+                </li>
+                <li class="flex items-center text-emerald-400"><i class="fa-solid fa-check mr-2"></i> Negative constraints appended</li>
+            `;
+        }
+
+        function clearPrompt() {
+            document.getElementById('promptInput').value = '';
+            document.getElementById('outputBox').innerText = 'Click \'Analyze & Optimize\' to generate structured prompt refinement.';
+            document.getElementById('tokenCount').innerText = '0';
+            document.getElementById('clarityScore').innerText = '0%';
+            document.getElementById('diagnosticList').innerHTML = '<li class="flex items-center text-slate-400"><i class="fa-solid fa-circle-notch animate-spin mr-2"></i> Awaiting prompt execution...</li>';
+            if (chartInstance) chartInstance.destroy();
+        }
+
+        function copyOutput() {
+            const text = document.getElementById('outputBox').innerText;
+            navigator.clipboard.writeText(text);
+            alert('Optimized prompt copied to clipboard!');
+        }
+
+        function copyUPI() {
+            navigator.clipboard.writeText('donation1@postbank');
+            const btnText = document.getElementById('upiBtnText');
+            btnText.innerText = 'Copied!';
+            setTimeout(() => { btnText.innerText = 'Copy UPI ID'; }, 2000);
+        }
+
+        // Initial Run
+        window.onload = () => {
+            analyzePrompt();
+        };
+    </script>
+</body>
+</html>
