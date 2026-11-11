@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aetheris Flow — Neuro-Acoustic Work Studio</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0f9ff',
+              500: '#0ea5e9',
+              600: '#0284c7',
+              900: '#0c4a6e',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #030712;
+    }
+    .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .glass-panel {
+      background: rgba(17, 24, 39, 0.7);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .glass-panel-glow {
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      box-shadow: 0 0 35px -10px rgba(14, 165, 233, 0.15);
+    }
+    .custom-scroll::-webkit-scrollbar {
+      width: 4px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body class="text-slate-100 min-h-screen flex flex-col selection:bg-sky-500 selection:text-white relative overflow-x-hidden">
+
+  <!-- Subtle Ambient Glow Background -->
+  <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+    <div class="absolute -top-40 -left-40 w-96 h-96 bg-sky-600/15 rounded-full blur-3xl"></div>
+    <div class="absolute top-1/2 -right-40 w-[30rem] h-[30rem] bg-indigo-600/10 rounded-full blur-3xl"></div>
+  </div>
+
+  <!-- Navigation -->
+  <header class="relative z-10 glass-panel border-b border-white/5 sticky top-0 px-6 py-4 flex items-center justify-between">
+    <div class="flex items-center space-x-3">
+      <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-500 flex items-center justify-center shadow-lg shadow-sky-500/20">
+        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+      </div>
+      <div>
+        <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-2">
+          AETHERIS <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-sky-500/10 text-sky-400 border border-sky-500/20">FLOW LAB</span>
+        </h1>
+      </div>
+    </div>
+    <div class="flex items-center gap-4 text-xs font-mono text-slate-400">
+      <span id="systemStatus" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> AUDIO READY
+      </span>
+    </div>
+  </header>
+
+  <!-- Main Content Grid -->
+  <main class="relative z-10 flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 lg:p-8 space-y-6">
+    
+    <!-- Hero Canvas Visualizer & Audio Synthesizer Matrix -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      
+      <!-- Interactive Visualizer & Sound Generator -->
+      <div class="lg:col-span-7 glass-panel-glow rounded-3xl p-6 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h2 class="text-xl font-semibold text-white tracking-wide">Bio-Acoustic Resonator</h2>
+              <p class="text-sm text-slate-400">Synthesized local frequency spectrums to trigger deep cognitive flow.</p>
+            </div>
+            <button id="toggleAudioBtn" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-medium text-sm transition-all shadow-lg shadow-sky-500/25 flex items-center gap-2">
+              <svg id="playIcon" class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"/></svg>
+              <span id="audioBtnText">Engage Soundscape</span>
+            </button>
+          </div>
+
+          <!-- Oscilloscope Visualizer Canvas -->
+          <div class="relative w-full h-44 rounded-2xl overflow-hidden bg-slate-950/80 border border-white/5 my-4 flex items-center justify-center">
+            <canvas id="audioCanvas" class="w-full h-full"></canvas>
+            <div id="canvasOverlay" class="absolute text-xs font-mono text-slate-500 tracking-wider pointer-events-none">
+              [ STANDBY — CLICK ENGAGE TO INITIALIZE OSCILLATOR ]
+            </div>
+          </div>
+        </div>
+
+        <!-- Sound Controls -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-white/5">
+          <!-- Binaural Beat Mode -->
+          <div class="p-3 rounded-xl bg-slate-900/60 border border-white/5">
+            <label class="text-xs font-mono text-sky-400 font-semibold block mb-1">BINAURAL MODE</label>
+            <select id="binauralPreset" class="w-full text-xs bg-slate-800 text-slate-200 border border-white/10 rounded-lg p-2 outline-none focus:border-sky-500">
+              <option value="alpha">Alpha Focus (10 Hz)</option>
+              <option value="theta">Theta Flow (6 Hz)</option>
+              <option value="gamma">Gamma Hyper (40 Hz)</option>
+              <option value="delta">Delta Rest (2 Hz)</option>
+            </select>
+          </div>
+
+          <!-- Pink Noise Blend -->
+          <div class="p-3 rounded-xl bg-slate-900/60 border border-white/5">
+            <div class="flex justify-between text-xs font-mono mb-1">
+              <span class="text-slate-300">PINK NOISE</span>
+              <span id="pinkNoiseVal" class="text-sky-400">40%</span>
+            </div>
+            <input type="range" id="pinkNoiseSlider" min="0" max="100" value="40" class="w-full accent-sky-500 cursor-pointer h-1.5 bg-slate-800 rounded-lg" />
+          </div>
+
+          <!-- Atmospheric Rain Texture -->
+          <div class="p-3 rounded-xl bg-slate-900/60 border border-white/5">
+            <div class="flex justify-between text-xs font-mono mb-1">
+              <span class="text-slate-300">ORGANIC RAIN</span>
+              <span id="rainVal" class="text-sky-400">25%</span>
+            </div>
+            <input type="range" id="rainSlider" min="0" max="100" value="25" class="w-full accent-sky-500 cursor-pointer h-1.5 bg-slate-800 rounded-lg" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Focus Chronometer & Session Metrics -->
+      <div class="lg:col-span-5 glass-panel rounded-3xl p-6 flex flex-col justify-between">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h2 class="text-xl font-semibold text-white">Deep Work Sprint</h2>
+            <p class="text-sm text-slate-400">Bi-phasic focus cycles</p>
+          </div>
+          <span id="phaseBadge" class="text-xs font-mono uppercase px-3 py-1 rounded-full bg-sky-500/20 text-sky-400 border border-sky-500/30">FOCUS PERIOD</span>
+        </div>
+
+        <!-- Big Digital Timer -->
+        <div class="text-center py-6 my-auto">
+          <div id="timerDisplay" class="font-mono text-6xl md:text-7xl font-bold tracking-tight text-white drop-shadow-md">
+            25:00
+          </div>
+          <p id="sessionCount" class="text-xs font-mono text-slate-400 mt-2">Session 1 of 4 Completed Today</p>
+        </div>
+
+        <!-- Timer Controls -->
+        <div class="space-y-3">
+          <div class="flex gap-2">
+            <button id="startTimerBtn" class="flex-1 py-3 rounded-xl bg-slate-100 hover:bg-white text-slate-950 font-semibold text-sm transition-all shadow-md">Start Cycle</button>
+            <button id="resetTimerBtn" class="px-4 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-medium transition-all">Reset</button>
+          </div>
+          <div class="grid grid-cols-3 gap-2">
+            <button onclick="setTimerDuration(25)" class="py-1.5 text-xs font-mono rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300 transition-colors">25m Focus</button>
+            <button onclick="setTimerDuration(50)" class="py-1.5 text-xs font-mono rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300 transition-colors">50m Deep</button>
+            <button onclick="setTimerDuration(5)" class="py-1.5 text-xs font-mono rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300 transition-colors">5m Rest</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Quick Flow Tasks / Intentions Matrix -->
+    <div class="glass-panel rounded-3xl p-6">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+        <div>
+          <h3 class="text-lg font-semibold text-white">Session Intentions Matrix</h3>
+          <p class="text-xs text-slate-400">Limit yourself to top vital deliverables to avoid cognitive overload.</p>
+        </div>
+        <div class="flex w-full sm:w-auto gap-2">
+          <input id="taskInput" type="text" placeholder="Add high-leverage target..." class="flex-1 sm:w-80 px-4 py-2 text-sm rounded-xl bg-slate-900 border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:border-sky-500 transition-colors" />
+          <button id="addTaskBtn" class="px-4 py-2 bg-sky-500 hover:bg-sky-400 text-white text-sm font-medium rounded-xl transition-all shadow-md">Add</button>
+        </div>
+      </div>
+      
+      <div id="taskList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+        <!-- Dynamic tasks will be inserted here -->
+      </div>
+    </div>
+  </main>
+
+  <!-- CAUSE-DRIVEN CHARITY SECTION -->
+  <footer class="relative z-10 border-t border-white/10 bg-slate-950/90 py-10 px-4 md:px-8 mt-12">
+    <div class="max-w-4xl mx-auto rounded-3xl glass-panel p-6 sm:p-8 border border-sky-500/20 relative overflow-hidden">
+      <!-- Light highlight background -->
+      <div class="absolute -right-20 -bottom-20 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+      <div class="flex flex-col md:flex-row items-center gap-8">
+        <!-- QR Code Display -->
+        <div class="flex flex-col items-center flex-shrink-0">
+          <div class="p-3 rounded-2xl bg-white shadow-2xl border-4 border-slate-900">
+            <img 
+              src="https://api.qrserver.com/v1/create-qr-code/?data=upi://pay?pa=donation1@postbank&pn=YUGRAAL_Cause" 
+              alt="UPI Donation QR"
+              class="w-36 h-36 object-contain rounded-lg"
+              loading="lazy"
+            />
+          </div>
+          <span class="text-[11px] font-mono text-emerald-400 mt-2 font-medium flex items-center gap-1">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            Verified UPI QR
+          </span>
+        </div>
+
+        <!-- Mission Details -->
+        <div class="flex-1 text-center md:text-left space-y-3">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/25 text-xs font-semibold uppercase tracking-wider">
+            Humanitarian Impact Initiative
+          </div>
+          <h3 class="text-xl sm:text-2xl font-bold text-white tracking-tight">
+            Support Patient Care & Childhood Education
+          </h3>
+          <p class="text-sm text-slate-300 leading-relaxed">
+            <span class="font-semibold text-emerald-400">95% of all contributions go directly towards Cancer Patient Support & School Education Initiatives</span> (5% retained for server maintenance).
+          </p>
+          
+          <!-- Payment Credentials Details -->
+          <div class="pt-2 flex flex-wrap items-center justify-center md:justify-start gap-4 text-xs font-mono text-slate-300">
+            <div class="px-3 py-2 rounded-xl bg-slate-900/80 border border-white/5">
+              <span class="text-slate-400">Beneficiary:</span> <span class="font-semibold text-white">ASKAR ALI</span>
+            </div>
+            <div class="px-3 py-2 rounded-xl bg-slate-900/80 border border-white/5 flex items-center gap-2">
+              <span class="text-slate-400">UPI:</span> <span class="font-semibold text-sky-400">donation1@postbank</span>
+              <button id="copyUpiBtn" class="ml-1 p-1 hover:text-white transition-colors" title="Copy UPI ID">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <div id="copyFeedback" class="text-xs text-emerald-400 font-mono hidden pt-1">
+            Copied UPI ID to clipboard successfully!
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="text-center text-xs text-slate-400 mt-6 font-mono">
+      Built with reverence by YUGRAAL Co-Creator. Zero tracking, zero commercial ads.
+    </div>
+  </footer>
+
+  <!-- Application Logic -->
+  <script>
+    // Audio Context & Nodes
+    let audioCtx = null;
+    let isAudioPlaying = false;
+    let masterGain, leftOsc, rightOsc, noiseNode, noiseGain, rainNode, rainGain;
+    let analyser, animId;
+
+    const toggleAudioBtn = document.getElementById('toggleAudioBtn');
+    const audioBtnText = document.getElementById('audioBtnText');
+    const canvasOverlay = document.getElementById('canvasOverlay');
+    const canvas = document.getElementById('audioCanvas');
+    const canvasCtx = canvas.getContext('2d');
+
+    function initAudio() {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      audioCtx = new AudioContext();
+
+      masterGain = audioCtx.createGain();
+      masterGain.gain.setValueAtTime(0.5, audioCtx.currentTime);
+
+      analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 64;
+
+      // Setup Binaural Nodes
+      const baseFreq = 216; // Harmonic A
+      const preset = document.getElementById('binauralPreset').value;
+      const diff = getPresetDiff(preset);
+
+      // Left ear
+      leftOsc = audioCtx.createOscillator();
+      leftOsc.frequency.setValueAtTime(baseFreq, audioCtx.currentTime);
+      const leftPan = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : null;
+      if(leftPan) leftPan.pan.value = -1;
+
+      // Right ear
+      rightOsc = audioCtx.createOscillator();
+      rightOsc.frequency.setValueAtTime(baseFreq + diff, audioCtx.currentTime);
+      const rightPan = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : null;
+      if(rightPan) rightPan.pan.value = 1;
+
+      const oscGain = audioCtx.createGain();
+      oscGain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+
+      if(leftPan && rightPan) {
+        leftOsc.connect(leftPan).connect(oscGain);
+        rightOsc.connect(rightPan).connect(oscGain);
+      } else {
+        leftOsc.connect(oscGain);
+        rightOsc.connect(oscGain);
+      }
+
+      // Setup Procedural Pink Noise
+      const bufferSize = audioCtx.sampleRate * 2;
+      const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const output = noiseBuffer.getChannelData(0);
+      let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+      for (let i = 0; i < bufferSize; i++) {
+        const white = Math.random() * 2 - 1;
+        b0 = 0.99886 * b0 + white * 0.0555179;
+        b1 = 0.99332 * b1 + white * 0.0750759;
+        b2 = 0.96900 * b2 + white * 0.1538520;
+        b3 = 0.86650 * b3 + white * 0.3104856;
+        b4 = 0.55000 * b4 + white * 0.5329522;
+        b5 = -0.7616 * b5 - white * 0.0168980;
+        output[i] = b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362;
+        output[i] *= 0.11; 
+        b6 = white * 0.115926;
+      }
+
+      noiseNode = audioCtx.createBufferSource();
+      noiseNode.buffer = noiseBuffer;
+      noiseNode.loop = true;
+      noiseGain = audioCtx.createGain();
+      const pinkVal = document.getElementById('pinkNoiseSlider').value / 100;
+      noiseGain.gain.setValueAtTime(pinkVal * 0.25, audioCtx.currentTime);
+      noiseNode.connect(noiseGain);
+
+      // Rain (Filtered noise simulation)
+      const rainFilter = audioCtx.createBiquadFilter();
+      rainFilter.type = 'lowpass';
+      rainFilter.frequency.value = 1200;
+      rainGain = audioCtx.createGain();
+      const rainVal = document.getElementById('rainSlider').value / 100;
+      rainGain.gain.setValueAtTime(rainVal * 0.3, audioCtx.currentTime);
+      noiseNode.connect(rainFilter).connect(rainGain);
+
+      // Route all to master and analyzer
+      oscGain.connect(masterGain);
+      noiseGain.connect(masterGain);
+      rainGain.connect(masterGain);
+      masterGain.connect(analyser);
+      analyser.connect(audioCtx.destination);
+
+      leftOsc.start();
+      rightOsc.start();
+      noiseNode.start();
+    }
+
+    function getPresetDiff(preset) {
+      switch(preset) {
+        case 'alpha': return 10;
+        case 'theta': return 6;
+        case 'gamma': return 40;
+        case 'delta': return 2;
+        default: return 10;
+      }
+    }
+
+    toggleAudioBtn.addEventListener('click', async () => {
+      if (!audioCtx) {
+        initAudio();
+      }
+      if (audioCtx.state === 'suspended') {
+        await audioCtx.resume();
+      }
+
+      if (!isAudioPlaying) {
+        masterGain.gain.setTargetAtTime(0.5, audioCtx.currentTime, 0.1);
+        isAudioPlaying = true;
+        audioBtnText.textContent = 'Mute Soundscape';
+        canvasOverlay.style.display = 'none';
+        drawVisualizer();
+      } else {
+        masterGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.1);
+        isAudioPlaying = false;
+        audioBtnText.textContent = 'Engage Soundscape';
+        canvasOverlay.style.display = 'block';
+        cancelAnimationFrame(animId);
+      }
+    });
+
+    // Preset changes
+    document.getElementById('binauralPreset').addEventListener('change', (e) => {
+      if (!audioCtx || !rightOsc) return;
+      const diff = getPresetDiff(e.target.value);
+      rightOsc.frequency.setValueAtTime(216 + diff, audioCtx.currentTime);
+    });
+
+    // Slider handlers
+    document.getElementById('pinkNoiseSlider').addEventListener('input', (e) => {
+      const v = e.target.value;
+      document.getElementById('pinkNoiseVal').textContent = v + '%';
+      if (noiseGain && audioCtx) {
+        noiseGain.gain.setTargetAtTime((v / 100) * 0.25, audioCtx.currentTime, 0.05);
+      }
+    });
+
+    document.getElementById('rainSlider').addEventListener('input', (e) => {
+      const v = e.target.value;
+      document.getElementById('rainVal').textContent = v + '%';
+      if (rainGain && audioCtx) {
+        rainGain.gain.setTargetAtTime((v / 100) * 0.3, audioCtx.currentTime, 0.05);
+      }
+    });
+
+    // Visualizer Loop
+    function resizeCanvas() {
+      canvas.width = canvas.parentElement.clientWidth;
+      canvas.height = canvas.parentElement.clientHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function drawVisualizer() {
+      if (!isAudioPlaying) return;
+      animId = requestAnimationFrame(drawVisualizer);
+
+      const bufferLength = analyser.frequencyBinCount;
+      const dataArray = new Uint8Array(bufferLength);
+      analyser.getByteFrequencyData(dataArray);
+
+      canvasCtx.fillStyle = 'rgba(3, 7, 18, 0.25)';
+      canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const barWidth = (canvas.width / bufferLength) * 2;
+      let x = 0;
+
+      for (let i = 0; i < bufferLength; i++) {
+        const barHeight = (dataArray[i] / 255) * canvas.height * 0.85;
+        const grad = canvasCtx.createLinearGradient(0, canvas.height, 0, 0);
+        grad.addColorStop(0, '#0284c7');
+        grad.addColorStop(1, '#38bdf8');
+
+        canvasCtx.fillStyle = grad;
+        canvasCtx.fillRect(x, canvas.height - barHeight, barWidth - 2, barHeight);
+        x += barWidth + 1;
+      }
+    }
+
+    // Timer Functionality
+    let timeLeft = 25 * 60;
+    let timerInterval = null;
+    let isRunning = false;
+    let currentPhase = 'focus';
+
+    const timerDisplay = document.getElementById('timerDisplay');
+    const startTimerBtn = document.getElementById('startTimerBtn');
+    const resetTimerBtn = document.getElementById('resetTimerBtn');
+
+    function updateDisplay() {
+      const m = Math.floor(timeLeft / 60);
+      const s = timeLeft % 60;
+      timerDisplay.textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    }
+
+    function setTimerDuration(minutes) {
+      clearInterval(timerInterval);
+      isRunning = false;
+      startTimerBtn.textContent = 'Start Cycle';
+      startTimerBtn.classList.remove('bg-amber-400');
+      timeLeft = minutes * 60;
+      updateDisplay();
+    }
+
+    startTimerBtn.addEventListener('click', () => {
+      if (isRunning) {
+        clearInterval(timerInterval);
+        isRunning = false;
+        startTimerBtn.textContent = 'Resume Cycle';
+      } else {
+        isRunning = true;
+        startTimerBtn.textContent = 'Pause';
+        timerInterval = setInterval(() => {
+          if (timeLeft > 0) {
+            timeLeft--;
+            updateDisplay();
+          } else {
+            clearInterval(timerInterval);
+            isRunning = false;
+            startTimerBtn.textContent = 'Start Next Phase';
+            alert('Sprint cycle completed. Take a restorative breath.');
+          }
+        }, 1000);
+      }
+    });
+
+    resetTimerBtn.addEventListener('click', () => {
+      clearInterval(timerInterval);
+      isRunning = false;
+      startTimerBtn.textContent = 'Start Cycle';
+      timeLeft = 25 * 60;
+      updateDisplay();
+    });
+
+    // Task Matrix
+    const taskInput = document.getElementById('taskInput');
+    const addTaskBtn = document.getElementById('addTaskBtn');
+    const taskList = document.getElementById('taskList');
+
+    const defaultTasks = [
+      'Formulate architectural schema for app',
+      'Clear inbox zero & verify donation ledger',
+      '30-min concentrated deep code refactor'
+    ];
+
+    function renderTask(text) {
+      const card = document.createElement('div');
+      card.className = 'flex items-center justify-between p-3.5 rounded-2xl bg-slate-900/60 border border-white/5 group hover:border-sky-500/30 transition-all';
+      card.innerHTML = `
+        <div class="flex items-center space-x-3 overflow-hidden">
+          <button class="task-check w-4 h-4 rounded border border-slate-600 hover:border-sky-400 flex items-center justify-center">
+            <svg class="w-3 h-3 text-transparent group-hover:text-sky-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+          </button>
+          <span class="task-label text-sm text-slate-300 truncate">${text}</span>
+        </div>
+        <button class="task-del text-slate-600 hover:text-red-400 transition-colors p-1 text-xs">✕</button>
+      `;
+
+      const checkBtn = card.querySelector('.task-check');
+      const label = card.querySelector('.task-label');
+      const delBtn = card.querySelector('.task-del');
+
+      checkBtn.addEventListener('click', () => {
+        label.classList.toggle('line-through');
+        label.classList.toggle('text-slate-600');
+        checkBtn.classList.toggle('bg-sky-500');
+        checkBtn.classList.toggle('border-sky-500');
+      });
+
+      delBtn.addEventListener('click', () => card.remove());
+
+      taskList.appendChild(card);
+    }
+
+    defaultTasks.forEach(renderTask);
+
+    addTaskBtn.addEventListener('click', () => {
+      const val = taskInput.value.trim();
+      if (val) {
+        renderTask(val);
+        taskInput.value = '';
+      }
+    });
+
+    taskInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') addTaskBtn.click();
+    });
+
+    // Copy UPI ID function
+    const copyUpiBtn = document.getElementById('copyUpiBtn');
+    const copyFeedback = document.getElementById('copyFeedback');
+    copyUpiBtn.addEventListener('click', () => {
+      navigator.clipboard.writeText('donation1@postbank').then(() => {
+        copyFeedback.classList.remove('hidden');
+        setTimeout(() => copyFeedback.classList.add('hidden'), 3500);
+      });
+    });
+  </script>
+</body>
+</html>
