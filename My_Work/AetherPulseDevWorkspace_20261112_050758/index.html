@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AetherPulse DevWorkspace | Elite Web Utility</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darkbg: '#0a0d14',
+                        glass: 'rgba(18, 24, 38, 0.7)',
+                        glassborder: 'rgba(255, 255, 255, 0.08)',
+                        accent: '#38bdf8',
+                        accenthover: '#0ea5e9'
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+    </style>
+</head>
+<body class="bg-darkbg text-slate-100 min-h-screen flex flex-col font-sans selection:bg-sky-500 selection:text-white">
+
+    <!-- Header / Navigation -->
+    <header class="w-full border-b border-white/5 glass-panel sticky top-0 z-50 px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+            <div class="h-10 w-10 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-sky-500/20">
+                <i class="fa-solid fa-bolt text-white text-lg"></i>
+            </div>
+            <div>
+                <h1 class="font-bold text-lg tracking-wider bg-gradient-to-r from-white via-slate-200 to-sky-400 bg-clip-text text-transparent">AetherPulse</h1>
+                <p class="text-xs text-slate-400">Elite Developer & Productivity Suite</p>
+            </div>
+        </div>
+
+        <!-- Quick Stats / Status -->
+        <div class="hidden md:flex items-center space-x-6 text-xs text-slate-400">
+            <div class="flex items-center space-x-2">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>Engine Online</span>
+            </div>
+            <div id="current-time" class="font-mono font-medium text-slate-300">00:00:00</div>
+        </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="flex-grow p-4 md:p-6 max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-4 gap-6">
+        
+        <!-- Sidebar Navigation / Tools -->
+        <div class="lg:col-span-1 space-y-3">
+            <div class="glass-panel rounded-2xl p-4 shadow-xl">
+                <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3 px-2">Workspaces</h3>
+                <nav class="space-y-1">
+                    <button onclick="switchTab('scratchpad')" id="btn-scratchpad" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-medium transition-all bg-sky-500/15 text-sky-400 border border-sky-500/30">
+                        <i class="fa-solid fa-code w-5"></i>
+                        <span>Live Scratchpad</span>
+                    </button>
+                    <button onclick="switchTab('jsonformatter')" id="btn-jsonformatter" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-medium transition-all text-slate-400 hover:bg-white/5 hover:text-slate-200">
+                        <i class="fa-solid fa-brackets-curly w-5"></i>
+                        <span>JSON Inspector</span>
+                    </button>
+                    <button onclick="switchTab('regexTester')" id="btn-regexTester" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-medium transition-all text-slate-400 hover:bg-white/5 hover:text-slate-200">
+                        <i class="fa-solid fa-magnifying-glass-chart w-5"></i>
+                        <span>Regex Workbench</span>
+                    </button>
+                    <button onclick="switchTab('timer')" id="btn-timer" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-medium transition-all text-slate-400 hover:bg-white/5 hover:text-slate-200">
+                        <i class="fa-solid fa-stopwatch w-5"></i>
+                        <span>Focus Timer</span>
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Quick Storage Info -->
+            <div class="glass-panel rounded-2xl p-4 shadow-xl text-xs space-y-2 text-slate-400">
+                <div class="flex justify-between font-medium text-slate-300">
+                    <span>Local Storage</span>
+                    <span id="storage-status">Active</span>
+                </div>
+                <p class="text-[11px] text-slate-500">All your active scratchpads & JSON snippets are safely auto-saved in your browser session.</p>
+            </div>
+        </div>
+
+        <!-- Content Panels Area -->
+        <div class="lg:col-span-3">
+            
+            <!-- TAB 1: SCRATCHPAD -->
+            <div id="tab-scratchpad" class="space-y-4">
+                <div class="glass-panel rounded-2xl p-5 shadow-2xl flex flex-col h-[600px]">
+                    <div class="flex items-center justify-between pb-4 border-b border-white/5 mb-4">
+                        <div class="flex items-center space-x-2">
+                            <i class="fa-solid fa-file-code text-sky-400"></i>
+                            <h2 class="font-semibold text-sm text-slate-200">HTML / JS / CSS Live Sandbox</h2>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="runSandbox()" class="px-4 py-1.5 bg-sky-500 hover:bg-sky-400 text-white rounded-lg text-xs font-semibold shadow-lg shadow-sky-500/20 transition flex items-center space-x-1.5">
+                                <i class="fa-solid fa-play text-[10px]"></i>
+                                <span>Run Preview</span>
+                            </button>
+                            <button onclick="clearSandbox()" class="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-slate-300 rounded-lg text-xs transition">
+                                Clear
+                            </button>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 flex-grow">
+                        <div class="flex flex-col h-full">
+                            <label class="text-xs text-slate-400 mb-1.5 font-medium">Source Code (HTML/CSS/JS)</label>
+                            <textarea id="sandbox-input" class="flex-grow w-full bg-black/40 border border-white/10 rounded-xl p-3 font-mono text-xs text-slate-200 focus:outline-none focus:border-sky-500/50 resize-none custom-scrollbar">&lt;div style="font-family:sans-serif; text-align:center; padding-top:40px; color:#fff;"&gt;
+  &lt;h2 style="color:#38bdf8; font-size:24px;"&gt;Hello AetherPulse!&lt;/h2&gt;
+  &lt;p&gt;Edit code on the left and hit Run Preview.&lt;/p&gt;
+  &lt;button onclick="alert('Interactive JS works!')" style="background:#38bdf8; border:none; padding:10px 20px; border-radius:8px; color:white; font-weight:bold; cursor:pointer; margin-top:15px;"&gt;Click Me&lt;/button&gt;
+&lt;/div&gt;</textarea>
+                        </div>
+                        <div class="flex flex-col h-full">
+                            <label class="text-xs text-slate-400 mb-1.5 font-medium">Live Output Preview</label>
+                            <iframe id="sandbox-preview" class="flex-grow w-full bg-slate-950/80 border border-white/10 rounded-xl"></iframe>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: JSON FORMATTER -->
+            <div id="tab-jsonformatter" class="hidden space-y-4">
+                <div class="glass-panel rounded-2xl p-5 shadow-2xl flex flex-col h-[600px]">
+                    <div class="flex items-center justify-between pb-4 border-b border-white/5 mb-4">
+                        <div class="flex items-center space-x-2">
+                            <i class="fa-solid fa-brackets-curly text-sky-400"></i>
+                            <h2 class="font-semibold text-sm text-slate-200">JSON Formatter & Validator</h2>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="formatJson()" class="px-4 py-1.5 bg-sky-500 hover:bg-sky-400 text-white rounded-lg text-xs font-semibold transition">
+                                Beautify / Validate
+                            </button>
+                            <button onclick="minifyJson()" class="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-slate-300 rounded-lg text-xs transition">
+                                Minify
+                            </button>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 flex-grow">
+                        <div class="flex flex-col h-full">
+                            <label class="text-xs text-slate-400 mb-1.5 font-medium">Raw JSON Input</label>
+                            <textarea id="json-input" class="flex-grow w-full bg-black/40 border border-white/10 rounded-xl p-3 font-mono text-xs text-slate-200 focus:outline-none focus:border-sky-500/50 resize-none custom-scrollbar" placeholder="Paste raw JSON here...">{"app":"AetherPulse","version":1.0,"active":true,"features":["Scratchpad","JSON Parser","Regex","Timer"]}</textarea>
+                        </div>
+                        <div class="flex flex-col h-full">
+                            <label class="text-xs text-slate-400 mb-1.5 font-medium">Formatted Output / Status</label>
+                            <pre id="json-output" class="flex-grow w-full bg-black/40 border border-white/10 rounded-xl p-3 font-mono text-xs text-emerald-400 overflow-auto custom-scrollbar"></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: REGEX TESTER -->
+            <div id="tab-regexTester" class="hidden space-y-4">
+                <div class="glass-panel rounded-2xl p-5 shadow-2xl flex flex-col h-[600px]">
+                    <div class="flex items-center justify-between pb-4 border-b border-white/5 mb-4">
+                        <div class="flex items-center space-x-2">
+                            <i class="fa-solid fa-magnifying-glass-chart text-sky-400"></i>
+                            <h2 class="font-semibold text-sm text-slate-200">Regex Pattern Workbench</h2>
+                        </div>
+                    </div>
+                    <div class="space-y-4 flex-grow flex flex-col">
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                            <div class="md:col-span-3">
+                                <label class="text-xs text-slate-400 mb-1 font-medium block">Regular Expression</label>
+                                <input type="text" id="regex-pattern" class="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 font-mono text-xs text-slate-200 focus:outline-none focus:border-sky-500/50" value="[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}" placeholder="e.g. \d+">
+                            </div>
+                            <div>
+                                <label class="text-xs text-slate-400 mb-1 font-medium block">Flags</label>
+                                <input type="text" id="regex-flags" class="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 font-mono text-xs text-slate-200 focus:outline-none focus:border-sky-500/50" value="g">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 flex-grow">
+                            <div class="flex flex-col">
+                                <label class="text-xs text-slate-400 mb-1.5 font-medium">Test String</label>
+                                <textarea id="regex-teststr" class="flex-grow w-full bg-black/40 border border-white/10 rounded-xl p-3 font-mono text-xs text-slate-200 focus:outline-none focus:border-sky-500/50 resize-none custom-scrollbar">Reach out to us at support@aetherpulse.dev or test@example.com for inquiries.</textarea>
+                            </div>
+                            <div class="flex flex-col">
+                                <label class="text-xs text-slate-400 mb-1.5 font-medium">Match Results</label>
+                                <div id="regex-results" class="flex-grow w-full bg-black/40 border border-white/10 rounded-xl p-3 font-mono text-xs text-sky-300 overflow-auto custom-scrollbar"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 4: FOCUS TIMER -->
+            <div id="tab-timer" class="hidden space-y-4">
+                <div class="glass-panel rounded-2xl p-8 shadow-2xl flex flex-col items-center justify-center h-[600px] text-center">
+                    <div class="h-16 w-16 rounded-2xl bg-sky-500/15 border border-sky-500/30 flex items-center justify-center text-sky-400 mb-6 shadow-xl shadow-sky-500/10">
+                        <i class="fa-solid fa-stopwatch text-2xl"></i>
+                    </div>
+                    <h2 class="text-xl font-bold text-slate-100 mb-2">Pomodoro & Focus Session</h2>
+                    <p class="text-xs text-slate-400 mb-8 max-w-sm">Boost your engineering productivity with structured focus intervals.</p>
+                    
+                    <div id="timer-display" class="text-6xl md:text-7xl font-mono font-bold tracking-wider text-slate-100 mb-8">
+                        25:00
+                    </div>
+
+                    <div class="flex items-center space-x-4">
+                        <button onclick="startTimer()" id="timer-start-btn" class="px-6 py-3 bg-sky-500 hover:bg-sky-400 text-white rounded-xl text-sm font-semibold shadow-lg shadow-sky-500/20 transition">
+                            Start Focus
+                        </button>
+                        <button onclick="pauseTimer()" class="px-6 py-3 bg-white/5 hover:bg-white/10 text-slate-300 rounded-xl text-sm font-semibold transition">
+                            Pause
+                        </button>
+                        <button onclick="resetTimer()" class="px-6 py-3 bg-white/5 hover:bg-white/10 text-slate-300 rounded-xl text-sm font-semibold transition">
+                            Reset
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- CAUSE-DRIVEN CHARITY & SUPPORT BANNER -->
+    <footer class="w-full border-t border-white/5 bg-black/40 mt-12 py-8 px-6">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+            <div class="flex items-start space-x-4 max-w-xl">
+                <div class="h-12 w-12 rounded-2xl bg-rose-500/15 border border-rose-500/30 flex-shrink-0 flex items-center justify-center text-rose-400 shadow-lg shadow-rose-500/10">
+                    <i class="fa-solid fa-heart-pulse text-lg"></i>
+                </div>
+                <div>
+                    <h4 class="text-sm font-semibold text-slate-200 mb-1 flex items-center space-x-2">
+                        <span>Philanthropy & Social Impact Initiative</span>
+                    </h4>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        95% of all contributions go directly towards Cancer Patient Support & School Education Initiatives (5% retained for server maintenance).
+                    </p>
+                    <div class="mt-2 flex items-center space-x-3 text-xs">
+                        <span class="text-slate-300 font-medium">Receiver: <strong class="text-sky-400">ASKAR ALI</strong></span>
+                        <span class="text-slate-600">|</span>
+                        <span class="text-slate-300 font-medium">UPI ID: <strong id="upi-id-text" class="text-emerald-400 font-mono">donation1@postbank</strong></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interactive UPI Donation Box -->
+            <div class="flex items-center space-x-4 bg-slate-900/80 border border-white/10 p-4 rounded-2xl shadow-xl">
+                <div class="text-center">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?data=upi://pay?pa=donation1@postbank&pn=YUGRAAL_Cause" alt="UPI QR Code" class="w-20 h-20 rounded-lg bg-white p-1 shadow-md mb-2">
+                    <span class="text-[10px] text-slate-400 block">Scan to Donate</span>
+                </div>
+                <div class="flex flex-col space-y-2">
+                    <button onclick="copyUpiId()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold shadow-lg shadow-emerald-600/20 transition flex items-center space-x-2">
+                        <i class="fa-solid fa-copy"></i>
+                        <span id="copy-btn-text">Copy UPI ID</span>
+                    </button>
+                    <a href="upi://pay?pa=donation1@postbank&pn=YUGRAAL_Cause" class="px-4 py-2 bg-white/5 hover:bg-white/10 text-slate-300 rounded-xl text-xs text-center font-medium transition">
+                        Pay via UPI App
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // Live Clock in Header
+        setInterval(() => {
+            const now = new Date();
+            document.getElementById('current-time').innerText = now.toTimeString().split(' ')[0];
+        }, 1000);
+
+        // Tab Switching Logic
+        function switchTab(tabId) {
+            const tabs = ['scratchpad', 'jsonformatter', 'regexTester', 'timer'];
+            tabs.forEach(t => {
+                document.getElementById('tab-' + t).classList.add('hidden');
+                const btn = document.getElementById('btn-' + t);
+                btn.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-medium transition-all text-slate-400 hover:bg-white/5 hover:text-slate-200";
+            });
+            document.getElementById('tab-' + tabId).classList.remove('hidden');
+            const activeBtn = document.getElementById('btn-' + tabId);
+            activeBtn.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-medium transition-all bg-sky-500/15 text-sky-400 border border-sky-500/30";
+            
+            if (tabId === 'scratchpad') runSandbox();
+            if (tabId === 'jsonformatter') formatJson();
+            if (tabId === 'regexTester') runRegex();
+        }
+
+        // Sandbox Runner
+        function runSandbox() {
+            const code = document.getElementById('sandbox-input').value;
+            const iframe = document.getElementById('sandbox-preview');
+            iframe.srcdoc = code;
+        }
+
+        function clearSandbox() {
+            document.getElementById('sandbox-input').value = '';
+            runSandbox();
+        }
+
+        // JSON Formatter
+        function formatJson() {
+            const input = document.getElementById('json-input').value;
+            const output = document.getElementById('json-output');
+            try {
+                const parsed = JSON.parse(input);
+                output.innerText = JSON.stringify(parsed, null, 4);
+                output.className = "flex-grow w-full bg-black/40 border border-white/10 rounded-xl p-3 font-mono text-xs text-emerald-400 overflow-auto custom-scrollbar";
+            } catch (e) {
+                output.innerText = "Error: " + e.message;
+                output.className = "flex-grow w-full bg-black/40 border border-white/10 rounded-xl p-3 font-mono text-xs text-rose-400 overflow-auto custom-scrollbar";
+            }
+        }
+
+        function minifyJson() {
+            const input = document.getElementById('json-input').value;
+            const output = document.getElementById('json-output');
+            try {
+                const parsed = JSON.parse(input);
+                output.innerText = JSON.stringify(parsed);
+                output.className = "flex-grow w-full bg-black/40 border border-white/10 rounded-xl p-3 font-mono text-xs text-sky-400 overflow-auto custom-scrollbar";
+            } catch (e) {
+                output.innerText = "Error: " + e.message;
+                output.className = "flex-grow w-full bg-black/40 border border-white/10 rounded-xl p-3 font-mono text-xs text-rose-400 overflow-auto custom-scrollbar";
+            }
+        }
+
+        // Regex Workbench
+        function runRegex() {
+            const pattern = document.getElementById('regex-pattern').value;
+            const flags = document.getElementById('regex-flags').value;
+            const testStr = document.getElementById('regex-teststr').value;
+            const resultsDiv = document.getElementById('regex-results');
+
+            try {
+                const regex = new RegExp(pattern, flags);
+                const matches = [...testStr.matchAll(regex)];
+                if (matches.length > 0) {
+                    let resHtml = `<span class="text-emerald-400">Found ${matches.length} match(es):</span>\n\n`;
+                    matches.forEach((m, i) => {
+                        resHtml += `[${i}] "${m[0]}" at index ${m.index}\n`;
+                    });
+                    resultsDiv.innerHTML = resHtml;
+                } else {
+                    resultsDiv.innerHTML = '<span class="text-slate-500">No matches found.</span>';
+                }
+            } catch (e) {
+                resultsDiv.innerHTML = `<span class="text-rose-400">Invalid Regular Expression: ${e.message}</span>`;
+            }
+        }
+
+        document.getElementById('regex-pattern').addEventListener('input', runRegex);
+        document.getElementById('regex-flags').addEventListener('input', runRegex);
+        document.getElementById('regex-teststr').addEventListener('input', runRegex);
+
+        // Timer Logic
+        let timerInterval = null;
+        let timeLeft = 25 * 60;
+        let isRunning = false;
+
+        function updateTimerDisplay() {
+            const mins = Math.floor(timeLeft / 60);
+            const secs = timeLeft % 60;
+            document.getElementById('timer-display').innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function startTimer() {
+            if (isRunning) return;
+            isRunning = true;
+            timerInterval = setInterval(() => {
+                if (timeLeft > 0) {
+                    timeLeft--;
+                    updateTimerDisplay();
+                } else {
+                    clearInterval(timerInterval);
+                    isRunning = false;
+                    alert('Focus session completed!');
+                }
+            }, 1000);
+        }
+
+        function pauseTimer() {
+            clearInterval(timerInterval);
+            isRunning = false;
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            isRunning = false;
+            timeLeft = 25 * 60;
+            updateTimerDisplay();
+        }
+
+        // Copy UPI ID function
+        function copyUpiId() {
+            const upiId = 'donation1@postbank';
+            navigator.clipboard.writeText(upiId).then(() => {
+                const btnText = document.getElementById('copy-btn-text');
+                btnText.innerText = 'Copied!';
+                setTimeout(() => {
+                    btnText.innerText = 'Copy UPI ID';
+                }, 2000);
+            });
+        }
+
+        // Initial Run
+        window.onload = () => {
+            runSandbox();
+            runRegex();
+        };
+    </script>
+</body>
+</html>
