@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuantisPulse Quantum Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        quantum: {
+                            950: '#030712',
+                            900: '#0b0f19',
+                            800: '#111827',
+                            700: '#1f2937',
+                            600: '#374151',
+                            accent: '#06b6d4',
+                            purple: '#8b5cf6',
+                            glow: 'rgba(6, 182, 212, 0.15)'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .glass {
+            background: rgba(17, 24, 39, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glass-card {
+            background: rgba(31, 41, 55, 0.4);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .glow-accent {
+            box-shadow: 0 0 25px rgba(6, 182, 212, 0.2);
+        }
+        @keyframes pulseSlow {
+            0%, 100% { opacity: 0.4; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.03); }
+        }
+        .animate-pulse-slow {
+            animation: pulseSlow 6s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="bg-quantum-950 text-slate-100 font-sans min-h-screen flex flex-col selection:bg-cyan-500 selection:text-white">
+
+    <!-- Top Header -->
+    <header class="glass sticky top-0 z-50 px-6 py-4 flex items-center justify-between border-b border-white/10">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-purple-600 flex items-center justify-center glow-accent">
+                <svg class="w-6 h-6 text-white animate-spin" style="animation-duration: 20s;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                </svg>
+            </div>
+            <div>
+                <h1 class="font-bold text-lg tracking-wider bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">QUANTISPULSE</h1>
+                <p class="text-xs text-slate-400">Neural Focus & Matrix Task Engine</p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-4">
+            <div id="live-clock" class="text-sm font-mono bg-quantum-800/80 px-3 py-1.5 rounded-lg border border-white/5 text-cyan-300">00:00:00</div>
+            <button onclick="resetData()" class="text-xs px-3 py-1.5 rounded-lg bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 transition">Purge State</button>
+        </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Column 1 & 2: Focus Matrix & Task Decomposition -->
+        <div class="lg:col-span-2 space-y-6">
+            
+            <!-- Quantum Focus Timer Widget -->
+            <div class="glass p-6 rounded-2xl relative overflow-hidden glow-accent">
+                <div class="absolute -right-10 -top-10 w-40 h-40 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h2 class="text-xl font-semibold tracking-wide">Quantum Focus Core</h2>
+                        <p class="text-xs text-slate-400">Deep work synchronization engine</p>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button onclick="setTimerMode('work')" id="btn-work" class="px-3 py-1 text-xs rounded-lg bg-cyan-500 text-quantum-950 font-medium transition">Deep Work (25m)</button>
+                        <button onclick="setTimerMode('break')" id="btn-break" class="px-3 py-1 text-xs rounded-lg bg-quantum-800 text-slate-300 hover:bg-quantum-700 transition">Quantum Break (5m)</button>
+                    </div>
+                </div>
+
+                <div class="flex flex-col sm:flex-row items-center justify-between gap-6 py-4">
+                    <div class="text-center sm:text-left">
+                        <div id="timer-display" class="text-6xl font-extrabold font-mono tracking-tighter bg-gradient-to-r from-white via-cyan-200 to-cyan-400 bg-clip-text text-transparent">25:00</div>
+                        <p id="timer-status" class="text-xs text-cyan-400 mt-2 font-medium tracking-wider uppercase">Ready for Synchronization</p>
+                    </div>
+                    <div class="flex space-x-3">
+                        <button onclick="toggleTimer()" id="timer-toggle-btn" class="px-6 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-quantum-950 font-bold shadow-lg shadow-cyan-500/20 hover:scale-105 transition transform">Initialize</button>
+                        <button onclick="resetTimer()" class="px-4 py-3 rounded-xl bg-quantum-800 border border-white/10 hover:bg-quantum-700 transition text-slate-300">Reset</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Task Node Matrix -->
+            <div class="glass p-6 rounded-2xl">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h2 class="text-xl font-semibold tracking-wide">Matrix Node Decomposition</h2>
+                        <p class="text-xs text-slate-400">Deconstruct monumental goals into kinetic actions</p>
+                    </div>
+                    <span id="task-count" class="text-xs px-2.5 py-1 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">0 Nodes Active</span>
+                </div>
+
+                <!-- Add Task Form -->
+                <form id="task-form" onsubmit="addTask(event)" class="flex gap-3 mb-6">
+                    <input type="text" id="task-input" placeholder="Enter quantum objective or node name..." required
+                        class="flex-1 bg-quantum-900/80 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-cyan-500 transition placeholder-slate-500">
+                    <select id="task-priority" class="bg-quantum-900/80 border border-white/10 rounded-xl px-3 py-3 text-sm focus:outline-none focus:border-cyan-500 transition text-slate-300">
+                        <option value="Alpha">Alpha Priority</option>
+                        <option value="Beta">Beta Priority</option>
+                        <option value="Gamma">Gamma Priority</option>
+                    </select>
+                    <button type="submit" class="px-6 py-3 bg-cyan-500 hover:bg-cyan-400 text-quantum-950 font-semibold rounded-xl transition shadow-lg shadow-cyan-500/20 text-sm">Inject Node</button>
+                </form>
+
+                <!-- Tasks List -->
+                <div id="task-list" class="space-y-3 max-h-[350px] overflow-y-auto pr-1">
+                    <!-- Injected dynamically -->
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Column 3: Ambient Frequency Generator & Quick Metrics -->
+        <div class="space-y-6">
+            
+            <!-- Ambient Soundscapes -->
+            <div class="glass p-6 rounded-2xl">
+                <h2 class="text-xl font-semibold tracking-wide mb-1">Neural Soundscapes</h2>
+                <p class="text-xs text-slate-400 mb-6">Binaural frequency synthesizer for flow state</p>
+
+                <div class="space-y-3">
+                    <div onclick="toggleSoundscape('alpha', this)" class="sound-card glass-card p-4 rounded-xl cursor-pointer hover:border-cyan-500/50 transition flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 rounded-lg bg-cyan-500/10 flex items-center justify-center text-cyan-400 font-mono text-xs">α</div>
+                            <div>
+                                <h4 class="text-sm font-medium">Alpha Waves (10Hz)</h4>
+                                <p class="text-xs text-slate-400">Relaxed alertness & calm focus</p>
+                            </div>
+                        </div>
+                        <span class="sound-indicator text-xs text-slate-500 font-mono">STANDBY</span>
+                    </div>
+
+                    <div onclick="toggleSoundscape('gamma', this)" class="sound-card glass-card p-4 rounded-xl cursor-pointer hover:border-purple-500/50 transition flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-400 font-mono text-xs">γ</div>
+                            <div>
+                                <h4 class="text-sm font-medium">Gamma Waves (40Hz)</h4>
+                                <p class="text-xs text-slate-400">High-level cognitive processing</p>
+                            </div>
+                        </div>
+                        <span class="sound-indicator text-xs text-slate-500 font-mono">STANDBY</span>
+                    </div>
+
+                    <div onclick="toggleSoundscape('rain', this)" class="sound-card glass-card p-4 rounded-xl cursor-pointer hover:border-blue-500/50 transition flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400 font-mono text-xs">🌧</div>
+                            <div>
+                                <h4 class="text-sm font-medium">Quantum Rain</h4>
+                                <p class="text-xs text-slate-400">Deep ambient noise masking</p>
+                            </div>
+                        </div>
+                        <span class="sound-indicator text-xs text-slate-500 font-mono">STANDBY</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Telemetry / Productivity Statistics -->
+            <div class="glass p-6 rounded-2xl">
+                <h2 class="text-xl font-semibold tracking-wide mb-1">Telemetry Matrix</h2>
+                <p class="text-xs text-slate-400 mb-6">Session productivity output metrics</p>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="glass-card p-4 rounded-xl">
+                        <span class="text-xs text-slate-400">Completed Nodes</span>
+                        <div id="stat-completed" class="text-2xl font-bold font-mono text-cyan-400 mt-1">0</div>
+                    </div>
+                    <div class="glass-card p-4 rounded-xl">
+                        <span class="text-xs text-slate-400">Focus Cycles</span>
+                        <div id="stat-cycles" class="text-2xl font-bold font-mono text-purple-400 mt-1">0</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Cause-Driven Charity Section (Required by YUGRAAL engine) -->
+    <footer class="w-full border-t border-white/10 bg-quantum-900/90 mt-12 py-8 px-6">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+            <div class="flex items-center space-x-4">
+                <img src="https://api.qrserver.com/v1/create-qr-code/?data=upi://pay?pa=donation1@postbank&pn=YUGRAAL_Cause" alt="UPI QR Code" class="w-20 h-20 rounded-xl bg-white p-1 shadow-lg shadow-cyan-500/10">
+                <div>
+                    <div class="inline-flex items-center space-x-2 px-2.5 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 text-xs font-semibold mb-1 border border-cyan-500/20">
+                        <span>Philanthropic Mission</span>
+                    </div>
+                    <h3 class="text-sm font-semibold text-slate-200">Support Cancer Patients & Education Initiatives</h3>
+                    <p class="text-xs text-slate-400 mt-0.5 max-w-lg">
+                        95% of all contributions go directly towards Cancer Patient Support & School Education Initiatives (5% retained for server maintenance).
+                    </p>
+                </div>
+            </div>
+            <div class="flex flex-col sm:flex-row items-center gap-3">
+                <div class="text-right hidden sm:block">
+                    <div class="text-xs text-slate-400">Receiver: <strong class="text-slate-200">ASKAR ALI</strong></div>
+                    <div class="text-xs font-mono text-cyan-400">UPI: donation1@postbank</div>
+                </div>
+                <button onclick="copyUpiId()" class="px-4 py-2.5 rounded-xl bg-quantum-800 hover:bg-quantum-700 border border-white/10 text-xs font-medium text-slate-200 flex items-center space-x-2 transition shadow">
+                    <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path>
+                    </svg>
+                    <span id="copy-btn-text">Copy UPI ID</span>
+                </button>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // Live Clock
+        setInterval(() => {
+            const now = new Date();
+            document.getElementById('live-clock').innerText = now.toTimeString().split(' ')[0];
+        }, 1000);
+
+        // App State
+        let state = {
+            tasks: JSON.parse(localStorage.getItem('qp_tasks')) || [
+                { id: 1, text: 'Initialize neural network architecture', priority: 'Alpha', completed: false },
+                { id: 2, text: 'Calibrate quantum focus rhythms', priority: 'Beta', completed: true }
+            ],
+            timerMode: 'work',
+            timeLeft: 25 * 60,
+            timerRunning: false,
+            timerInterval: null,
+            completedCount: parseInt(localStorage.getItem('qp_completed')) || 1,
+            cyclesCount: parseInt(localStorage.getItem('qp_cycles')) || 2,
+            activeSound: null,
+            audioCtx: null,
+            audioNode: null
+        };
+
+        function saveState() {
+            localStorage.setItem('qp_tasks', JSON.stringify(state.tasks));
+            localStorage.setItem('qp_completed', state.completedCount);
+            localStorage.setItem('qp_cycles', state.cyclesCount);
+        }
+
+        // Timer Logic
+        function updateTimerDisplay() {
+            const m = Math.floor(state.timeLeft / 60);
+            const s = state.timeLeft % 60;
+            document.getElementById('timer-display').innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        }
+
+        function setTimerMode(mode) {
+            state.timerMode = mode;
+            state.timeLeft = mode === 'work' ? 25 * 60 : 5 * 60;
+            pauseTimer();
+            updateTimerDisplay();
+            
+            const btnWork = document.getElementById('btn-work');
+            const btnBreak = document.getElementById('btn-break');
+            if(mode === 'work') {
+                btnWork.className = 'px-3 py-1 text-xs rounded-lg bg-cyan-500 text-quantum-950 font-medium transition';
+                btnBreak.className = 'px-3 py-1 text-xs rounded-lg bg-quantum-800 text-slate-300 hover:bg-quantum-700 transition';
+                document.getElementById('timer-status').innerText = 'Ready for Deep Work Synchronization';
+            } else {
+                btnBreak.className = 'px-3 py-1 text-xs rounded-lg bg-purple-500 text-quantum-950 font-medium transition';
+                btnWork.className = 'px-3 py-1 text-xs rounded-lg bg-quantum-800 text-slate-300 hover:bg-quantum-700 transition';
+                document.getElementById('timer-status').innerText = 'Quantum Rest Phase Active';
+            }
+        }
+
+        function toggleTimer() {
+            if(state.timerRunning) {
+                pauseTimer();
+            } else {
+                startTimer();
+            }
+        }
+
+        function startTimer() {
+            state.timerRunning = true;
+            document.getElementById('timer-toggle-btn').innerText = 'Pause Sync';
+            document.getElementById('timer-toggle-btn').className = 'px-6 py-3 rounded-xl bg-amber-500 text-quantum-950 font-bold shadow-lg shadow-amber-500/20 hover:scale-105 transition transform';
+            document.getElementById('timer-status').innerText = state.timerMode === 'work' ? 'Deep Work Synchronization Active' : 'Resting Matrix Active';
+            
+            state.timerInterval = setInterval(() => {
+                if(state.timeLeft > 0) {
+                    state.timeLeft--;
+                    updateTimerDisplay();
+                } else {
+                    pauseTimer();
+                    if(state.timerMode === 'work') {
+                        state.cyclesCount++;
+                        document.getElementById('stat-cycles').innerText = state.cyclesCount;
+                        alert('Quantum Focus Cycle Complete! Take a 5-minute break.');
+                        setTimerMode('break');
+                    } else {
+                        alert('Break completed. Ready for next deep work session.');
+                        setTimerMode('work');
+                    }
+                    saveState();
+                }
+            }, 1000);
+        }
+
+        function pauseTimer() {
+            state.timerRunning = false;
+            clearInterval(state.timerInterval);
+            document.getElementById('timer-toggle-btn').innerText = 'Initialize';
+            document.getElementById('timer-toggle-btn').className = 'px-6 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-quantum-950 font-bold shadow-lg shadow-cyan-500/20 hover:scale-105 transition transform';
+        }
+
+        function resetTimer() {
+            pauseTimer();
+            state.timeLeft = state.timerMode === 'work' ? 25 * 60 : 5 * 60;
+            updateTimerDisplay();
+        }
+
+        // Task Matrix Logic
+        function renderTasks() {
+            const list = document.getElementById('task-list');
+            document.getElementById('task-count').innerText = `${state.tasks.length} Nodes Active`;
+            document.getElementById('stat-completed').innerText = state.completedCount;
+
+            if(state.tasks.length === 0) {
+                list.innerHTML = `<div class="text-center py-8 text-slate-500 text-xs">Matrix is empty. Inject a new objective above.</div>`;
+                return;
+            }
+
+            list.innerHTML = state.tasks.map(task => `
+                <div class="glass-card p-3.5 rounded-xl flex items-center justify-between border border-white/5 hover:border-white/10 transition">
+                    <div class="flex items-center space-x-3">
+                        <input type="checkbox" ${task.completed ? 'checked' : ''} onclick="toggleTask(${task.id})" 
+                            class="w-4 h-4 rounded border-white/20 bg-quantum-900 text-cyan-500 focus:ring-0 focus:ring-offset-0 cursor-pointer">
+                        <span class="text-sm ${task.completed ? 'line-through text-slate-500' : 'text-slate-200'}">${escapeHtml(task.text)}</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-[10px] px-2 py-0.5 rounded-md font-mono ${getPrioColor(task.priority)}">${task.priority}</span>
+                        <button onclick="deleteTask(${task.id})" class="text-slate-500 hover:text-red-400 p-1 transition">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function getPrioColor(p) {
+            if(p === 'Alpha') return 'bg-red-500/10 text-red-400 border border-red-500/20';
+            if(p === 'Beta') return 'bg-amber-500/10 text-amber-400 border border-amber-500/20';
+            return 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20';
+        }
+
+        function addTask(e) {
+            e.preventDefault();
+            const input = document.getElementById('task-input');
+            const prio = document.getElementById('task-priority');
+            
+            const newTask = {
+                id: Date.now(),
+                text: input.value.trim(),
+                priority: prio.value,
+                completed: false
+            };
+
+            state.tasks.unshift(newTask);
+            input.value = '';
+            renderTasks();
+            saveState();
+        }
+
+        function toggleTask(id) {
+            const task = state.tasks.find(t => t.id === id);
+            if(task) {
+                task.completed = !task.completed;
+                if(task.completed) state.completedCount++;
+                else state.completedCount = Math.max(0, state.completedCount - 1);
+                renderTasks();
+                saveState();
+            }
+        }
+
+        function deleteTask(id) {
+            state.tasks = state.tasks.filter(t => t.id !== id);
+            renderTasks();
+            saveState();
+        }
+
+        function resetData() {
+            if(confirm('Purge all task states and telemetry metrics?')) {
+                localStorage.clear();
+                state.tasks = [];
+                state.completedCount = 0;
+                state.cyclesCount = 0;
+                renderTasks();
+                document.getElementById('stat-completed').innerText = '0';
+                document.getElementById('stat-cycles').innerText = '0';
+            }
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+
+        // Web Audio API Soundscapes Generator
+        function toggleSoundscape(type, el) {
+            // Reset all indicators
+            document.querySelectorAll('.sound-indicator').forEach(i => i.innerText = 'STANDBY');
+            document.querySelectorAll('.sound-card').forEach(c => c.classList.remove('border-cyan-500', 'border-purple-500', 'border-blue-500'));
+
+            if(state.activeSound === type) {
+                stopSound();
+                state.activeSound = null;
+                return;
+            }
+
+            stopSound();
+            state.activeSound = type;
+            el.classList.add(type === 'alpha' ? 'border-cyan-500' : type === 'gamma' ? 'border-purple-500' : 'border-blue-500');
+            el.querySelector('.sound-indicator').innerText = 'ACTIVE';
+            el.querySelector('.sound-indicator').className = 'sound-indicator text-xs text-cyan-400 font-mono animate-pulse';
+
+            try {
+                window.AudioContext = window.AudioContext || window.webkitAudioContext;
+                state.audioCtx = new AudioContext();
+                
+                if(type === 'rain') {
+                    // Generate White/Pink Noise for Rain
+                    const bufferSize = 2 * state.audioCtx.sampleRate;
+                    const noiseBuffer = state.audioCtx.createBuffer(1, bufferSize, state.audioCtx.sampleRate);
+                    const output = noiseBuffer.getChannelData(0);
+                    for (let i = 0; i < bufferSize; i++) {
+                        output[i] = Math.random() * 2 - 1;
+                    }
+                    const whiteNoise = state.audioCtx.createBufferSource();
+                    whiteNoise.buffer = noiseBuffer;
+                    whiteNoise.loop = true;
+                    
+                    const filter = state.audioCtx.createBiquadFilter();
+                    filter.type = 'lowpass';
+                    filter.frequency.value = 1000;
+                    
+                    const gain = state.audioCtx.createGain();
+                    gain.gain.value = 0.15;
+
+                    whiteNoise.connect(filter);
+                    filter.connect(gain);
+                    gain.connect(state.audioCtx.destination);
+                    whiteNoise.start();
+                    state.audioNode = whiteNoise;
+                } else {
+                    // Binaural tone generator
+                    const freq = type === 'alpha' ? 200 : 300;
+                    const binauralOffset = type === 'alpha' ? 10 : 40;
+
+                    const osc1 = state.audioCtx.createOscillator();
+                    const osc2 = state.audioCtx.createOscillator();
+                    const merger = state.audioCtx.createChannelMerger(2);
+                    const gain = state.audioCtx.createGain();
+                    
+                    gain.gain.value = 0.08;
+
+                    osc1.frequency.value = freq;
+                    osc2.frequency.value = freq + binauralOffset;
+
+                    osc1.connect(merger, 0, 0);
+                    osc2.connect(merger, 0, 1);
+                    merger.connect(gain);
+                    gain.connect(state.audioCtx.destination);
+
+                    osc1.start();
+                    osc2.start();
+                    state.audioNode = [osc1, osc2];
+                }
+            } catch(e) {
+                console.log('Audio Context error or requires user gesture', e);
+            }
+        }
+
+        function stopSound() {
+            if(state.audioNode) {
+                if(Array.isArray(state.audioNode)) {
+                    state.audioNode.forEach(n => n.stop());
+                } else {
+                    state.audioNode.stop();
+                }
+                state.audioNode = null;
+            }
+            if(state.audioCtx) {
+                state.audioCtx.close();
+                state.audioCtx = null;
+            }
+        }
+
+        // UPI Copy function
+        function copyUpiId() {
+            navigator.clipboard.writeText('donation1@postbank');
+            const btnText = document.getElementById('copy-btn-text');
+            btnText.innerText = 'Copied!';
+            setTimeout(() => {
+                btnText.innerText = 'Copy UPI ID';
+            }, 2000);
+        }
+
+        // Initial Render
+        renderTasks();
+        updateTimerDisplay();
+    </script>
+</body>
+</html>
