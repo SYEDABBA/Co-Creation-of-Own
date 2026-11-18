@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AetherPulse AI | Focus & Flow Studio</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .glass { background: rgba(17, 24, 39, 0.7); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); }
+        .glass-card { background: rgba(31, 41, 55, 0.4); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        @keyframes pulseGlow { 0%, 100% { opacity: 0.4; transform: scale(1); } 50% { opacity: 0.8; transform: scale(1.03); } }
+        .animate-pulse-glow { animation: pulseGlow 8s ease-in-out infinite; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between selection:bg-cyan-500 selection:text-black relative overflow-x-hidden">
+
+    <!-- Background Gradients -->
+    <div class="absolute top-0 left-1/4 w-96 h-96 bg-cyan-600/10 rounded-full blur-3xl pointer-events-none animate-pulse-glow"></div>
+    <div class="absolute bottom-1/3 right-1/4 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl pointer-events-none animate-pulse-glow" style="animation-delay: 4s;"></div>
+
+    <!-- Header -->
+    <header class="glass sticky top-0 z-50 px-6 py-4 flex items-center justify-between border-b border-slate-800/60">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
+                <i class="fa-solid fa-wave-square text-white text-lg"></i>
+            </div>
+            <div>
+                <h1 class="font-bold text-lg tracking-tight bg-gradient-to-r from-white via-slate-200 to-cyan-400 bg-clip-text text-transparent">AetherPulse AI</h1>
+                <p class="text-xs text-slate-400">Cognitive Flow & Soundscape Generator</p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-4">
+            <div id="clock" class="hidden sm:block text-sm font-mono px-3 py-1.5 rounded-lg bg-slate-900/80 border border-slate-800 text-cyan-400">00:00:00</div>
+            <button onclick="toggleZenMode()" class="px-4 py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-xs font-medium transition border border-slate-700/50 flex items-center gap-2">
+                <i class="fa-solid fa-expand"></i> Zen Mode
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl w-full mx-auto px-4 sm:px-6 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8 flex-grow">
+        
+        <!-- Left Panel: Sound & Ambiance Studio -->
+        <section class="glass-card rounded-3xl p-6 flex flex-col justify-between shadow-2xl">
+            <div>
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="font-semibold text-base flex items-center gap-2"><i class="fa-solid fa-sliders text-cyan-400"></i> Neural Ambiance</h2>
+                    <span id="sound-status" class="text-xs px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Ready</span>
+                </div>
+
+                <div class="space-y-4">
+                    <!-- Audio Synthesizer Controls -->
+                    <div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80">
+                        <div class="flex justify-between text-sm mb-2">
+                            <span class="text-slate-300 font-medium"><i class="fa-solid fa-brain text-purple-400 mr-2"></i> Binaural Alpha Wave</span>
+                            <span id="freq-val" class="text-cyan-400 font-mono">10 Hz</span>
+                        </div>
+                        <input type="range" min="4" max="30" value="10" class="w-full accent-cyan-500 bg-slate-800 rounded-lg h-2 cursor-pointer" id="freqRange" oninput="updateFrequency(this.value)">
+                    </div>
+
+                    <div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80">
+                        <div class="flex justify-between text-sm mb-2">
+                            <span class="text-slate-300 font-medium"><i class="fa-solid fa-cloud-rain text-blue-400 mr-2"></i> Cosmic Pink Noise</span>
+                            <span id="noise-val" class="text-cyan-400 font-mono">40%</span>
+                        </div>
+                        <input type="range" min="0" max="100" value="40" class="w-full accent-cyan-500 bg-slate-800 rounded-lg h-2 cursor-pointer" id="noiseRange" oninput="updateNoise(this.value)">
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-8">
+                <button onclick="toggleAudioEngine()" id="audioToggleBtn" class="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-black font-bold tracking-wide transition shadow-lg shadow-cyan-500/25 flex items-center justify-center gap-3">
+                    <i class="fa-solid fa-play text-black" id="playIcon"></i> <span id="audioBtnText">Initialize Soundscape</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- Center Panel: Pomodoro & Focus Hub -->
+        <section class="glass-card rounded-3xl p-6 flex flex-col items-center justify-between shadow-2xl text-center">
+            <div class="w-full flex justify-between items-center">
+                <h2 class="font-semibold text-base text-left flex items-center gap-2"><i class="fa-solid fa-clock text-cyan-400"></i> Flow Timer</h2>
+                <div class="flex gap-1 bg-slate-900/80 p-1 rounded-xl border border-slate-800">
+                    <button onclick="setTimerMode('work', 25)" id="mode-work" class="px-3 py-1 rounded-lg text-xs font-semibold bg-cyan-500 text-black transition">Work</button>
+                    <button onclick="setTimerMode('break', 5)" id="mode-break" class="px-3 py-1 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition">Break</button>
+                </div>
+            </div>
+
+            <div class="my-8 relative">
+                <div class="w-48 h-48 rounded-full border-4 border-slate-800 flex items-center justify-center relative shadow-inner">
+                    <div id="timer-display" class="text-4xl font-extrabold font-mono tracking-wider text-white">25:00</div>
+                    <div class="absolute inset-0 rounded-full border-4 border-cyan-500 border-t-transparent animate-spin" style="animation-duration: 3s; display:none;" id="timer-loader"></div>
+                </div>
+            </div>
+
+            <div class="flex gap-3 w-full">
+                <button onclick="toggleTimer()" id="timerToggleBtn" class="flex-1 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 font-semibold text-sm transition border border-slate-700">Start Focus</button>
+                <button onclick="resetTimer()" class="px-4 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white font-semibold text-sm transition border border-slate-800"><i class="fa-solid fa-rotate-right"></i></button>
+            </div>
+        </section>
+
+        <!-- Right Panel: Micro-Task Kanban -->
+        <section class="glass-card rounded-3xl p-6 flex flex-col justify-between shadow-2xl">
+            <div>
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="font-semibold text-base flex items-center gap-2"><i class="fa-solid fa-list-check text-cyan-400"></i> Session Objectives</h2>
+                    <span class="text-xs text-slate-400" id="task-count">0 completed</span>
+                </div>
+
+                <div class="flex gap-2 mb-4">
+                    <input type="text" id="taskInput" placeholder="Add high-priority micro-goal..." class="flex-1 bg-slate-900/80 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500">
+                    <button onclick="addTask()" class="px-4 py-2.5 bg-cyan-500 hover:bg-cyan-400 text-black font-bold rounded-xl transition"><i class="fa-solid fa-plus"></i></button>
+                </div>
+
+                <div id="taskList" class="space-y-2.5 max-h-56 overflow-y-auto pr-1">
+                    <!-- Tasks populated dynamically -->
+                </div>
+            </div>
+
+            <div class="pt-4 border-t border-slate-800/60 text-center">
+                <p class="text-xs text-slate-400">AetherPulse AI v2.4 - Autonomous Neural Interface</p>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Cause-Driven Charity Section (Footer) -->
+    <footer class="w-full bg-slate-950 border-t border-slate-900 mt-12 py-8 px-4 sm:px-6">
+        <div class="max-w-5xl mx-auto glass-card rounded-3xl p-6 md:p-8 border border-cyan-500/20 shadow-2xl relative overflow-hidden">
+            <div class="absolute -right-10 -bottom-10 w-48 h-48 bg-cyan-500/5 rounded-full blur-2xl pointer-events-none"></div>
+            
+            <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+                <div class="space-y-3 text-center md:text-left">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 text-xs font-semibold">
+                        <i class="fa-solid fa-heart text-rose-500 animate-pulse"></i> Verified Philanthropy Initiative
+                    </div>
+                    <h3 class="text-lg font-bold text-white">Support Cancer Patients & Education</h3>
+                    <p class="text-xs text-slate-300 max-w-xl leading-relaxed">
+                        95% of all contributions go directly towards Cancer Patient Support & School Education Initiatives (5% retained for server maintenance).
+                    </p>
+                    <div class="text-xs font-mono text-cyan-400 bg-slate-900/80 inline-block px-3 py-1.5 rounded-lg border border-slate-800">
+                        Receiver: <span class="text-white font-bold">ASKAR ALI</span> | UPI ID: <span id="upiIdText" class="text-white font-bold">donation1@postbank</span>
+                    </div>
+                </div>
+
+                <div class="flex flex-col sm:flex-row items-center gap-4 bg-slate-900/60 p-4 rounded-2xl border border-slate-800">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?data=upi://pay?pa=donation1@postbank&pn=YUGRAAL_Cause" alt="UPI QR Code" class="w-24 h-24 rounded-xl bg-white p-1 shadow-md">
+                    <div class="flex flex-col gap-2 w-full">
+                        <button onclick="copyUpi()" id="copyUpiBtn" class="px-4 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-black font-bold text-xs transition flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20">
+                            <i class="fa-solid fa-copy"></i> Copy UPI ID
+                        </button>
+                        <span class="text-[10px] text-slate-400 text-center">Scan via any UPI App</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // Real-Time Clock
+        setInterval(() => {
+            const now = new Date();
+            document.getElementById('clock').innerText = now.toTimeString().split(' ')[0];
+        }, 1000);
+
+        // Audio Synthesizer Web Audio API Mock/Impl
+        let audioCtx = null;
+        let isPlaying = false;
+        let osc = null;
+        let gainNode = null;
+
+        function toggleAudioEngine() {
+            const btnText = document.getElementById('audioBtnText');
+            const status = document.getElementById('sound-status');
+            const playIcon = document.getElementById('playIcon');
+
+            if (!isPlaying) {
+                try {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    osc = audioCtx.createOscillator();
+                    gainNode = audioCtx.createGain();
+
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(220, audioCtx.currentTime); // Base tone
+                    gainNode.gain.setValueAtTime(0.05, audioCtx.currentTime);
+
+                    osc.connect(gainNode);
+                    gainNode.connect(audioCtx.destination);
+                    osc.start();
+
+                    isPlaying = true;
+                    btnText.innerText = "Halt Soundscape";
+                    status.innerText = "Active
+                    status.className = "text-xs px-2.5 py-1 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20";
+                    playIcon.className = "fa-solid fa-pause text-black";
+                } catch(e) {
+                    alert("Audio context blocked. Interact with page first.");
+                }
+            } else {
+                if (osc) { osc.stop(); osc.disconnect(); }
+                if (audioCtx) { audioCtx.close(); }
+                isPlaying = false;
+                btnText.innerText = "Initialize Soundscape";
+                status.innerText = "Ready";
+                status.className = "text-xs px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
+                playIcon.className = "fa-solid fa-play text-black";
+            }
+        }
+
+        function updateFrequency(val) {
+            document.getElementById('freq-val').innerText = val + ' Hz';
+        }
+
+        function updateNoise(val) {
+            document.getElementById('noise-val').innerText = val + '%';
+        }
+
+        // Pomodoro Timer Logic
+        let timerInterval = null;
+        let timeLeft = 25 * 60;
+        let isTimerRunning = false;
+
+        function formatTime(seconds) {
+            const m = Math.floor(seconds / 60);
+            const s = seconds % 60;
+            return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        }
+
+        function toggleTimer() {
+            const btn = document.getElementById('timerToggleBtn');
+            const loader = document.getElementById('timer-loader');
+            if (!isTimerRunning) {
+                isTimerRunning = true;
+                btn.innerText = "Pause Focus";
+                btn.className = "flex-1 py-3 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-semibold text-sm transition border border-amber-500/30";
+                loader.style.display = "block";
+                
+                timerInterval = setInterval(() => {
+                    if (timeLeft > 0) {
+                        timeLeft--;
+                        document.getElementById('timer-display').innerText = formatTime(timeLeft);
+                    } else {
+                        clearInterval(timerInterval);
+                        alert("Focus session complete! Take a breather.");
+                        resetTimer();
+                    }
+                }, 1000);
+            } else {
+                clearInterval(timerInterval);
+                isTimerRunning = false;
+                btn.innerText = "Resume Focus";
+                btn.className = "flex-1 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 font-semibold text-sm transition border border-slate-700";
+                loader.style.display = "none";
+            }
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            isTimerRunning = false;
+            timeLeft = 25 * 60;
+            document.getElementById('timer-display').innerText = formatTime(timeLeft);
+            document.getElementById('timerToggleBtn').innerText = "Start Focus";
+            document.getElementById('timerToggleBtn').className = "flex-1 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 font-semibold text-sm transition border border-slate-700";
+            document.getElementById('timer-loader').style.display = "none";
+        }
+
+        function setTimerMode(mode, mins) {
+            resetTimer();
+            timeLeft = mins * 60;
+            document.getElementById('timer-display').innerText = formatTime(timeLeft);
+            if(mode === 'work') {
+                document.getElementById('mode-work').className = "px-3 py-1 rounded-lg text-xs font-semibold bg-cyan-500 text-black transition";
+                document.getElementById('mode-break').className = "px-3 py-1 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition";
+            } else {
+                document.getElementById('mode-break').className = "px-3 py-1 rounded-lg text-xs font-semibold bg-cyan-500 text-black transition";
+                document.getElementById('mode-work').className = "px-3 py-1 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition";
+            }
+        }
+
+        // Kanban Task Logic
+        let tasks = [
+            { id: 1, text: "Calibrate neural focus parameters", done: true },
+            { id: 2, text: "Draft architecture whitepaper", done: false }
+        ];
+
+        function renderTasks() {
+            const list = document.getElementById('taskList');
+            list.innerHTML = '';
+            let completedCount = 0;
+
+            tasks.forEach(t => {
+                if(t.done) completedCount++;
+                const div = document.createElement('div');
+                div.className = "flex items-center justify-between p-3 rounded-xl bg-slate-900/60 border border-slate-800/80 text-sm";
+                div.innerHTML = `
+                    <label class="flex items-center gap-3 cursor-pointer flex-1">
+                        <input type="checkbox" ${t.done ? 'checked' : ''} onchange="toggleTask(${t.id})" class="accent-cyan-500 w-4 h-4 rounded">
+                        <span class="${t.done ? 'line-through text-slate-500' : 'text-slate-300'}">${t.text}</span>
+                    </label>
+                    <button onclick="deleteTask(${t.id})" class="text-slate-500 hover:text-rose-400 transition px-2"><i class="fa-solid fa-trash-can text-xs"></i></button>
+                `;
+                list.appendChild(div);
+            });
+            document.getElementById('task-count').innerText = `${completedCount}/${tasks.length} completed`;
+        }
+
+        function addTask() {
+            const input = document.getElementById('taskInput');
+            if(input.value.trim() === '') return;
+            tasks.push({ id: Date.now(), text: input.value.trim(), done: false });
+            input.value = '';
+            renderTasks();
+        }
+
+        function toggleTask(id) {
+            tasks = tasks.map(t => t.id === id ? { ...t, done: !t.done } : t);
+            renderTasks();
+        }
+
+        function deleteTask(id) {
+            tasks = tasks.filter(t => t.id !== id);
+            renderTasks();
+        }
+
+        function toggleZenMode() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        }
+
+        function copyUpi() {
+            const upiId = "donation1@postbank";
+            navigator.clipboard.writeText(upiId);
+            const btn = document.getElementById('copyUpiBtn');
+            btn.innerHTML = '<i class="fa-solid fa-check"></i> Copied!';
+            setTimeout(() => {
+                btn.innerHTML = '<i class="fa-solid fa-copy"></i> Copy UPI ID';
+            }, 2000);
+        }
+
+        // Initial render
+        renderTasks();
+    </script>
+</body>
+</html>
