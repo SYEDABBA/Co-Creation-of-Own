@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OmniCalm Studio — Bio-Rhythm & Deep Work Workstation</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0fdf4',
+              400: '#4ade80',
+              500: '#22c55e',
+              600: '#16a34a',
+              900: '#14532d'
+            },
+            surface: {
+              800: '#111827',
+              900: '#0b0f19',
+              950: '#06090e'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @keyframes pulse-ring {
+      0% { transform: scale(0.95); opacity: 0.8; }
+      50% { transform: scale(1.15); opacity: 0.3; }
+      100% { transform: scale(0.95); opacity: 0.8; }
+    }
+    .breathe-orb {
+      transition: transform 1s ease-in-out, background-color 1s ease-in-out;
+    }
+    .glass-panel {
+      background: rgba(17, 24, 39, 0.7);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .glass-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    /* Custom scrollbars */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0b0f19; }
+    ::-webkit-scrollbar-thumb { background: #26334d; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #3b4e72; }
+  </style>
+</head>
+<body class="bg-surface-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-emerald-500 selection:text-white">
+
+  <!-- Top Navigation Header -->
+  <header class="sticky top-0 z-40 border-b border-white/10 glass-panel px-6 py-4 flex flex-wrap items-center justify-between gap-4">
+    <div class="flex items-center gap-3">
+      <div class="h-10 w-10 rounded-xl bg-gradient-to-tr from-emerald-500 via-teal-400 to-cyan-500 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+        <svg class="w-6 h-6 text-slate-950" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+        </svg>
+      </div>
+      <div>
+        <h1 class="text-lg font-bold tracking-tight bg-gradient-to-r from-white via-slate-200 to-emerald-400 bg-clip-text text-transparent">
+          OmniCalm Studio
+        </h1>
+        <p class="text-xs text-slate-400 flex items-center gap-1.5">
+          <span class="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+          Cognitive Resonance Engine
+        </p>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-3 text-xs">
+      <div class="glass-card px-3 py-1.5 rounded-lg flex items-center gap-2">
+        <span class="text-slate-400">System Clock:</span>
+        <span id="live-clock" class="font-mono font-semibold text-emerald-400">--:--:--</span>
+      </div>
+      <button id="master-audio-toggle" onclick="app.toggleAudioMaster()" class="px-4 py-2 rounded-lg font-medium transition-all duration-300 flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-white/5 active:scale-95">
+        <svg id="master-sound-icon" class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+        </svg>
+        <span id="master-audio-label">Audio Standby</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Operational Grid -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 lg:p-8 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+    <!-- Left Column: Flow Timer & Bio-Rhythm Breathwork -->
+    <section class="lg:col-span-7 flex flex-col gap-6">
+      
+      <!-- Interactive Flow Timer Card -->
+      <div class="glass-panel rounded-2xl p-6 relative overflow-hidden flex flex-col justify-between shadow-2xl">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-2">
+            <span class="p-1.5 rounded-md bg-emerald-500/10 text-emerald-400">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+              </svg>
+            </span>
+            <h2 class="font-semibold text-sm tracking-wide text-slate-200 uppercase">Flow Session Engine</h2>
+          </div>
+          <div class="flex gap-1 bg-surface-900/80 p-1 rounded-lg border border-white/5 text-xs">
+            <button onclick="app.setTimerMode(25, 'Focus Sprint')" class="timer-mode-btn px-2.5 py-1 rounded font-medium transition text-emerald-400 bg-white/5">25m</button>
+            <button onclick="app.setTimerMode(50, 'Deep Immersion')" class="timer-mode-btn px-2.5 py-1 rounded font-medium transition text-slate-400 hover:text-white">50m</button>
+            <button onclick="app.setTimerMode(5, 'Short Rest')" class="timer-mode-btn px-2.5 py-1 rounded font-medium transition text-slate-400 hover:text-white">5m</button>
+            <button onclick="app.setTimerMode(15, 'Reset Recovery')" class="timer-mode-btn px-2.5 py-1 rounded font-medium transition text-slate-400 hover:text-white">15m</button>
+          </div>
+        </div>
+
+        <!-- Circular Timer Display -->
+        <div class="py-6 flex flex-col items-center justify-center relative">
+          <svg class="w-60 h-60 transform -rotate-90" viewBox="0 0 220 220">
+            <circle cx="110" cy="110" r="98" stroke="currentColor" stroke-width="6" class="text-slate-800/80" fill="transparent"/>
+            <circle id="timer-progress-ring" cx="110" cy="110" r="98" stroke="currentColor" stroke-width="6" stroke-linecap="round" class="text-emerald-400 transition-all duration-300" fill="transparent" stroke-dasharray="615.75" stroke-dashoffset="0"/>
+          </svg>
+          <div class="absolute inset-0 flex flex-col items-center justify-center">
+            <span id="timer-mode-label" class="text-xs tracking-wider text-slate-400 uppercase font-mono">Focus Sprint</span>
+            <span id="timer-digits" class="text-5xl font-mono font-extrabold tracking-tighter text-white my-1">25:00</span>
+            <span id="timer-status-hint" class="text-xs text-emerald-400/80 font-medium">Ready to initiate</span>
+          </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="flex items-center justify-center gap-3 mt-2">
+          <button id="timer-play-btn" onclick="app.toggleTimer()" class="px-8 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-bold rounded-xl shadow-lg shadow-emerald-500/25 transition-all transform active:scale-95 flex items-center gap-2">
+            <svg id="play-icon" class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+            <span id="play-btn-text">Initiate Flow</span>
+          </button>
+          <button onclick="app.resetTimer()" class="p-3 glass-card hover:bg-white/10 rounded-xl text-slate-400 hover:text-white transition active:scale-95" title="Reset Timer">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Visual Breathwork Trainer -->
+      <div class="glass-panel rounded-2xl p-6 shadow-2xl">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+          <div class="flex items-center gap-2">
+            <span class="p-1.5 rounded-md bg-teal-500/10 text-teal-400">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+            </span>
+            <h2 class="font-semibold text-sm tracking-wide text-slate-200 uppercase">Bio-Dynamic Breath Pacer</h2>
+          </div>
+          <select id="breath-technique-select" onchange="app.setBreathPattern(this.value)" class="bg-surface-900 border border-white/10 text-slate-300 text-xs rounded-lg px-3 py-1.5 outline-none focus:border-emerald-500">
+            <option value="box">Box Breathing (4-4-4-4) · Focus</option>
+            <option value="478">Relaxation Method (4-7-8) · Calm</option>
+            <option value="coherent">Coherent Respiration (5.5-5.5) · Balance</option>
+            <option value="energize">Awakening Cycle (2-1-2-1) · Energy</option>
+          </select>
+        </div>
+
+        <div class="flex flex-col items-center justify-center py-4 relative min-h-[190px]">
+          <!-- Outer Expanding Rings -->
+          <div id="breath-outer-glow" class="absolute w-40 h-40 rounded-full bg-teal-500/10 transition-all duration-700 pointer-events-none"></div>
+          <div id="breath-orb" class="w-24 h-24 rounded-full bg-gradient-to-tr from-teal-500 to-emerald-400 shadow-xl shadow-teal-500/20 breathe-orb flex flex-col items-center justify-center transform scale-90">
+            <span id="breath-action-text" class="font-bold text-slate-950 text-xs uppercase tracking-wider">Inhale</span>
+          </div>
+          <div class="mt-6 text-center">
+            <p id="breath-timer-text" class="text-2xl font-mono font-bold text-slate-200">4s</p>
+            <p id="breath-instruction" class="text-xs text-slate-400 mt-1">Expand chest naturally through nasal breathing</p>
+          </div>
+        </div>
+
+        <div class="flex justify-center mt-2">
+          <button id="breath-toggle-btn" onclick="app.toggleBreathwork()" class="px-5 py-2 glass-card hover:bg-white/10 text-xs font-semibold rounded-lg text-emerald-400 border border-emerald-500/30 transition active:scale-95 flex items-center gap-2">
+            <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>
+            <span>Start Breath Trainer</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Right Column: Soundscape Synthesizer & Flow Workspace -->
+    <section class="lg:col-span-5 flex flex-col gap-6">
+      
+      <!-- Multi-Channel Audio Synthesizer -->
+      <div class="glass-panel rounded-2xl p-6 shadow-2xl flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-2">
+              <span class="p-1.5 rounded-md bg-cyan-500/10 text-cyan-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/></svg>
+              </span>
+              <h2 class="font-semibold text-sm tracking-wide text-slate-200 uppercase">Acoustic Synthesizer</h2>
+            </div>
+            <span class="text-[11px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Web Audio API</span>
+          </div>
+          <p class="text-xs text-slate-400 mb-5 leading-relaxed">Sculpt your ambient frequency mix. Binaural waves induce alpha/theta states, while colored noise attenuates sudden environmental spikes.</p>
+
+          <!-- Channels -->
+          <div class="space-y-4">
+            <!-- Binaural Alpha Beats (432Hz base / 10Hz differential) -->
+            <div class="glass-card p-3 rounded-xl">
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-2">
+                  <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
+                  <span class="text-xs font-medium text-slate-200">Binaural Flow (432Hz + 10Hz Alpha)</span>
+                </div>
+                <span id="binaural-val" class="text-xs font-mono text-cyan-400">0%</span>
+              </div>
+              <input type="range" min="0" max="100" value="0" id="slider-binaural" oninput="app.updateChannelVolume('binaural', this.value)" class="w-full accent-cyan-400 cursor-pointer h-1.5 bg-slate-800 rounded-lg appearance-none" />
+            </div>
+
+            <!-- Brown Noise Layer -->
+            <div class="glass-card p-3 rounded-xl">
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-2">
+                  <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+                  <span class="text-xs font-medium text-slate-200">Deep Brown Noise (Cognitive Dampener)</span>
+                </div>
+                <span id="brown-val" class="text-xs font-mono text-amber-400">0%</span>
+              </div>
+              <input type="range" min="0" max="100" value="0" id="slider-brown" oninput="app.updateChannelVolume('brown', this.value)" class="w-full accent-amber-400 cursor-pointer h-1.5 bg-slate-800 rounded-lg appearance-none" />
+            </div>
+
+            <!-- Solfeggio 528 Hz (Cellular Resonance) -->
+            <div class="glass-card p-3 rounded-xl">
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-2">
+                  <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                  <span class="text-xs font-medium text-slate-200">Solfeggio Tone (528Hz Clarity)</span>
+                </div>
+                <span id="solfeggio-val" class="text-xs font-mono text-emerald-400">0%</span>
+              </div>
+              <input type="range" min="0" max="100" value="0" id="slider-solfeggio" oninput="app.updateChannelVolume('solfeggio', this.value)" class="w-full accent-emerald-400 cursor-pointer h-1.5 bg-slate-800 rounded-lg appearance-none" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Audio Presets -->
+        <div class="mt-5 pt-4 border-t border-white/5 flex items-center justify-between gap-2">
+          <span class="text-[11px] text-slate-400 uppercase font-semibold">Mix Presets:</span>
+          <div class="flex gap-1.5">
+            <button onclick="app.loadAudioPreset('deep')" class="text-xs px-2.5 py-1 bg-surface-900 hover:bg-slate-800 border border-white/10 rounded text-slate-300 transition active:scale-95">Deep Focus</button>
+            <button onclick="app.loadAudioPreset('calm')" class="text-xs px-2.5 py-1 bg-surface-900 hover:bg-slate-800 border border-white/10 rounded text-slate-300 transition active:scale-95">Anxiety Release</button>
+            <button onclick="app.loadAudioPreset('clear')" class="text-xs px-2.5 py-1 bg-surface-900 hover:bg-slate-800 border border-white/10 rounded text-slate-300 transition active:scale-95">Mute All</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Priority Scratchpad & Micro-Objectives -->
+      <div class="glass-panel rounded-2xl p-6 shadow-2xl flex-1 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-2">
+              <span class="p-1.5 rounded-md bg-purple-500/10 text-purple-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+              </span>
+              <h2 class="font-semibold text-sm tracking-wide text-slate-200 uppercase">Flow Objectives</h2>
+            </div>
+            <span id="task-counter" class="text-xs font-mono text-slate-400">0/0 Done</span>
+          </div>
+
+          <!-- Input Bar -->
+          <form onsubmit="app.addTask(event)" class="flex gap-2 mb-4">
+            <input type="text" id="task-input" placeholder="Target output for this flow sprint..." class="flex-1 bg-surface-900 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500 transition" />
+            <button type="submit" class="px-3.5 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-xl font-bold text-xs transition active:scale-95">+ Add</button>
+          </form>
+
+          <!-- Task List -->
+          <ul id="task-list" class="space-y-2 max-h-48 overflow-y-auto pr-1 text-xs">
+            <!-- Dynamic items rendered here -->
+          </ul>
+        </div>
+
+        <!-- Quick Stats Badge -->
+        <div class="mt-4 pt-3 border-t border-white/5 flex items-center justify-between text-xs text-slate-400">
+          <span>Session Streak: <strong id="streak-count" class="text-emerald-400 font-mono">1</strong> days</span>
+          <span>Flow Minutes Today: <strong id="focus-minutes" class="text-emerald-400 font-mono">0</strong>m</span>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Cause-Driven Charity & Support Section (Mandatory Requirement) -->
+  <footer class="mt-12 border-t border-white/10 glass-panel relative overflow-hidden py-10 px-6">
+    <div class="absolute -right-20 -bottom-20 w-80 h-80 rounded-full bg-emerald-500/5 blur-3xl pointer-events-none"></div>
+    <div class="absolute -left-20 -top-20 w-80 h-80 rounded-full bg-teal-500/5 blur-3xl pointer-events-none"></div>
+
+    <div class="max-w-4xl mx-auto flex flex-col md:flex-row items-center gap-8 justify-between relative z-10">
+      
+      <!-- Cause Statement & Details -->
+      <div class="flex-1 text-center md:text-left">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold uppercase tracking-wider mb-3">
+          <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+          Transparent Purpose-Led Initiative
+        </div>
+        
+        <h3 class="text-lg md:text-xl font-bold text-white mb-2 leading-snug">
+          Support Healing &amp; Quality Primary Education
+        </h3>
+        
+        <p class="text-sm text-slate-300 mb-4 max-w-xl font-normal leading-relaxed">
+          <strong class="text-emerald-400 font-semibold">95% of all contributions go directly towards Cancer Patient Support &amp; School Education Initiatives</strong> (5% retained for server maintenance).
+        </p>
+
+        <div class="flex flex-wrap items-center justify-center md:justify-start gap-4 text-xs">
+          <div class="glass-card px-3.5 py-2 rounded-xl flex items-center gap-2.5 border border-white/10">
+            <span class="text-slate-400">Verified Recipient:</span>
+            <span class="font-mono font-semibold text-slate-100 uppercase">ASKAR ALI</span>
+          </div>
+
+          <div class="glass-card px-3.5 py-2 rounded-xl flex items-center gap-2.5 border border-white/10">
+            <span class="text-slate-400">UPI ID:</span>
+            <span id="upi-id-text" class="font-mono font-bold text-emerald-400">donation1@postbank</span>
+            <button onclick="app.copyUPI()" class="ml-1 px-2 py-0.5 rounded bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 font-medium transition active:scale-90 flex items-center gap-1">
+              <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
+              <span id="copy-btn-label">Copy</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dynamic UPI QR Display -->
+      <div class="flex flex-col items-center glass-card p-4 rounded-2xl border border-white/10 shadow-xl">
+        <div class="bg-white p-2 rounded-xl shadow-inner">
+          <img 
+            src="https://api.qrserver.com/v1/create-qr-code/?data=upi://pay?pa=donation1@postbank&pn=YUGRAAL_Cause&size=130x130" 
+            alt="Direct Donation UPI QR Code" 
+            class="w-28 h-28 object-contain rounded-lg"
+            loading="lazy"
+          />
+        </div>
+        <span class="text-[11px] font-mono text-slate-400 mt-2.5 flex items-center gap-1.5">
+          <svg class="w-3 h-3 text-emerald-400" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/></svg>
+          Scan with any UPI app
+        </span>
+      </div>
+
+    </div>
+    
+    <div class="max-w-4xl mx-auto mt-8 pt-6 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between text-[11px] text-slate-500 gap-2">
+      <p>YUGRAAL Co-Creator Platform &bull; No Ads &bull; No Affiliate Affiliations &bull; Strictly Humanitarian</p>
+      <p>Privacy First &bull; 100% Client-Side Engine</p>
+    </div>
+  </footer>
+
+  <!-- Toast Notification element -->
+  <div id="toast" class="fixed bottom-6 right-6 z-50 transform translate-y-24 opacity-0 transition-all duration-300 pointer-events-none bg-surface-900 border border-emerald-500/40 text-emerald-300 px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2 text-xs font-medium">
+    <svg class="w-4 h-4 text-emerald-400 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+    <span id="toast-message">Action completed</span>
+  </div>
+
+  <!-- Application Logic -->
+  <script>
+    class OmniCalmEngine {
+      constructor() {
+        // Flow Timer State
+        this.totalDuration = 25 * 60;
+        this.remainingSeconds = 25 * 60;
+        this.timerInterval = null;
+        this.isTimerRunning = false;
+        this.timerModeTitle = 'Focus Sprint';
+        this.totalFlowMinutes = 0;
+
+        // Breathwork State
+        this.breathPatterns = {
+          box: { name: 'Box Breathing', cycle: [{ act: 'Inhale', d: 4 }, { act: 'Hold', d: 4 }, { act: 'Exhale', d: 4 }, { act: 'Hold', d: 4 }], guide: 'Balance heart rate variability & cortisol' },
+          478: { name: '4-7-8 Relaxation', cycle: [{ act: 'Inhale', d: 4 }, { act: 'Hold', d: 7 }, { act: 'Exhale', d: 8 }], guide: 'Sedative parasympathetic nervous system trigger' },
+          coherent: { name: 'Coherent Respiration', cycle: [{ act: 'Inhale', d: 5.5 }, { act: 'Exhale', d: 5.5 }], guide: 'Optimal resonant frequency at ~5.5 breaths/min' },
+          energize: { name: 'Awakening Cycle', cycle: [{ act: 'Inhale', d: 2 }, { act: 'Hold', d: 1 }, { act: 'Exhale', d: 2 }, { act: 'Hold', d: 1 }], guide: 'Rapid alertness boost & cognitive arousal' }
+        };
+        this.currentBreathKey = 'box';
+        this.isBreathRunning = false;
+        this.breathInterval = null;
+        this.breathPhaseIndex = 0;
+        this.breathRemainingInPhase = 4;
+
+        // Web Audio Synthesizer State
+        this.audioCtx = null;
+        this.audioMasterOn = false;
+        this.nodes = {
+          binauralBase: null,
+          binauralOffset: null,
+          binauralGain: null,
+          brownGain: null,
+          brownNode: null,
+          solfeggioOsc: null,
+          solfeggioGain: null,
+          masterGain: null
+        };
+
+        // Tasks State
+        this.tasks = [
+          { id: 1, text: 'Define high-impact architecture blueprint', done: false },
+          { id: 2, text: 'Review scientific paper on resonant breathing', done: true }
+        ];
+
+        this.init();
+      }
+
+      init() {
+        this.updateClock();
+        setInterval(() => this.updateClock(), 1000);
+        this.renderTasks();
+        this.updateProgressRing();
+      }
+
+      updateClock() {
+        const now = new Date();
+        const el = document.getElementById('live-clock');
+        if (el) el.textContent = now.toLocaleTimeString();
+      }
+
+      showToast(msg) {
+        const toast = document.getElementById('toast');
+        const txt = document.getElementById('toast-message');
+        txt.textContent = msg;
+        toast.classList.remove('translate-y-24', 'opacity-0');
+        setTimeout(() => {
+          toast.classList.add('translate-y-24', 'opacity-0');
+        }, 3000);
+      }
+
+      /* --- TIMER ENGINE --- */
+      setTimerMode(minutes, label) {
+        if (this.isTimerRunning) this.toggleTimer();
+        this.totalDuration = minutes * 60;
+        this.remainingSeconds = this.totalDuration;
+        this.timerModeTitle = label;
+        document.getElementById('timer-mode-label').textContent = label;
+        document.getElementById('timer-status-hint').textContent = 'Mode: ' + label;
+        this.updateTimerDisplay();
+        this.updateProgressRing();
+      }
+
+      toggleTimer() {
+        this.isTimerRunning = !this.isTimerRunning;
+        const btnText = document.getElementById('play-btn-text');
+        const btnIcon = document.getElementById('play-icon');
+        const statusHint = document.getElementById('timer-status-hint');
+
+        if (this.isTimerRunning) {
+          btnText.textContent = 'Pause Flow';
+          btnIcon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
+          statusHint.textContent = 'Flow state active...';
+          
+          this.timerInterval = setInterval(() => {
+            if (this.remainingSeconds > 0) {
+              this.remainingSeconds--;
+              this.updateTimerDisplay();
+              this.updateProgressRing();
+              if (this.remainingSeconds % 60 === 0 && this.remainingSeconds !== this.totalDuration) {
+                this.totalFlowMinutes++;
+                document.getElementById('focus-minutes').textContent = this.totalFlowMinutes;
+              }
+            } else {
+              this.onTimerComplete();
+            }
+          }, 1000);
+        } else {
+          btnText.textContent = 'Resume Flow';
+          btnIcon.innerHTML = '<path d="M8 5v14l11-7z"/>';
+          statusHint.textContent = 'Session paused';
+          clearInterval(this.timerInterval);
+        }
+      }
+
+      resetTimer() {
+        if (this.isTimerRunning) this.toggleTimer();
+        this.remainingSeconds = this.totalDuration;
+        this.updateTimerDisplay();
+        this.updateProgressRing();
+        document.getElementById('timer-status-hint').textContent = 'Ready to initiate';
+      }
+
+      onTimerComplete() {
+        clearInterval(this.timerInterval);
+        this.isTimerRunning = false;
+        document.getElementById('play-btn-text').textContent = 'Completed!';
+        document.getElementById('timer-status-hint').textContent = 'Well done! Time for recovery.';
+        this.playChime();
+        this.showToast('Flow session completed successfully!');
+      }
+
+      updateTimerDisplay() {
+        const m = Math.floor(this.remainingSeconds / 60);
+        const s = this.remainingSeconds % 60;
+        document.getElementById('timer-digits').textContent = 
+          String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+      }
+
+      updateProgressRing() {
+        const ring = document.getElementById('timer-progress-ring');
+        const circumference = 2 * Math.PI * 98; // ~615.75
+        const fraction = this.remainingSeconds / this.totalDuration;
+        const offset = circumference * (1 - fraction);
+        ring.style.strokeDashoffset = offset;
+      }
+
+      /* --- BREATHWORK ENGINE --- */
+      setBreathPattern(key) {
+        this.currentBreathKey = key;
+        if (this.isBreathRunning) {
+          this.stopBreathwork();
+          this.startBreathwork();
+        } else {
+          const pat = this.breathPatterns[key];
+          document.getElementById('breath-instruction').textContent = pat.guide;
+        }
+      }
+
+      toggleBreathwork() {
+        if (this.isBreathRunning) {
+          this.stopBreathwork();
+        } else {
+          this.startBreathwork();
+        }
+      }
+
+      startBreathwork() {
+        this.isBreathRunning = true;
+        const btn = document.getElementById('breath-toggle-btn');
+        btn.innerHTML = '<span>Stop Pacer</span>';
+        btn.classList.add('border-rose-500/40', 'text-rose-400');
+        
+        const pattern = this.breathPatterns[this.currentBreathKey];
+        this.breathPhaseIndex = 0;
+        this.applyBreathPhase(pattern.cycle[0]);
+
+        this.breathInterval = setInterval(() => {
+          this.breathRemainingInPhase -= 0.5;
+          if (this.breathRemainingInPhase <= 0) {
+            this.breathPhaseIndex = (this.breathPhaseIndex + 1) % pattern.cycle.length;
+            const nextPhase = pattern.cycle[this.breathPhaseIndex];
+            this.applyBreathPhase(nextPhase);
+          } else {
+            document.getElementById('breath-timer-text').textContent = Math.ceil(this.breathRemainingInPhase) + 's';
+          }
+        }, 500);
+      }
+
+      stopBreathwork() {
+        this.isBreathRunning = false;
+        clearInterval(this.breathInterval);
+        const btn = document.getElementById('breath-toggle-btn');
+        btn.innerHTML = '<svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg><span>Start Breath Trainer</span>';
+        btn.classList.remove('border-rose-500/40', 'text-rose-400');
+        
+        const orb = document.getElementById('breath-orb');
+        const glow = document.getElementById('breath-outer-glow');
+        orb.style.transform = 'scale(0.9)';
+        glow.style.transform = 'scale(1)';
+        document.getElementById('breath-action-text').textContent = 'Rest';
+        document.getElementById('breath-timer-text').textContent = '--';
+      }
+
+      applyBreathPhase(phase) {
+        this.breathRemainingInPhase = phase.d;
+        const actionText = document.getElementById('breath-action-text');
+        const timerText = document.getElementById('breath-timer-text');
+        const orb = document.getElementById('breath-orb');
+        const glow = document.getElementById('breath-outer-glow');
+        
+        actionText.textContent = phase.act;
+        timerText.textContent = phase.d + 's';
+
+        if (phase.act === 'Inhale') {
+          orb.style.transition = `transform ${phase.d}s ease-in-out`;
+          glow.style.transition = `transform ${phase.d}s ease-in-out`;
+          orb.style.transform = 'scale(1.4)';
+          glow.style.transform = 'scale(1.7)';
+        } else if (phase.act === 'Exhale') {
+          orb.style.transition = `transform ${phase.d}s ease-in-out`;
+          glow.style.transition = `transform ${phase.d}s ease-in-out`;
+          orb.style.transform = 'scale(0.85)';
+          glow.style.transform = 'scale(1.0)';
+        }
+      }
+
+      /* --- WEB AUDIO SYNTHESIZER --- */
+      ensureAudioContext() {
+        if (!this.audioCtx) {
+          const AudioCtxClass = window.AudioContext || window.webkitAudioContext;
+          this.audioCtx = new AudioCtxClass();
+          
+          // Master Gain
+          this.nodes.masterGain = this.audioCtx.createGain();
+          this.nodes.masterGain.gain.setValueAtTime(0.7, this.audioCtx.currentTime);
+          this.nodes.masterGain.connect(this.audioCtx.destination);
+
+          // 1. Binaural Alpha (432Hz base & 442Hz = 10Hz Alpha differential)
+          this.nodes.binauralGain = this.audioCtx.createGain();
+          this.nodes.binauralGain.gain.setValueAtTime(0, this.audioCtx.currentTime);
+          
+          this.nodes.binauralBase = this.audioCtx.createOscillator();
+          this.nodes.binauralBase.type = 'sine';
+          this.nodes.binauralBase.frequency.setValueAtTime(432, this.audioCtx.currentTime);
+          
+          this.nodes.binauralOffset = this.audioCtx.createOscillator();
+          this.nodes.binauralOffset.type = 'sine';
+          this.nodes.binauralOffset.frequency.setValueAtTime(442, this.audioCtx.currentTime);
+
+          this.nodes.binauralBase.connect(this.nodes.binauralGain);
+          this.nodes.binauralOffset.connect(this.nodes.binauralGain);
+          this.nodes.binauralGain.connect(this.nodes.masterGain);
+
+          this.nodes.binauralBase.start();
+          this.nodes.binauralOffset.start();
+
+          // 2. Brown Noise Generator
+          const bufferSize = this.audioCtx.sampleRate * 2;
+          const brownBuffer = this.audioCtx.createBuffer(1, bufferSize, this.audioCtx.sampleRate);
+          const output = brownBuffer.getChannelData(0);
+          let lastOut = 0.0;
+          for (let i = 0; i < bufferSize; i++) {
+            const white = Math.random() * 2 - 1;
+            output[i] = (lastOut + (0.02 * white)) / 1.02;
+            lastOut = output[i];
+            output[i] *= 3.5; // Gain compensation
+          }
+
+          this.nodes.brownNode = this.audioCtx.createBufferSource();
+          this.nodes.brownNode.buffer = brownBuffer;
+          this.nodes.brownNode.loop = true;
+
+          this.nodes.brownGain = this.audioCtx.createGain();
+          this.nodes.brownGain.gain.setValueAtTime(0, this.audioCtx.currentTime);
+          this.nodes.brownNode.connect(this.nodes.brownGain);
+          this.nodes.brownGain.connect(this.nodes.masterGain);
+          this.nodes.brownNode.start();
+
+          // 3. Solfeggio 528 Hz
+          this.nodes.solfeggioOsc = this.audioCtx.createOscillator();
+          this.nodes.solfeggioOsc.type = 'sine';
+          this.nodes.solfeggioOsc.frequency.setValueAtTime(528, this.audioCtx.currentTime);
+
+          this.nodes.solfeggioGain = this.audioCtx.createGain();
+          this.nodes.solfeggioGain.gain.setValueAtTime(0, this.audioCtx.currentTime);
+          this.nodes.solfeggioOsc.connect(this.nodes.solfeggioGain);
+          this.nodes.solfeggioGain.connect(this.nodes.masterGain);
+          this.nodes.solfeggioOsc.start();
+        }
+
+        if (this.audioCtx.state === 'suspended') {
+          this.audioCtx.resume();
+        }
+      }
+
+      toggleAudioMaster() {
+        this.ensureAudioContext();
+        this.audioMasterOn = !this.audioMasterOn;
+        const label = document.getElementById('master-audio-label');
+        const btn = document.getElementById('master-audio-toggle');
+
+        if (this.audioMasterOn) {
+          this.nodes.masterGain.gain.setValueAtTime(0.7, this.audioCtx.currentTime);
+          label.textContent = 'Audio Active';
+          btn.classList.add('bg-emerald-500/20', 'border-emerald-500/40', 'text-emerald-300');
+          btn.classList.remove('bg-slate-800', 'text-slate-300');
+          this.showToast('Acoustic engine engaged');
+        } else {
+          this.nodes.masterGain.gain.setValueAtTime(0, this.audioCtx.currentTime);
+          label.textContent = 'Audio Muted';
+          btn.classList.remove('bg-emerald-500/20', 'border-emerald-500/40', 'text-emerald-300');
+          btn.classList.add('bg-slate-800', 'text-slate-300');
+        }
+      }
+
+      updateChannelVolume(channel, val) {
+        this.ensureAudioContext();
+        if (!this.audioMasterOn && val > 0) {
+          this.toggleAudioMaster();
+        }
+
+        const gainVal = (val / 100) * 0.4; // Safe volume limit
+        if (channel === 'binaural') {
+          document.getElementById('binaural-val').textContent = val + '%';
+          this.nodes.binauralGain.gain.setTargetAtTime(gainVal * 0.35, this.audioCtx.currentTime, 0.05);
+        } else if (channel === 'brown') {
+          document.getElementById('brown-val').textContent = val + '%';
+          this.nodes.brownGain.gain.setTargetAtTime(gainVal * 0.8, this.audioCtx.currentTime, 0.05);
+        } else if (channel === 'solfeggio') {
+          document.getElementById('solfeggio-val').textContent = val + '%';
+          this.nodes.solfeggioGain.gain.setTargetAtTime(gainVal * 0.3, this.audioCtx.currentTime, 0.05);
+        }
+      }
+
+      loadAudioPreset(type) {
+        if (type === 'deep') {
+          document.getElementById('slider-binaural').value = 45;
+          document.getElementById('slider-brown').value = 65;
+          document.getElementById('slider-solfeggio').value = 20;
+          this.updateChannelVolume('binaural', 45);
+          this.updateChannelVolume('brown', 65);
+          this.updateChannelVolume('solfeggio', 20);
+          this.showToast('Deep Focus Preset Loaded');
+        } else if (type === 'calm') {
+          document.getElementById('slider-binaural').value = 30;
+          document.getElementById('slider-brown').value = 25;
+          document.getElementById('slider-solfeggio').value = 50;
+          this.updateChannelVolume('binaural', 30);
+          this.updateChannelVolume('brown', 25);
+          this.updateChannelVolume('solfeggio', 50);
+          this.showToast('Anxiety Release Preset Loaded');
+        } else if (type === 'clear') {
+          document.getElementById('slider-binaural').value = 0;
+          document.getElementById('slider-brown').value = 0;
+          document.getElementById('slider-solfeggio').value = 0;
+          this.updateChannelVolume('binaural', 0);
+          this.updateChannelVolume('brown', 0);
+          this.updateChannelVolume('solfeggio', 0);
+          this.showToast('Synthesizer Channels Muted');
+        }
+      }
+
+      playChime() {
+        this.ensureAudioContext();
+        const osc = this.audioCtx.createOscillator();
+        const gain = this.audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(587.33, this.audioCtx.currentTime); // D5
+        osc.frequency.exponentialRampToValueAtTime(880, this.audioCtx.currentTime + 0.5); // A5
+        gain.gain.setValueAtTime(0.4, this.audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.audioCtx.currentTime + 1.2);
+        osc.connect(gain);
+        gain.connect(this.audioCtx.destination);
+        osc.start();
+        osc.stop(this.audioCtx.currentTime + 1.3);
+      }
+
+      /* --- TASKS --- */
+      renderTasks() {
+        const list = document.getElementById('task-list');
+        list.innerHTML = '';
+        let doneCount = 0;
+
+        this.tasks.forEach((t) => {
+          if (t.done) doneCount++;
+          const li = document.createElement('li');
+          li.className = 'flex items-center justify-between glass-card px-3 py-2 rounded-lg transition border border-white/5';
+          li.innerHTML = `
+            <label class="flex items-center gap-2 cursor-pointer select-none flex-1">
+              <input type="checkbox" ${t.done ? 'checked' : ''} onchange="app.toggleTask(${t.id})" class="rounded accent-emerald-500 w-3.5 h-3.5" />
+              <span class="${t.done ? 'line-through text-slate-500' : 'text-slate-200'}">${t.text}</span>
+            </label>
+            <button onclick="app.deleteTask(${t.id})" class="text-slate-500 hover:text-rose-400 p-1">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+          `;
+          list.appendChild(li);
+        });
+
+        document.getElementById('task-counter').textContent = `${doneCount}/${this.tasks.length} Done`;
+      }
+
+      addTask(e) {
+        e.preventDefault();
+        const input = document.getElementById('task-input');
+        const text = input.value.trim();
+        if (!text) return;
+        this.tasks.push({ id: Date.now(), text, done: false });
+        input.value = '';
+        this.renderTasks();
+      }
+
+      toggleTask(id) {
+        const task = this.tasks.find(t => t.id === id);
+        if (task) task.done = !task.done;
+        this.renderTasks();
+      }
+
+      deleteTask(id) {
+        this.tasks = this.tasks.filter(t => t.id !== id);
+        this.renderTasks();
+      }
+
+      /* --- CHARITY INTERACTION --- */
+      copyUPI() {
+        const upi = 'donation1@postbank';
+        navigator.clipboard.writeText(upi).then(() => {
+          const lbl = document.getElementById('copy-btn-label');
+          lbl.textContent = 'Copied!';
+          this.showToast('UPI ID copied: ' + upi);
+          setTimeout(() => { lbl.textContent = 'Copy'; }, 2500);
+        }).catch(() => {
+          this.showToast('Copying failed. UPI: ' + upi);
+        });
+      }
+    }
+
+    // Boot
+    let app;
+    window.addEventListener('DOMContentLoaded', () => {
+      app = new OmniCalmEngine();
+    });
+  </script>
+</body>
+</html>
