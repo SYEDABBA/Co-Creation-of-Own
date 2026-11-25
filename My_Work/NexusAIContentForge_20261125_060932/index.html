@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NexusAI Content Forge</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darkbase: '#0a0f1d',
+                        darksurface: '#111827',
+                        darkborder: '#1f2937',
+                        accent: '#6366f1',
+                        accenthover: '#4f46e5'
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .glass-panel {
+            background: rgba(17, 24, 39, 0.7);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glass-input {
+            background: rgba(3, 7, 18, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .glass-input:focus {
+            border-color: #6366f1;
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+        }
+    </style>
+</head>
+<body class="bg-darkbase text-gray-100 min-h-screen flex flex-col justify-between selection:bg-indigo-500 selection:text-white">
+
+    <!-- Header -->
+    <header class="border-b border-gray-800 bg-darkbase/80 backdrop-blur sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                    <i class="fa-solid fa-bolt text-white text-lg"></i>
+                </div>
+                <span class="font-bold text-xl bg-gradient-to-r from-white via-indigo-200 to-indigo-400 bg-clip-text text-transparent">NexusAI Forge</span>
+            </div>
+            <div class="flex items-center space-x-4">
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                    <span class="w-1.5 h-1.5 mr-1.5 rounded-full bg-indigo-400 animate-pulse"></span> v2.4 Neural Core
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <!-- Left Control Panel -->
+        <div class="lg:col-span-5 space-y-6">
+            <div class="glass-panel rounded-2xl p-6 shadow-2xl">
+                <h2 class="text-lg font-semibold text-white mb-4 flex items-center">
+                    <i class="fa-solid fa-sliders text-indigo-400 mr-2"></i> Configuration Parameters
+                </h2>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">Content Type</label>
+                        <select id="contentType" class="w-full glass-input rounded-xl px-4 py-3 text-sm text-white focus:outline-none">
+                            <option value="blog" class="bg-darksurface">SEO Blog Post Outline</option>
+                            <option value="copy" class="bg-darksurface">High-Converting Ad Copy</option>
+                            <option value="social" class="bg-darksurface">Viral Social Media Thread</option>
+                            <option value="email" class="bg-darksurface">Cold Outreach Sequence</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">Subject / Core Topic</label>
+                        <input type="text" id="topicInput" placeholder="e.g., The Future of Decentralized Autonomous Organizations" class="w-full glass-input rounded-xl px-4 py-3 text-sm text-white focus:outline-none">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">Tone of Voice</label>
+                        <select id="toneInput" class="w-full glass-input rounded-xl px-4 py-3 text-sm text-white focus:outline-none">
+                            <option value="authoritative" class="bg-darksurface">Authoritative & Professional</option>
+                            <option value="engaging" class="bg-darksurface">Casual & Engaging</option>
+                            <option value="persuasive" class="bg-darksurface">High-Energy & Persuasive</option>
+                            <option value="minimalist" class="bg-darksurface">Clean & Minimalist</option>
+                        </select>
+                    </div>
+
+                    <button onclick="generateContent()" id="generateBtn" class="w-full mt-2 py-3.5 px-4 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-semibold rounded-xl shadow-lg shadow-indigo-600/30 transition-all duration-200 flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        <span>Synthesize Asset</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Quick Stats Card -->
+            <div class="glass-panel rounded-2xl p-6 grid grid-cols-2 gap-4">
+                <div>
+                    <p class="text-xs text-gray-400 uppercase">Tokens Processed</p>
+                    <p id="statTokens" class="text-2xl font-bold text-indigo-400 mt-1">14,820</p>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-400 uppercase">Optimization Rate</p>
+                    <p class="text-2xl font-bold text-emerald-400 mt-1">99.4%</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Output Display Panel -->
+        <div class="lg:col-span-7 flex flex-col">
+            <div class="glass-panel rounded-2xl p-6 flex-grow flex flex-col shadow-2xl relative">
+                <div class="flex items-center justify-between pb-4 border-b border-gray-800 mb-4">
+                    <div class="flex items-center space-x-2">
+                        <span class="w-3 h-3 rounded-full bg-rose-500/80"></span>
+                        <span class="w-3 h-3 rounded-full bg-amber-500/80"></span>
+                        <span class="w-3 h-3 rounded-full bg-emerald-500/80"></span>
+                        <span class="text-xs font-mono text-gray-400 ml-2">output_stream.md</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="copyOutput()" class="px-3 py-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-xs text-gray-300 transition-colors flex items-center space-x-1">
+                            <i class="fa-regular fa-copy"></i>
+                            <span id="copyText">Copy</span>
+                        </button>
+                        <button onclick="clearOutput()" class="px-3 py-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-xs text-gray-300 transition-colors">
+                            <i class="fa-solid fa-rotate-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Output Content Box -->
+                <div id="outputContainer" class="flex-grow overflow-y-auto font-mono text-sm text-gray-300 space-y-4 min-h-[350px] max-h-[550px] p-2">
+                    <div class="text-gray-500 italic flex flex-col items-center justify-center h-full py-16">
+                        <i class="fa-solid fa-terminal text-4xl mb-3 text-gray-600"></i>
+                        <p>Configure parameters and click 'Synthesize Asset' to initialize neural generation.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Cause-Driven Charity Section (Footer) -->
+    <footer class="mt-16 border-t border-gray-800 bg-darksurface/90">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="glass-panel rounded-2xl p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-8 border-indigo-500/20 bg-gradient-to-r from-indigo-950/20 via-darksurface to-purple-950/20">
+                
+                <div class="space-y-3 max-w-xl text-center md:text-left">
+                    <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-semibold">
+                        <i class="fa-solid fa-heart-pulse"></i>
+                        <span>Philanthropic Initiative</span>
+                    </div>
+                    <h3 class="text-xl font-bold text-white">Empowering Lives Through Giving</h3>
+                    <p class="text-sm text-gray-300 leading-relaxed">
+                        95% of all contributions go directly towards Cancer Patient Support & School Education Initiatives (5% retained for server maintenance).
+                    </p>
+                    <div class="flex flex-wrap items-center justify-center md:justify-start gap-4 text-xs font-mono text-gray-400 pt-2">
+                        <span>Receiver: <strong class="text-white">ASKAR ALI</strong></span>
+                        <span>UPI ID: <strong id="upiIdText" class="text-indigo-400">donation1@postbank</strong></span>
+                    </div>
+                </div>
+
+                <div class="flex flex-col sm:flex-row items-center gap-6 bg-darkbase/60 p-4 rounded-xl border border-gray-800">
+                    <div class="bg-white p-2 rounded-lg shadow-md">
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?data=upi://pay?pa=donation1@postbank&pn=YUGRAAL_Cause" alt="UPI QR Code" class="w-24 h-24">
+                    </div>
+                    <div class="flex flex-col space-y-3 w-full">
+                        <button onclick="copyUpi()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs rounded-lg shadow transition-colors flex items-center justify-center space-x-2">
+                            <i class="fa-regular fa-copy"></i>
+                            <span id="upiCopyBtnText">Copy UPI ID</span>
+                        </button>
+                        <span class="text-[10px] text-center text-gray-500">Scan via any UPI App</span>
+                    </div>
+                </div>
+
+            </div>
+            <div class="mt-6 text-center text-xs text-gray-500">
+                &copy; 2025 NexusAI Forge Engine. Built with precision and purpose.
+            </div>
+        </div>
+    </footer>
+
+    <!-- Client Script -->
+    <script>
+        const samples = {
+            blog: `# Strategic Outline: The Future of [Topic]\n\n## 1. Executive Summary\n- Deconstructing current paradigms in [Topic]\n- Key market vectors driving acceleration by 2026\n\n## 2. Core Technological Architecture\n- Decentralized execution layers\n- Interoperability protocols and semantic indexing\n\n## 3. Actionable Framework & Implementation\n- Phase 1: Infrastructure audit & baseline calibration\n- Phase 2: Rapid prototype deployment\n- Phase 3: Scale optimization & feedback loops`,
+            copy: `🚀 BREAKING: The Ultimate Breakthrough in [Topic] is Here.\n\nStop wasting hours on outdated workflows. NexusAI Forge instantly empowers your team to deploy elite assets in seconds.\n\n✨ Key Benefits:\n- 10x faster execution velocity\n- Enterprise-grade semantic accuracy\n- Zero setup overhead\n\n👉 Claim your competitive edge today. Click below to initialize.`,
+            social: `1/ 🧵 The untold truth about [Topic] that experts won't tell you:\n\nFor years, we've relied on fragmented tools that drain efficiency. But the landscape has permanently shifted.\n\nHere is the exact playbook to master it in 5 steps: 👇\n\n2/ First, discard legacy assumptions. Modern workflows demand modular architecture and real-time synthesis.\n\n3/ Second, leverage automated feedback loops. Consistency trumps intensity every single time.\n\n4/ Retweet this thread if you found value, and follow for daily deep dives.`,
+            email: `Subject: Accelerating your Q3 pipeline in [Topic]\n\nHi [Name],\n\nNoticed your recent expansion into modern systems. Most teams struggle with scaling content velocity without losing brand voice.\n\nWe built NexusAI Forge specifically to solve this bottleneck—generating production-ready campaigns in under 60 seconds.\n\nOpen to a quick 5-minute async walkthrough this week?\n\nBest regards,\n[Your Name]`
+        };
+
+        function generateContent() {
+            const type = document.getElementById('contentType').value;
+            const topic = document.getElementById('topicInput').value.trim() || 'Digital Transformation';
+            const btn = document.getElementById('generateBtn');
+            const container = document.getElementById('outputContainer');
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i><span>Synthesizing...</span>';
+
+            setTimeout(() => {
+                let text = samples[type] || samples.blog;
+                text = text.replaceAll('[Topic]', topic);
+                
+                container.innerHTML = `<pre class="whitespace-pre-wrap font-mono text-sm text-indigo-100">${escapeHtml(text)}</pre>`;
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i><span>Synthesize Asset</span>';
+                
+                // Increment token counter slightly for UX immersion
+                const tokenEl = document.getElementById('statTokens');
+                let current = parseInt(tokenEl.innerText.replace(',', '')) + Math.floor(Math.random() * 250) + 120;
+                tokenEl.innerText = current.toLocaleString();
+            }, 800);
+        }
+
+        function copyOutput() {
+            const container = document.getElementById('outputContainer');
+            const text = container.innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                const copyText = document.getElementById('copyText');
+                copyText.innerText = 'Copied!';
+                setTimeout(() => copyText.innerText = 'Copy', 2000);
+            });
+        }
+
+        function clearOutput() {
+            document.getElementById('outputContainer').innerHTML = `
+                <div class="text-gray-500 italic flex flex-col items-center justify-center h-full py-16">
+                    <i class="fa-solid fa-terminal text-4xl mb-3 text-gray-600"></i>
+                    <p>Configure parameters and click 'Synthesize Asset' to initialize neural generation.</p>
+                </div>
+            `;
+        }
+
+        function copyUpi() {
+            navigator.clipboard.writeText('donation1@postbank').then(() => {
+                const btnText = document.getElementById('upiCopyBtnText');
+                btnText.innerText = 'Copied Successfully!';
+                setTimeout(() => btnText.innerText = 'Copy UPI ID', 2000);
+            });
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+</html>
