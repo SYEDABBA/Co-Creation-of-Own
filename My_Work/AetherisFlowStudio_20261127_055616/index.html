@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aetheris Flow Studio | Deep Work & Ambient Matrix</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            cyber: {
+              50: '#f0fdfa',
+              400: '#2dd4bf',
+              500: '#14b8a6',
+              600: '#0d9488',
+              800: '#115e59',
+              900: '#042f2e',
+            },
+            void: {
+              950: '#030712',
+              900: '#0b0f19',
+              850: '#111827',
+              800: '#1f2937',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background: radial-gradient(circle at 50% 0%, #0d2826 0%, #030712 70%);
+      min-height: 100vh;
+      color: #e2e8f0;
+    }
+    .glass-card {
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    }
+    .glass-card-glow {
+      background: rgba(17, 24, 39, 0.75);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(45, 212, 191, 0.25);
+      box-shadow: 0 0 25px rgba(20, 184, 166, 0.15);
+    }
+    .glow-cyan {
+      box-shadow: 0 0 20px rgba(45, 212, 191, 0.35);
+    }
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(3, 7, 18, 0.5);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(45, 212, 191, 0.3);
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(45, 212, 191, 0.6);
+    }
+  </style>
+</head>
+<body class="font-sans selection:bg-teal-500 selection:text-white flex flex-col justify-between overflow-x-hidden">
+
+  <!-- Top Header Navigation -->
+  <header class="w-full border-b border-white/10 glass-card sticky top-0 z-50 px-6 py-4 flex items-center justify-between">
+    <div class="flex items-center space-x-3">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-teal-500 to-emerald-400 p-[2px] flex items-center justify-center glow-cyan">
+        <div class="w-full h-full bg-void-950 rounded-[10px] flex items-center justify-center">
+          <svg class="w-5 h-5 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+          </svg>
+        </div>
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-1.5">
+            AETHERIS <span class="text-teal-400 font-mono text-sm tracking-widest uppercase">Flow 2.0</span>
+          </h1>
+          <span class="px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider bg-teal-500/10 text-teal-300 border border-teal-500/30 rounded-full">Hyperfocus Node</span>
+        </div>
+        <p class="text-xs text-slate-400 hidden sm:block">Next-Gen Binaural Audio Engine & Deep Flow Command Center</p>
+      </div>
+    </div>
+
+    <!-- Quick Stats Telemetry -->
+    <div class="flex items-center space-x-4">
+      <div class="hidden md:flex items-center space-x-3 text-xs font-mono bg-void-900/80 px-3 py-1.5 rounded-lg border border-white/5">
+        <div class="flex items-center space-x-1.5">
+          <span class="w-2 h-2 rounded-full bg-teal-400 animate-pulse"></span>
+          <span class="text-slate-400">STATUS:</span>
+          <span class="text-teal-300 font-semibold">OPTIMAL</span>
+        </div>
+        <div class="text-slate-600">|</div>
+        <div class="flex items-center space-x-1.5">
+          <span class="text-slate-400">COMPLETED:</span>
+          <span id="globalCompletedTasks" class="text-teal-400 font-bold">0</span>
+        </div>
+      </div>
+      <button id="toggleAudioBtn" class="px-4 py-2 rounded-xl text-xs font-semibold tracking-wide flex items-center gap-2 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-400 hover:to-emerald-400 text-void-950 font-bold transition shadow-lg shadow-teal-500/20 active:scale-95">
+        <svg id="audioStateIcon" class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+          <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"/>
+        </svg>
+        <span id="audioBtnText">ENGAGE SOUNDSCAPE</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Content Dashboard -->
+  <main class="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 space-y-8 flex-grow">
+    
+    <!-- Top Grid: Interactive Synthesizer & Pomodoro -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      
+      <!-- Module 1: Binaural Synthesizer & Waveform (7 cols) -->
+      <section class="lg:col-span-7 glass-card rounded-2xl p-6 border border-white/10 relative overflow-hidden flex flex-col justify-between">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center space-x-2.5">
+            <div class="p-2 bg-teal-500/10 rounded-lg text-teal-400 border border-teal-500/20">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
+              </svg>
+            </div>
+            <div>
+              <h2 class="text-base font-bold text-white tracking-wide">Bio-Acoustic Binaural Synthesizer</h2>
+              <p class="text-xs text-slate-400">Neural brainwave synchronization for deep analytical focus</p>
+            </div>
+          </div>
+          <div class="text-right">
+            <span id="synthPresetLabel" class="text-xs font-mono font-semibold px-2.5 py-1 rounded bg-teal-950/80 text-teal-300 border border-teal-500/30">432Hz Alpha State</span>
+          </div>
+        </div>
+
+        <!-- Realtime Canvas Visualizer -->
+        <div class="relative w-full h-36 bg-void-950/90 rounded-xl overflow-hidden border border-white/5 my-2 flex items-center justify-center">
+          <canvas id="audioCanvas" class="w-full h-full"></canvas>
+          <div id="audioVisualPlaceholder" class="absolute inset-0 flex items-center justify-center pointer-events-none text-slate-500 font-mono text-xs">
+            [ Synthesizer Idle - Press 'Engage Soundscape' ]
+          </div>
+        </div>
+
+        <!-- Preset Selectors -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mt-4">
+          <button class="preset-btn active px-3 py-2 text-xs font-mono rounded-lg border border-teal-500/50 bg-teal-500/20 text-teal-300 font-semibold hover:bg-teal-500/30 transition text-center" data-preset="alpha">
+            Alpha 432Hz
+            <span class="block text-[9px] text-teal-400/70 font-sans">Calm Clarity</span>
+          </button>
+          <button class="preset-btn px-3 py-2 text-xs font-mono rounded-lg border border-white/10 bg-void-900/50 text-slate-300 hover:border-teal-500/40 hover:text-white transition text-center" data-preset="theta">
+            Theta 6Hz
+            <span class="block text-[9px] text-slate-400 font-sans">Deep Flow</span>
+          </button>
+          <button class="preset-btn px-3 py-2 text-xs font-mono rounded-lg border border-white/10 bg-void-900/50 text-slate-300 hover:border-teal-500/40 hover:text-white transition text-center" data-preset="gamma">
+            Gamma 40Hz
+            <span class="block text-[9px] text-slate-400 font-sans">Peak Cognition</span>
+          </button>
+          <button class="preset-btn px-3 py-2 text-xs font-mono rounded-lg border border-white/10 bg-void-900/50 text-slate-300 hover:border-teal-500/40 hover:text-white transition text-center" data-preset="pinknoise">
+            Pink Resonance
+            <span class="block text-[9px] text-slate-400 font-sans">Noise Masking</span>
+          </button>
+        </div>
+
+        <!-- Controls: Master Gain & Lowpass Filter -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-5 pt-4 border-t border-white/10 font-mono text-xs">
+          <div>
+            <div class="flex justify-between text-slate-400 mb-1.5">
+              <span>VOLUME GAIN</span>
+              <span id="volumeVal" class="text-teal-400">60%</span>
+            </div>
+            <input id="volumeSlider" type="range" min="0" max="100" value="60" class="w-full accent-teal-400 cursor-pointer bg-slate-700 h-1.5 rounded-lg">
+          </div>
+          <div>
+            <div class="flex justify-between text-slate-400 mb-1.5">
+              <span>ATMOSPHERIC FILTER</span>
+              <span id="filterVal" class="text-teal-400">1200 Hz</span>
+            </div>
+            <input id="filterSlider" type="range" min="200" max="4000" value="1200" class="w-full accent-teal-400 cursor-pointer bg-slate-700 h-1.5 rounded-lg">
+          </div>
+        </div>
+      </section>
+
+      <!-- Module 2: Holographic Deep Work Pomodoro (5 cols) -->
+      <section class="lg:col-span-5 glass-card rounded-2xl p-6 border border-white/10 flex flex-col justify-between">
+        <div class="flex items-center justify-between mb-2">
+          <div class="flex items-center space-x-2.5">
+            <div class="p-2 bg-emerald-500/10 rounded-lg text-emerald-400 border border-emerald-500/20">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+            </div>
+            <div>
+              <h2 class="text-base font-bold text-white tracking-wide">Deep Work Chrono</h2>
+              <p class="text-xs text-slate-400">High-intensity focus cadence</p>
+            </div>
+          </div>
+          <div class="flex gap-1.5 bg-void-900/90 p-1 rounded-lg border border-white/5 text-[11px] font-mono">
+            <button id="modeFocus" class="px-2.5 py-1 rounded bg-teal-500 text-void-950 font-bold transition">FOCUS</button>
+            <button id="modeShort" class="px-2.5 py-1 rounded text-slate-400 hover:text-white transition">REST</button>
+            <button id="modeLong" class="px-2.5 py-1 rounded text-slate-400 hover:text-white transition">DEEP REST</button>
+          </div>
+        </div>
+
+        <!-- Circular Timer Visualizer -->
+        <div class="flex flex-col items-center justify-center my-4">
+          <div class="relative w-48 h-48 flex items-center justify-center">
+            <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+              <!-- Background track -->
+              <circle cx="50" cy="50" r="42" stroke="rgba(255,255,255,0.06)" stroke-width="6" fill="none"></circle>
+              <!-- Progress ring -->
+              <circle id="timerCircle" cx="50" cy="50" r="42" stroke="#2dd4bf" stroke-width="6" stroke-dasharray="264" stroke-dashoffset="0" stroke-linecap="round" fill="none" class="transition-all duration-300"></circle>
+            </svg>
+            <div class="absolute flex flex-col items-center">
+              <span id="timerDisplay" class="text-4xl font-mono font-extrabold text-white tracking-tight">25:00</span>
+              <span id="timerStatusLabel" class="text-[10px] font-mono tracking-widest text-teal-400 uppercase mt-1">FLOW SESSION</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pomodoro Action Controls -->
+        <div class="flex items-center justify-center space-x-3">
+          <button id="startTimerBtn" class="px-6 py-2.5 rounded-xl text-xs font-mono font-bold tracking-wider bg-teal-400 hover:bg-teal-300 text-void-950 transition flex items-center gap-2 shadow-lg shadow-teal-500/20 active:scale-95">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M4.5 3.5a1 1 0 011.5-.866l10 5.773a1 1 0 010 1.732l-10 5.774A1 1 0 014.5 14.5v-11z"/>
+            </svg>
+            START SESSION
+          </button>
+          <button id="resetTimerBtn" class="px-4 py-2.5 rounded-xl text-xs font-mono font-semibold tracking-wider bg-void-900 border border-white/10 hover:border-white/20 text-slate-300 hover:text-white transition active:scale-95">
+            RESET
+          </button>
+        </div>
+      </section>
+    </div>
+
+    <!-- Module 3: Priority Matrix & Task Command Engine -->
+    <section class="glass-card rounded-2xl p-6 border border-white/10">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-white/10">
+        <div>
+          <div class="flex items-center space-x-2.5">
+            <div class="p-2 bg-indigo-500/10 rounded-lg text-indigo-400 border border-indigo-500/20">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+              </svg>
+            </div>
+            <div>
+              <h2 class="text-base font-bold text-white tracking-wide">Tactical Execution Matrix</h2>
+              <p class="text-xs text-slate-400">Eisenhower Quadrant & Deep Work Prioritization with Local Persistence</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Add Task Input Form -->
+        <form id="taskForm" class="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+          <input id="taskInput" type="text" placeholder="Capture mission task..." required class="px-4 py-2 bg-void-900/90 border border-white/10 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-teal-400 w-full sm:w-64 transition" />
+          <select id="taskPriority" class="px-3 py-2 bg-void-900/90 border border-white/10 rounded-xl text-xs text-slate-300 focus:outline-none focus:border-teal-400 transition font-mono">
+            <option value="p1">Q1: Do First (Critical)</option>
+            <option value="p2">Q2: Schedule (Deep Flow)</option>
+            <option value="p3">Q3: Delegate (Quick Wins)</option>
+            <option value="p4">Q4: Eliminate (Backlog)</option>
+          </select>
+          <button type="submit" class="px-4 py-2 bg-teal-500 hover:bg-teal-400 text-void-950 font-bold text-xs rounded-xl transition flex items-center justify-center gap-1.5 active:scale-95">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+            <span>ADD TASK</span>
+          </button>
+        </form>
+      </div>
+
+      <!-- Eisenhower 4 Quadrants -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
+        
+        <!-- Quadrant 1 -->
+        <div class="bg-void-950/60 rounded-xl p-4 border border-rose-500/20 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-xs font-mono font-bold text-rose-400 flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+                Q1 // URGENT & IMPORTANT
+              </span>
+              <span id="countQ1" class="text-[10px] font-mono px-2 py-0.5 rounded bg-rose-500/10 text-rose-300 border border-rose-500/20">0</span>
+            </div>
+            <ul id="listQ1" class="space-y-2 min-h-[140px]"></ul>
+          </div>
+          <p class="text-[10px] font-mono text-slate-600 mt-2 text-right">Direct Action</p>
+        </div>
+
+        <!-- Quadrant 2 -->
+        <div class="bg-void-950/60 rounded-xl p-4 border border-teal-500/20 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-xs font-mono font-bold text-teal-400 flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-teal-500"></span>
+                Q2 // NOT URGENT & IMPORTANT
+              </span>
+              <span id="countQ2" class="text-[10px] font-mono px-2 py-0.5 rounded bg-teal-500/10 text-teal-300 border border-teal-500/20">0</span>
+            </div>
+            <ul id="listQ2" class="space-y-2 min-h-[140px]"></ul>
+          </div>
+          <p class="text-[10px] font-mono text-slate-600 mt-2 text-right">High Leverage</p>
+        </div>
+
+        <!-- Quadrant 3 -->
+        <div class="bg-void-950/60 rounded-xl p-4 border border-amber-500/20 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-xs font-mono font-bold text-amber-400 flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                Q3 // URGENT & NOT IMPORTANT
+              </span>
+              <span id="countQ3" class="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/20">0</span>
+            </div>
+            <ul id="listQ3" class="space-y-2 min-h-[140px]"></ul>
+          </div>
+          <p class="text-[10px] font-mono text-slate-600 mt-2 text-right">Delegate</p>
+        </div>
+
+        <!-- Quadrant 4 -->
+        <div class="bg-void-950/60 rounded-xl p-4 border border-slate-700/50 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-xs font-mono font-bold text-slate-400 flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-slate-500"></span>
+                Q4 // NOT URGENT / UNIMPORTANT
+              </span>
+              <span id="countQ4" class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">0</span>
+            </div>
+            <ul id="listQ4" class="space-y-2 min-h-[140px]"></ul>
+          </div>
+          <p class="text-[10px] font-mono text-slate-600 mt-2 text-right">Backlog</p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- CAUSE-DRIVEN CHARITY & HUMANITARIAN SUPPORT SECTION -->
+    <section class="glass-card-glow rounded-3xl p-8 border border-teal-500/30 relative overflow-hidden my-8">
+      <div class="absolute -right-16 -bottom-16 w-64 h-64 bg-teal-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="absolute -left-16 -top-16 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+      <div class="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+        <!-- Left description -->
+        <div class="lg:col-span-8 space-y-4">
+          <div class="inline-flex items-center space-x-2 px-3 py-1 bg-teal-500/10 border border-teal-500/30 rounded-full">
+            <svg class="w-4 h-4 text-rose-400 animate-pulse" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"/>
+            </svg>
+            <span class="text-xs font-mono font-bold tracking-wider text-teal-300 uppercase">Humanity First Initiative</span>
+          </div>
+
+          <h3 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight leading-snug">
+            Empower Vulnerable Lives & Fuel Children's Future
+          </h3>
+
+          <!-- MANDATORY CLEAR MESSAGE -->
+          <div class="p-4 rounded-2xl bg-teal-950/40 border border-teal-500/20 text-slate-200 text-sm leading-relaxed font-sans">
+            <p class="font-medium text-emerald-300 flex items-start gap-2.5">
+              <svg class="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+              </svg>
+              <span>
+                <strong>Transparent Impact Commitment:</strong> 95% of all contributions go directly towards Cancer Patient Support &amp; School Education Initiatives (5% retained for server maintenance).
+              </span>
+            </p>
+          </div>
+
+          <p class="text-xs text-slate-400">
+            Every micro-donation subsidizes life-saving chemotherapy medicines for low-income patients and funds books, tuition kits, and digital labs for underprivileged students.
+          </p>
+
+          <!-- Interactive Copy Details -->
+          <div class="flex flex-wrap items-center gap-4 pt-2">
+            <div class="bg-void-900/90 border border-white/10 px-4 py-2.5 rounded-xl font-mono text-xs flex items-center space-x-3">
+              <span class="text-slate-400">UPI ID:</span>
+              <span id="upiIdText" class="text-teal-300 font-bold tracking-wide">donation1@postbank</span>
+            </div>
+            <button id="copyUpiBtn" class="px-4 py-2.5 rounded-xl bg-teal-500/20 hover:bg-teal-500/30 border border-teal-500/40 text-teal-300 hover:text-white text-xs font-mono font-semibold transition flex items-center gap-2 active:scale-95">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+              </svg>
+              <span id="copyBtnLabel">Copy UPI ID</span>
+            </button>
+            <span class="text-xs text-slate-400 font-mono">Beneficiary: <strong class="text-slate-200">ASKAR ALI</strong></span>
+          </div>
+        </div>
+
+        <!-- Right QR Code Box -->
+        <div class="lg:col-span-4 flex flex-col items-center justify-center">
+          <div class="p-4 rounded-2xl bg-white shadow-2xl shadow-teal-500/10 border-4 border-teal-400/40 flex flex-col items-center group transition transform hover:scale-[1.02]">
+            <!-- Dynamic UPI QR -->
+            <img 
+              src="https://api.qrserver.com/v1/create-qr-code/?data=upi://pay?pa=donation1@postbank&pn=YUGRAAL_Cause&size=200x200&margin=4" 
+              alt="UPI Donation QR Code"
+              class="w-44 h-44 rounded-lg object-contain"
+              loading="lazy"
+            />
+            <div class="mt-3 text-center">
+              <p class="text-[11px] font-bold text-void-950 font-mono uppercase tracking-wider">Scan &amp; Support via UPI</p>
+              <p class="text-[9px] text-slate-600 font-sans mt-0.5">GooglePay, PhonePe, Paytm, BHIM</p>
+            </div>
+          </div>
+          <div class="mt-3 flex items-center gap-1.5 text-[11px] text-teal-300 font-mono">
+            <svg class="w-3.5 h-3.5 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+            </svg>
+            <span>100% Direct &amp; Verified Channel</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Bottom Minimal Footer -->
+  <footer class="w-full border-t border-white/5 py-6 px-6 glass-card text-center text-xs text-slate-500 font-mono flex flex-col sm:flex-row items-center justify-between gap-4">
+    <div>
+      AETHERIS FLOW ENGINE &copy; <span id="yearSpan"></span> &mdash; Crafted for Visionaries &amp; Deep Thinkers.
+    </div>
+    <div class="flex items-center space-x-4 text-[11px]">
+      <span class="text-teal-400">ZERO ADS &bull; ZERO TRACKERS &bull; OPEN UTILITY</span>
+    </div>
+  </footer>
+
+  <!-- Toast Notification element -->
+  <div id="toastBox" class="fixed bottom-6 right-6 z-50 transform translate-y-24 opacity-0 transition-all duration-300 pointer-events-none px-4 py-3 rounded-xl bg-teal-500 text-void-950 font-bold text-xs font-mono shadow-2xl flex items-center gap-2">
+    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+      <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+    </svg>
+    <span id="toastMsg">Notification</span>
+  </div>
+
+  <!-- JavaScript Application Logic -->
+  <script>
+    // Set current year
+    document.getElementById('yearSpan').textContent = new Date().getFullYear();
+
+    /* ==========================================
+       1. WEB AUDIO SYNTHESIZER & VISUALIZER ENGINE
+       ========================================== */
+    let audioCtx = null;
+    let isAudioPlaying = false;
+    let masterGain = null;
+    let biquadFilter = null;
+    let analyser = null;
+    let animFrameId = null;
+    let activeOscillators = [];
+    let activeNoiseNode = null;
+    let currentPreset = 'alpha';
+
+    const toggleAudioBtn = document.getElementById('toggleAudioBtn');
+    const audioBtnText = document.getElementById('audioBtnText');
+    const audioStateIcon = document.getElementById('audioStateIcon');
+    const volumeSlider = document.getElementById('volumeSlider');
+    const volumeVal = document.getElementById('volumeVal');
+    const filterSlider = document.getElementById('filterSlider');
+    const filterVal = document.getElementById('filterVal');
+    const canvas = document.getElementById('audioCanvas');
+    const canvasCtx = canvas.getContext('2d');
+    const placeholder = document.getElementById('audioVisualPlaceholder');
+    const synthPresetLabel = document.getElementById('synthPresetLabel');
+
+    // Resize Canvas
+    function resizeCanvas() {
+      canvas.width = canvas.parentElement.clientWidth;
+      canvas.height = canvas.parentElement.clientHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function initAudio() {
+      if (!audioCtx) {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioContext();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+
+      masterGain = audioCtx.createGain();
+      masterGain.gain.setValueAtTime(volumeSlider.value / 100, audioCtx.currentTime);
+
+      biquadFilter = audioCtx.createBiquadFilter();
+      biquadFilter.type = 'lowpass';
+      biquadFilter.frequency.setValueAtTime(parseFloat(filterSlider.value), audioCtx.currentTime);
+
+      analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 256;
+
+      masterGain.connect(biquadFilter);
+      biquadFilter.connect(analyser);
+      analyser.connect(audioCtx.destination);
+    }
+
+    function stopSynthesizer() {
+      activeOscillators.forEach(osc => {
+        try { osc.stop(); osc.disconnect(); } catch (e) {}
+      });
+      activeOscillators = [];
+      if (activeNoiseNode) {
+        try { activeNoiseNode.stop(); activeNoiseNode.disconnect(); } catch (e) {}
+        activeNoiseNode = null;
+      }
+    }
+
+    function createPinkNoiseBuffer() {
+      const bufferSize = audioCtx.sampleRate * 2;
+      const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const data = buffer.getChannelData(0);
+      let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+      for (let i = 0; i < bufferSize; i++) {
+        const white = Math.random() * 2 - 1;
+        b0 = 0.99886 * b0 + white * 0.0555179;
+        b1 = 0.99332 * b1 + white * 0.0750759;
+        b2 = 0.96900 * b2 + white * 0.1538520;
+        b3 = 0.86650 * b3 + white * 0.3104856;
+        b4 = 0.55000 * b4 + white * 0.5329522;
+        b5 = -0.7616 * b5 - white * 0.0168980;
+        data[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.11;
+        b6 = white * 0.115926;
+      }
+      return buffer;
+    }
+
+    function buildPreset(type) {
+      stopSynthesizer();
+      if (!audioCtx) return;
+
+      if (type === 'alpha') {
+        // 432Hz Carrier with 10Hz Alpha difference (432Hz Left, 442Hz Right)
+        const oscLeft = audioCtx.createOscillator();
+        const oscRight = audioCtx.createOscillator();
+        const merger = audioCtx.createChannelMerger(2);
+
+        oscLeft.type = 'sine';
+        oscLeft.frequency.setValueAtTime(432, audioCtx.currentTime);
+
+        oscRight.type = 'sine';
+        oscRight.frequency.setValueAtTime(442, audioCtx.currentTime);
+
+        oscLeft.connect(merger, 0, 0);
+        oscRight.connect(merger, 0, 1);
+        merger.connect(masterGain);
+
+        oscLeft.start();
+        oscRight.start();
+        activeOscillators = [oscLeft, oscRight];
+        synthPresetLabel.textContent = '432Hz Alpha State (10Hz Beat)';
+      } else if (type === 'theta') {
+        // Deep Theta 6Hz beat (216Hz & 222Hz)
+        const oscLeft = audioCtx.createOscillator();
+        const oscRight = audioCtx.createOscillator();
+        const merger = audioCtx.createChannelMerger(2);
+
+        oscLeft.type = 'sine';
+        oscLeft.frequency.setValueAtTime(216, audioCtx.currentTime);
+
+        oscRight.type = 'triangle';
+        oscRight.frequency.setValueAtTime(222, audioCtx.currentTime);
+
+        oscLeft.connect(merger, 0, 0);
+        oscRight.connect(merger, 0, 1);
+        merger.connect(masterGain);
+
+        oscLeft.start();
+        oscRight.start();
+        activeOscillators = [oscLeft, oscRight];
+        synthPresetLabel.textContent = 'Deep Theta (6Hz Flow Beat)';
+      } else if (type === 'gamma') {
+        // High Cognitive Gamma (40Hz Beat: 400Hz & 440Hz)
+        const oscLeft = audioCtx.createOscillator();
+        const oscRight = audioCtx.createOscillator();
+        const merger = audioCtx.createChannelMerger(2);
+
+        oscLeft.type = 'sawtooth';
+        oscLeft.frequency.setValueAtTime(200, audioCtx.currentTime);
+
+        oscRight.type = 'sine';
+        oscRight.frequency.setValueAtTime(240, audioCtx.currentTime);
+
+        oscLeft.connect(merger, 0, 0);
+        oscRight.connect(merger, 0, 1);
+        merger.connect(masterGain);
+
+        oscLeft.start();
+        oscRight.start();
+        activeOscillators = [oscLeft, oscRight];
+        synthPresetLabel.textContent = 'Gamma Peak Focus (40Hz Beat)';
+      } else if (type === 'pinknoise') {
+        // Masking Pink Noise
+        const noiseBuffer = createPinkNoiseBuffer();
+        const noiseSource = audioCtx.createBufferSource();
+        noiseSource.buffer = noiseBuffer;
+        noiseSource.loop = true;
+        noiseSource.connect(masterGain);
+        noiseSource.start();
+        activeNoiseNode = noiseSource;
+        synthPresetLabel.textContent = 'Organic Pink Noise Sanctuary';
+      }
+    }
+
+    function startVisualizer() {
+      if (!analyser) return;
+      const bufferLength = analyser.frequencyBinCount;
+      const dataArray = new Uint8Array(bufferLength);
+
+      function draw() {
+        animFrameId = requestAnimationFrame(draw);
+        analyser.getByteFrequencyData(dataArray);
+
+        canvasCtx.fillStyle = '#030712';
+        canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+
+        const barWidth = (canvas.width / bufferLength) * 2.2;
+        let barHeight;
+        let x = 0;
+
+        for (let i = 0; i < bufferLength; i++) {
+          barHeight = (dataArray[i] / 255) * (canvas.height * 0.85);
+          const gradient = canvasCtx.createLinearGradient(0, canvas.height, 0, 0);
+          gradient.addColorStop(0, '#0d9488');
+          gradient.addColorStop(0.6, '#2dd4bf');
+          gradient.addColorStop(1, '#a7f3d0');
+
+          canvasCtx.fillStyle = gradient;
+          canvasCtx.fillRect(x, canvas.height - barHeight, barWidth - 1, barHeight);
+
+          x += barWidth + 1;
+        }
+      }
+      draw();
+    }
+
+    toggleAudioBtn.addEventListener('click', () => {
+      if (!isAudioPlaying) {
+        initAudio();
+        buildPreset(currentPreset);
+        startVisualizer();
+        isAudioPlaying = true;
+        audioBtnText.textContent = 'MUTE SOUNDSCAPE';
+        toggleAudioBtn.classList.replace('from-teal-500', 'from-rose-500');
+        toggleAudioBtn.classList.replace('to-emerald-500', 'to-red-500');
+        placeholder.style.display = 'none';
+        showToast('Soundscape activated: Neural sync engaged.');
+      } else {
+        stopSynthesizer();
+        if (animFrameId) cancelAnimationFrame(animFrameId);
+        canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
+        isAudioPlaying = false;
+        audioBtnText.textContent = 'ENGAGE SOUNDSCAPE';
+        toggleAudioBtn.classList.replace('from-rose-500', 'from-teal-500');
+        toggleAudioBtn.classList.replace('to-red-500', 'to-emerald-500');
+        placeholder.style.display = 'flex';
+        showToast('Soundscape muted.');
+      }
+    });
+
+    // Preset Buttons
+    document.querySelectorAll('.preset-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.preset-btn').forEach(b => {
+          b.classList.remove('active', 'border-teal-500/50', 'bg-teal-500/20', 'text-teal-300');
+          b.classList.add('border-white/10', 'bg-void-900/50', 'text-slate-300');
+        });
+        btn.classList.add('active', 'border-teal-500/50', 'bg-teal-500/20', 'text-teal-300');
+        btn.classList.remove('border-white/10', 'bg-void-900/50', 'text-slate-300');
+
+        currentPreset = btn.getAttribute('data-preset');
+        if (isAudioPlaying) {
+          buildPreset(currentPreset);
+        } else {
+          const labels = {
+            alpha: '432Hz Alpha State',
+            theta: 'Deep Theta (6Hz)',
+            gamma: 'Gamma Peak Focus (40Hz)',
+            pinknoise: 'Pink Noise Sanctuary'
+          };
+          synthPresetLabel.textContent = labels[currentPreset];
+        }
+      });
+    });
+
+    volumeSlider.addEventListener('input', (e) => {
+      const val = e.target.value;
+      volumeVal.textContent = val + '%';
+      if (masterGain && audioCtx) {
+        masterGain.gain.setValueAtTime(val / 100, audioCtx.currentTime);
+      }
+    });
+
+    filterSlider.addEventListener('input', (e) => {
+      const val = e.target.value;
+      filterVal.textContent = val + ' Hz';
+      if (biquadFilter && audioCtx) {
+        biquadFilter.frequency.setValueAtTime(parseFloat(val), audioCtx.currentTime);
+      }
+    });
+
+
+    /* ==========================================
+       2. HOLOGRAPHIC POMODORO CHRONO ENGINE
+       ========================================== */
+    let timerInterval = null;
+    let timeLeft = 25 * 60; // default 25 min
+    let totalDuration = 25 * 60;
+    let isRunning = false;
+    let currentTimerMode = 'focus';
+
+    const timerDisplay = document.getElementById('timerDisplay');
+    const timerCircle = document.getElementById('timerCircle');
+    const startTimerBtn = document.getElementById('startTimerBtn');
+    const resetTimerBtn = document.getElementById('resetTimerBtn');
+    const timerStatusLabel = document.getElementById('timerStatusLabel');
+    const modeFocus = document.getElementById('modeFocus');
+    const modeShort = document.getElementById('modeShort');
+    const modeLong = document.getElementById('modeLong');
+
+    const CIRCLE_CIRCUMFERENCE = 264;
+
+    function updateTimerUI() {
+      const minutes = Math.floor(timeLeft / 60);
+      const seconds = timeLeft % 60;
+      timerDisplay.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+
+      const progress = (timeLeft / totalDuration);
+      const offset = CIRCLE_CIRCUMFERENCE * (1 - progress);
+      timerCircle.style.strokeDashoffset = offset;
+    }
+
+    function setTimerMode(mode, durationMinutes, label) {
+      clearInterval(timerInterval);
+      isRunning = false;
+      currentTimerMode = mode;
+      totalDuration = durationMinutes * 60;
+      timeLeft = totalDuration;
+      timerStatusLabel.textContent = label;
+      startTimerBtn.innerHTML = `
+        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+          <path d="M4.5 3.5a1 1 0 011.5-.866l10 5.773a1 1 0 010 1.732l-10 5.774A1 1 0 014.5 14.5v-11z"/>
+        </svg> START SESSION`;
+
+      [modeFocus, modeShort, modeLong].forEach(btn => {
+        btn.className = 'px-2.5 py-1 rounded text-slate-400 hover:text-white transition';
+      });
+
+      if (mode === 'focus') modeFocus.className = 'px-2.5 py-1 rounded bg-teal-500 text-void-950 font-bold transition';
+      if (mode === 'short') modeShort.className = 'px-2.5 py-1 rounded bg-teal-500 text-void-950 font-bold transition';
+      if (mode === 'long') modeLong.className = 'px-2.5 py-1 rounded bg-teal-500 text-void-950 font-bold transition';
+
+      updateTimerUI();
+    }
+
+    modeFocus.addEventListener('click', () => setTimerMode('focus', 25, 'FLOW SESSION'));
+    modeShort.addEventListener('click', () => setTimerMode('short', 5, 'SHORT BREAK'));
+    modeLong.addEventListener('click', () => setTimerMode('long', 15, 'DEEP RECHARGE'));
+
+    function playToneAlert() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
+      osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.5); // A5
+      gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.8);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.8);
+    }
+
+    startTimerBtn.addEventListener('click', () => {
+      if (!isRunning) {
+        isRunning = true;
+        startTimerBtn.innerHTML = `
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
+          </svg> PAUSE`;
+        timerInterval = setInterval(() => {
+          if (timeLeft > 0) {
+            timeLeft--;
+            updateTimerUI();
+          } else {
+            clearInterval(timerInterval);
+            isRunning = false;
+            playToneAlert();
+            showToast('Timer Cycle Complete! Well done.');
+            startTimerBtn.innerHTML = 'CYCLE COMPLETED';
+          }
+        }, 1000);
+      } else {
+        clearInterval(timerInterval);
+        isRunning = false;
+        startTimerBtn.innerHTML = `
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M4.5 3.5a1 1 0 011.5-.866l10 5.773a1 1 0 010 1.732l-10 5.774A1 1 0 014.5 14.5v-11z"/>
+          </svg> RESUME`;
+      }
+    });
+
+    resetTimerBtn.addEventListener('click', () => {
+      clearInterval(timerInterval);
+      isRunning = false;
+      timeLeft = totalDuration;
+      updateTimerUI();
+      startTimerBtn.innerHTML = `
+        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+          <path d="M4.5 3.5a1 1 0 011.5-.866l10 5.773a1 1 0 010 1.732l-10 5.774A1 1 0 014.5 14.5v-11z"/>
+        </svg> START SESSION`;
+    });
+    updateTimerUI();
+
+
+    /* ==========================================
+       3. EISENHOWER TASK EXECUTION ENGINE
+       ========================================== */
+    const taskForm = document.getElementById('taskForm');
+    const taskInput = document.getElementById('taskInput');
+    const taskPriority = document.getElementById('taskPriority');
+    const globalCompletedTasks = document.getElementById('globalCompletedTasks');
+
+    let tasks = JSON.parse(localStorage.getItem('aetheris_tasks')) || [
+      { id: '1', text: 'Ship core v1 architecture sprint', priority: 'p1', completed: false },
+      { id: '2', text: 'Analyze low-latency buffer specs', priority: 'p2', completed: false },
+      { id: '3', text: 'Review team status logs', priority: 'p3', completed: false },
+      { id: '4', text: 'Clean legacy bookmark links', priority: 'p4', completed: true }
+    ];
+
+    function saveTasks() {
+      localStorage.setItem('aetheris_tasks', JSON.stringify(tasks));
+      renderTasks();
+    }
+
+    function renderTasks() {
+      const lists = {
+        p1: document.getElementById('listQ1'),
+        p2: document.getElementById('listQ2'),
+        p3: document.getElementById('listQ3'),
+        p4: document.getElementById('listQ4'),
+      };
+      const counts = {
+        p1: document.getElementById('countQ1'),
+        p2: document.getElementById('countQ2'),
+        p3: document.getElementById('countQ3'),
+        p4: document.getElementById('countQ4'),
+      };
+
+      Object.values(lists).forEach(el => el.innerHTML = '');
+      const countsObj = { p1: 0, p2: 0, p3: 0, p4: 0 };
+      let totalCompleted = 0;
+
+      tasks.forEach(task => {
+        if (!task.completed) countsObj[task.priority]++;
+        if (task.completed) totalCompleted++;
+
+        const li = document.createElement('li');
+        li.className = `flex items-center justify-between p-2 rounded-lg text-xs border transition ${task.completed ? 'bg-void-950/40 border-white/5 opacity-50 line-through text-slate-500' : 'bg-void-900/80 border-white/10 text-slate-200 hover:border-teal-400/40'}`;
+        li.innerHTML = `
+          <div class="flex items-center space-x-2 overflow-hidden pr-2">
+            <button onclick="toggleTask('${task.id}')" class="w-4 h-4 rounded border flex items-center justify-center shrink-0 transition ${task.completed ? 'bg-teal-400 border-teal-400 text-void-950' : 'border-slate-500 hover:border-teal-300'}">
+              ${task.completed ? '<svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg>' : ''}
+            </button>
+            <span class="truncate font-sans">${escapeHtml(task.text)}</span>
+          </div>
+          <button onclick="deleteTask('${task.id}')" class="text-slate-500 hover:text-rose-400 transition p-1 shrink-0" title="Remove">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        `;
+        lists[task.priority].appendChild(li);
+      });
+
+      counts.p1.textContent = countsObj.p1;
+      counts.p2.textContent = countsObj.p2;
+      counts.p3.textContent = countsObj.p3;
+      counts.p4.textContent = countsObj.p4;
+      globalCompletedTasks.textContent = totalCompleted;
+    }
+
+    window.toggleTask = function(id) {
+      const task = tasks.find(t => t.id === id);
+      if (task) {
+        task.completed = !task.completed;
+        saveTasks();
+        if (task.completed) showToast('Task checked off!');
+      }
+    };
+
+    window.deleteTask = function(id) {
+      tasks = tasks.filter(t => t.id !== id);
+      saveTasks();
+      showToast('Task removed.');
+    };
+
+    taskForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const text = taskInput.value.trim();
+      if (!text) return;
+      tasks.unshift({
+        id: Date.now().toString(),
+        text: text,
+        priority: taskPriority.value,
+        completed: false
+      });
+      taskInput.value = '';
+      saveTasks();
+      showToast('New mission item added.');
+    });
+
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+    renderTasks();
+
+
+    /* ==========================================
+       4. CHARITY UPI COPY & TOAST UTILITY
+       ========================================== */
+    const copyUpiBtn = document.getElementById('copyUpiBtn');
+    const upiIdText = document.getElementById('upiIdText');
+    const copyBtnLabel = document.getElementById('copyBtnLabel');
+    const toastBox = document.getElementById('toastBox');
+    const toastMsg = document.getElementById('toastMsg');
+    let toastTimeout = null;
+
+    function showToast(message) {
+      toastMsg.textContent = message;
+      toastBox.classList.remove('translate-y-24', 'opacity-0');
+      toastBox.classList.add('translate-y-0', 'opacity-100');
+      clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        toastBox.classList.remove('translate-y-0', 'opacity-100');
+        toastBox.classList.add('translate-y-24', 'opacity-0');
+      }, 3000);
+    }
+
+    copyUpiBtn.addEventListener('click', () => {
+      const textToCopy = upiIdText.textContent.trim();
+      navigator.clipboard.writeText(textToCopy).then(() => {
+        copyBtnLabel.textContent = 'COPIED!';
+        showToast('UPI ID copied: donation1@postbank');
+        setTimeout(() => {
+          copyBtnLabel.textContent = 'Copy UPI ID';
+        }, 2200);
+      }).catch(() => {
+        showToast('UPI ID: ' + textToCopy);
+      });
+    });
+  </script>
+</body>
+</html>
